@@ -2,24 +2,32 @@
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import VantaRingsBackground from "@/components/VantaRingsBackground";
 
 function AboutCard({ onClose }: { onClose: () => void }) {
+  const [vantaReady, setVantaReady] = useState(false);
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={{ opacity: 0, x: -120 }}
       transition={{ duration: 0.32, ease: 'easeInOut' }}
       onClick={onClose}
+      style={{ background: 'rgba(24,24,27,0.60)', backdropFilter: 'blur(6px)' }}
+      onAnimationComplete={() => setVantaReady(true)}
     >
+      {/* Vanta Rings Background Layer */}
+      <VantaRingsBackground zIndex={1} shouldInit={vantaReady} />
+      {/* Modal Card Layer */}
       <motion.div
         className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-xl w-full relative flex flex-col items-center"
         onClick={e => e.stopPropagation()}
         initial={{ scale: 0.96, y: 40, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.96, y: 40, opacity: 0 }}
+        exit={{ scale: 0.96, x: -120, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 32, opacity: { duration: 0.22 } }}
+        style={{ zIndex: 2 }}
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
         <img src="/headshot.png" alt="Headshot" className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-[#e6c47a] shadow-lg" />
