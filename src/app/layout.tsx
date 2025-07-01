@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, Space_Grotesk, Rajdhani, Audiowide, Major_Mono_Display, Saira, VT323, Rubik_Mono_One, Bungee, Exo } from "next/font/google";
 import "./globals.css";
+import AppShell from "../components/AppShell";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const syne = Syne({ variable: "--font-syne", subsets: ["latin"], display: "swap" });
+const spaceGrotesk = Space_Grotesk({ variable: "--font-space-grotesk", subsets: ["latin"], display: "swap" });
+const rajdhani = Rajdhani({ variable: "--font-rajdhani", subsets: ["latin"], display: "swap", weight: ["400", "500", "600", "700"] });
+const audiowide = Audiowide({ variable: "--font-audiowide", subsets: ["latin"], display: "swap", weight: "400" });
+const majorMono = Major_Mono_Display({ variable: "--font-major-mono", subsets: ["latin"], display: "swap", weight: "400" });
+const saira = Saira({ variable: "--font-saira", subsets: ["latin"], display: "swap", weight: ["400", "500", "600", "700"] });
+const vt323 = VT323({ variable: "--font-vt323", subsets: ["latin"], display: "swap", weight: "400" });
+const rubikMono = Rubik_Mono_One({ variable: "--font-rubik-mono", subsets: ["latin"], display: "swap", weight: "400" });
+const bungee = Bungee({ variable: "--font-bungee", subsets: ["latin"], display: "swap", weight: "400" });
+const exo = Exo({ variable: "--font-exo", subsets: ["latin"], display: "swap", weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,9 +27,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={[
+          syne.variable,
+          spaceGrotesk.variable,
+          rajdhani.variable,
+          audiowide.variable,
+          majorMono.variable,
+          saira.variable,
+          vt323.variable,
+          rubikMono.variable,
+          bungee.variable,
+          exo.variable,
+          "antialiased"
+        ].join(" ")}
+        style={{ fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}
       >
-        {children}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
