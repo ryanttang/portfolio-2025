@@ -58,6 +58,7 @@ const jobTitles = [
   "AI Specialist",
   "Web Designer",
   "Ecommerce Specialist",
+  "DJ"
 ];
 
 export function BottomMarquee() {

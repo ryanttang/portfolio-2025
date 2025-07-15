@@ -3,31 +3,54 @@ import { useEffect, useRef } from "react";
 import RINGS from "vanta/dist/vanta.rings.min";
 import * as THREE from "three";
 
-export default function VantaRingsBackground({ className = "", style = {}, zIndex = 1, shouldInit = true }: { className?: string; style?: React.CSSProperties; zIndex?: number; shouldInit?: boolean }) {
+type VantaRingsBackgroundProps = {
+  className?: string;
+  style?: React.CSSProperties;
+  zIndex?: number;
+  shouldInit?: boolean;
+};
+
+export default function VantaRingsBackground({ className = "", style = {}, zIndex = 1, shouldInit = true }: VantaRingsBackgroundProps) {
   const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffect = useRef<any>(null);
 
   useEffect(() => {
-    if (!shouldInit) {
-      if (vantaEffect.current) {
-        vantaEffect.current.destroy();
-        vantaEffect.current = null;
+    let timeout: NodeJS.Timeout | null = null;
+    function initVanta() {
+      if (!shouldInit || !vantaRef.current || vantaEffect.current) return;
+      if (vantaRef.current.offsetWidth === 0 || vantaRef.current.offsetHeight === 0) {
+        // Try again after a short delay if the element is not visible yet
+        timeout = setTimeout(initVanta, 100);
+        return;
       }
-      return;
-    }
-    if (!vantaEffect.current && vantaRef.current) {
-      vantaEffect.current = RINGS({
+      const opts = {
         el: vantaRef.current,
         THREE,
         backgroundColor: 0x18181b,
-        color: 0xffffff,
-        ringColor: 0xe0e0e0,
-        shadowColor: 0x232323,
+        color: 0xe6c47a, // static gold
+        ringColor: 0xf5f5f5, // static white
+        shadowColor: 0x232323, // static dark
         speed: 0.8,
         spacing: 18.0,
-      });
+      };
+      try {
+        vantaEffect.current = RINGS(opts);
+      } catch (e) {
+        console.error('VantaRings initialization error:', e, opts);
+        if (vantaEffect.current) {
+          vantaEffect.current.destroy();
+          vantaEffect.current = null;
+        }
+      }
+    }
+    if (shouldInit) {
+      initVanta();
+    } else if (vantaEffect.current) {
+      vantaEffect.current.destroy();
+      vantaEffect.current = null;
     }
     return () => {
+      if (timeout) clearTimeout(timeout);
       if (vantaEffect.current) {
         vantaEffect.current.destroy();
         vantaEffect.current = null;
