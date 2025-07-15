@@ -512,7 +512,7 @@ export default function HomePageClient() {
           </div>
         </div>
       )}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
         {/* Floating Sphere */}
         <div className="relative flex flex-col items-center">
           <div title="About Me" style={{ position: 'relative', width: 80, height: 80 }}>
