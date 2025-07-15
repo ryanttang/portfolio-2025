@@ -113,6 +113,40 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Ryan Tang",
+    "jobTitle": "Designer, Developer, Creative Director",
+    "url": "https://ryantang.site",
+    "image": "https://ryantang.site/headshot.png",
+    "description": "West Coast based designer, developer, and creative director with expertise in UX/UI design, web development, and creative direction.",
+    "sameAs": [
+      "https://linkedin.com/in/ryantang",
+      "https://github.com/ryantang"
+    ],
+    "knowsAbout": [
+      "UX/UI Design",
+      "Web Development", 
+      "Creative Direction",
+      "React",
+      "Next.js",
+      "TypeScript",
+      "Design Systems",
+      "User Experience",
+      "Creative Technology"
+    ],
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Freelance"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressRegion": "West Coast",
+      "addressCountry": "US"
+    }
+  };
+
   return (
     <html lang="en">
       <head>
@@ -124,6 +158,37 @@ export default function RootLayout({
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
         <meta name="msapplication-TileColor" content="#000000" />
         <meta name="theme-color" content="#000000" />
+        
+        {/* Additional SEO Meta Tags */}
+        <meta name="author" content="Ryan Tang" />
+        <meta name="copyright" content="Ryan Tang" />
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="7 days" />
+        <meta name="distribution" content="global" />
+        <meta name="rating" content="general" />
+        <meta name="coverage" content="worldwide" />
+        <meta name="target" content="all" />
+        <meta name="HandheldFriendly" content="true" />
+        <meta name="MobileOptimized" content="width" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Ryan Tang Portfolio" />
+        <meta name="application-name" content="Ryan Tang Portfolio" />
+        <meta name="msapplication-TileImage" content="/favicon-32x32.png" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        
+        {/* Social Media Meta Tags */}
+        <meta property="og:site_name" content="Ryan Tang Portfolio" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Ryan Tang - Designer, Developer, Creative Director" />
+        
+        {/* Twitter Additional Meta Tags */}
+        <meta name="twitter:site" content="@ryantang" />
+        <meta name="twitter:creator" content="@ryantang" />
+        <meta name="twitter:image:alt" content="Ryan Tang - Designer, Developer, Creative Director" />
       </head>
       <body
         className={[
@@ -141,6 +206,13 @@ export default function RootLayout({
         ].join(" ")}
         style={{ fontFamily: 'var(--font-space-grotesk), Arial, sans-serif' }}
       >
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData),
+          }}
+        />
         <AppShell>{children}</AppShell>
       </body>
     </html>
