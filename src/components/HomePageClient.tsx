@@ -194,9 +194,27 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
 }
 
 function AboutCard({ onClose }: { onClose: () => void }) {
+  const [vantaReady, setVantaReady] = useState(false);
   return (
-    <div className="fixed inset-0 z-[30000] flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
-      <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <motion.div
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      initial={{ opacity: 0, scale: 0.92, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, x: -120 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+      onClick={onClose}
+      style={{ background: 'rgba(24,24,27,0.60)', backdropFilter: 'blur(6px)' }}
+      onAnimationComplete={() => setVantaReady(true)}
+    >
+      <motion.div
+        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-xl w-full relative flex flex-col items-center"
+        onClick={e => e.stopPropagation()}
+        initial={{ scale: 0.98 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.98, x: -120, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+        style={{ zIndex: 2 }}
+      >
         <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
         <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">About Me</h2>
         <div className="prose prose-lg max-w-none">
@@ -235,8 +253,82 @@ function AboutCard({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function DesignModal({ onClose }: { onClose: () => void }) {
+  const [vantaReady, setVantaReady] = useState(false);
+  // Include all assets in public/DesignAssets
+  const images = [
+    "/DesignAssets/WAVYFMFLYER2.png",
+    "/DesignAssets/WAVYFMFLYER001-FINAL.jpeg",
+    "/DesignAssets/mindfulthoughts.png",
+    "/DesignAssets/ISOULATIONFLYER-FINAL.png",
+    "/DesignAssets/ISOULATIONDAYPARTY.png",
+    "/DesignAssets/ISOULATION-FRANCHISE-final.png",
+    "/DesignAssets/froyonionsoul.png",
+    "/DesignAssets/FAMNFRIENDSFLYER.png",
+    "/DesignAssets/donttrip1.png",
+    "/DesignAssets/4everforward.png",
+  ];
+  // Track which images failed to load
+  const [hidden, setHidden] = useState<Set<number>>(new Set());
+  const handleImgError = (idx: number) => {
+    setHidden(prev => new Set(prev).add(idx));
+  };
+  // Enlarged image modal state
+  const [enlarged, setEnlarged] = useState<string | null>(null);
+  const handleEnlarge = (src: string) => setEnlarged(src);
+  const handleCloseEnlarge = () => setEnlarged(null);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      initial={{ opacity: 0, scale: 0.92, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, x: -120 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+      onClick={onClose}
+      style={{ background: 'rgba(24,24,27,0.60)', backdropFilter: 'blur(6px)' }}
+      onAnimationComplete={() => setVantaReady(true)}
+    >
+      <motion.div
+        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-6xl w-full relative flex flex-col items-center overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+        initial={{ scale: 0.98 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.98, x: -120, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+        style={{ zIndex: 2, maxHeight: '90vh' }}
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
+        <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">Design Portfolio</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {images.map((src, idx) => (
+            !hidden.has(idx) && (
+              <div key={idx} className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => handleEnlarge(src)}>
+                <img
+                  src={src}
+                  alt={`Design ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={() => handleImgError(idx)}
+                />
+              </div>
+            )
+          ))}
+        </div>
+        {enlarged && (
+          <div className="fixed inset-0 z-[40000] flex items-center justify-center bg-black/90 p-4" onClick={handleCloseEnlarge}>
+            <div className="relative max-w-4xl max-h-[90vh]">
+              <button onClick={handleCloseEnlarge} className="absolute top-4 right-4 text-2xl text-white hover:text-gray-300 transition">✕</button>
+              <img src={enlarged} alt="Enlarged design" className="max-w-full max-h-full object-contain" />
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -547,7 +639,40 @@ export default function HomePageClient() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <AboutCard onClose={handleDevModalClose} />
+            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={handleDevModalClose}>
+              <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-full sm:max-w-md w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+                <button onClick={handleDevModalClose} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-xl sm:text-2xl text-gray-400 hover:text-black transition">✕</button>
+                <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Development Projects</h2>
+                <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" style={{ minHeight: '4px', height: '4px' }} />
+                <div className="text-center italic text-[#e6c47a] mb-4 text-sm sm:text-base" style={{ fontWeight: 500 }}>More info coming soon</div>
+                <div className="flex flex-col gap-6 w-full">
+                  <div className="flex flex-col items-center w-full">
+                    {/* 16:9 Placeholder for LogoGrab */}
+                    <div className="w-full aspect-[16/9] bg-gray-200 flex items-center justify-center rounded-lg mb-3 border-2 border-dashed border-gray-400">
+                      <span className="text-gray-500 text-lg">Screenshot Placeholder</span>
+                    </div>
+                    <a href="https://logograb.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">LogoGrab</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Quick logo search & downloader for any brand</span>
+                  </div>
+                  <div className="flex flex-col items-center w-full">
+                    {/* 16:9 Placeholder for SEOBot */}
+                    <div className="w-full aspect-[16/9] bg-gray-200 flex items-center justify-center rounded-lg mb-3 border-2 border-dashed border-gray-400">
+                      <span className="text-gray-500 text-lg">Screenshot Placeholder</span>
+                    </div>
+                    <a href="https://seobot.us" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">SEOBot</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">AI-powered Lightweight SEO Assistance Tool</span>
+                  </div>
+                  <div className="flex flex-col items-center w-full">
+                    {/* 16:9 Placeholder for VC13 */}
+                    <div className="w-full aspect-[16/9] bg-gray-200 flex items-center justify-center rounded-lg mb-3 border-2 border-dashed border-gray-400">
+                      <span className="text-gray-500 text-lg">Screenshot Placeholder</span>
+                    </div>
+                    <a href="https://vc13.game" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">VC13</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">AI-powered Vietnamese card game</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
         {showRetailModal && (
@@ -557,7 +682,47 @@ export default function HomePageClient() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <AboutCard onClose={handleRetailModalClose} />
+            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={handleRetailModalClose}>
+              <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-full sm:max-w-2xl w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
+                <button onClick={handleRetailModalClose} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-xl sm:text-2xl text-gray-400 hover:text-black transition">✕</button>
+                <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Retail & Ecommerce</h2>
+                <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 w-full">
+                  {/* Clients & Professional */}
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold mb-4 text-[#18181b] text-center md:text-left">Clients & Professional</h3>
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <a href="https://culturecannabisclub.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                        <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
+                        <span className="flex-1 text-left text-sm sm:text-base">Culture Cannabis Club</span>
+                      </a>
+                      <a href="https://catalyst-cannabis.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                        <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
+                        <span className="flex-1 text-left text-sm sm:text-base">Catalyst Cannabis Co</span>
+                      </a>
+                      <a href="https://traditonal.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                        <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
+                        <span className="flex-1 text-left text-sm sm:text-base">Traditional Cannabis Co</span>
+                      </a>
+                    </div>
+                  </div>
+                  {/* Personal */}
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold mb-4 text-[#18181b] text-center md:text-left">Personal</h3>
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <a href="https://thegoodiesvault.store" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                        <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
+                        <span className="flex-1 text-left text-sm sm:text-base">The Goodies Vault</span>
+                      </a>
+                      <a href="https://thebusinessvault.store" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                        <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
+                        <span className="flex-1 text-left text-sm sm:text-base">The Business Vault</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
