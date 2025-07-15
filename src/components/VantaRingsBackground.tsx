@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef } from "react";
-import RINGS from "vanta/dist/vanta.rings.min";
+// Vanta will be loaded dynamically
 import * as THREE from "three";
+
+
 
 type VantaRingsBackgroundProps = {
   className?: string;
@@ -12,7 +14,7 @@ type VantaRingsBackgroundProps = {
 
 export default function VantaRingsBackground({ className = "", style = {}, zIndex = 1, shouldInit = true }: VantaRingsBackgroundProps) {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const vantaEffect = useRef<any>(null);
+  const vantaEffect = useRef<unknown>(null);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout | null = null;
@@ -32,27 +34,40 @@ export default function VantaRingsBackground({ className = "", style = {}, zInde
         shadowColor: 0x232323, // static dark
         speed: 0.8,
         spacing: 18.0,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
       };
-      try {
-        vantaEffect.current = RINGS(opts);
-      } catch (e) {
-        console.error('VantaRings initialization error:', e, opts);
-        if (vantaEffect.current) {
-          vantaEffect.current.destroy();
-          vantaEffect.current = null;
+      // Use global VANTA object
+      if (typeof window !== 'undefined' && window.VANTA && window.VANTA.RINGS) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          vantaEffect.current = window.VANTA.RINGS(opts as any);
+        } catch (e) {
+          console.error('VantaRings initialization error:', e, opts);
+          if (vantaEffect.current) {
+            (vantaEffect.current as { destroy: () => void }).destroy();
+            vantaEffect.current = null;
+          }
         }
+      } else {
+        console.error('VANTA.RINGS not available');
       }
     }
     if (shouldInit) {
       initVanta();
     } else if (vantaEffect.current) {
-      vantaEffect.current.destroy();
+      (vantaEffect.current as { destroy: () => void }).destroy();
       vantaEffect.current = null;
     }
     return () => {
       if (timeout) clearTimeout(timeout);
       if (vantaEffect.current) {
-        vantaEffect.current.destroy();
+        (vantaEffect.current as { destroy: () => void }).destroy();
         vantaEffect.current = null;
       }
     };

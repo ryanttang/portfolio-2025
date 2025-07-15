@@ -213,6 +213,8 @@ export default function RootLayout({
             __html: JSON.stringify(structuredData),
           }}
         />
+        {/* Vanta.js Script */}
+        <script src="/dist/vanta.rings.min.js" defer></script>
         <AppShell>{children}</AppShell>
       </body>
     </html>

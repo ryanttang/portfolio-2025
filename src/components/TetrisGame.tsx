@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useState } from "react";
 const COLS = 10;
 const ROWS = 20;
 const BASE_BLOCK_SIZE = 24;
-const FIXED_HEIGHT = 480;
 
 const COLORS = [
   "#000",
@@ -69,7 +68,7 @@ function rotate(matrix: number[][]) {
   return matrix[0].map((_, i) => matrix.map(row => row[i])).reverse();
 }
 
-function collide(board: number[][], piece: any) {
+function collide(board: number[][], piece: { shape: number[][]; x: number; y: number }) {
   for (let y = 0; y < piece.shape.length; ++y) {
     for (let x = 0; x < piece.shape[y].length; ++x) {
       if (
@@ -83,7 +82,7 @@ function collide(board: number[][], piece: any) {
   return false;
 }
 
-function merge(board: number[][], piece: any) {
+function merge(board: number[][], piece: { shape: number[][]; x: number; y: number }) {
   piece.shape.forEach((row: number[], y: number) => {
     row.forEach((value, x) => {
       if (value) board[y + piece.y][x + piece.x] = value;
@@ -114,7 +113,7 @@ const TetrisGame: React.FC = () => {
   const [blockSize, setBlockSize] = useState(BASE_BLOCK_SIZE);
   const containerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<number[][]>(Array.from({ length: ROWS }, () => Array(COLS).fill(0)));
-  const pieceRef = useRef<any>(randomPiece());
+  const pieceRef = useRef<{ typeId: number; shape: number[][]; x: number; y: number }>(randomPiece());
   const dropTime = useRef(0);
 
   // Responsive block size
@@ -174,7 +173,6 @@ const TetrisGame: React.FC = () => {
     }
     animationId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(animationId);
-    // eslint-disable-next-line
   }, [running, blockSize]);
 
   useEffect(() => {
@@ -194,8 +192,7 @@ const TetrisGame: React.FC = () => {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-    // eslint-disable-next-line
-  }, [running, gameOver, focused]);
+  }, [running, gameOver, focused, hardDrop]);
 
   function movePiece(dx: number, dy: number) {
     const piece = { ...pieceRef.current, x: pieceRef.current.x + dx, y: pieceRef.current.y + dy };

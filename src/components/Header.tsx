@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import GreetingTypewriter from "@/components/GreetingMarquee";
 import Image from "next/image";
 
 const navLinks = [

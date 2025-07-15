@@ -3,36 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-interface VantaConfig {
-  el: HTMLElement;
-  mouseControls: boolean;
-  touchControls: boolean;
-  gyroControls: boolean;
-  minHeight: number;
-  minWidth: number;
-  scale: number;
-  scaleMobile: number;
-  color: number;
-  color2: number;
-  backgroundColor: number;
-  size: number;
-  spacing: number;
-  showLines: boolean;
-}
+
 
 interface VantaInstance {
   destroy: () => void;
 }
 
-declare global {
-  interface Window {
-    VANTA: {
-      CLOUDS: (config: VantaConfig) => VantaInstance;
-      NET: (config: VantaConfig) => VantaInstance;
-      RINGS: (config: VantaConfig) => VantaInstance;
-    };
-  }
-}
+
 
 export default function SlugPageClient() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +21,8 @@ export default function SlugPageClient() {
 
     const loadVanta = async () => {
       if (typeof window !== "undefined" && window.VANTA && containerRef.current) {
-        const vanta = window.VANTA.CLOUDS({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const vanta = (window.VANTA.CLOUDS as any)({
           el: containerRef.current,
           mouseControls: true,
           touchControls: true,

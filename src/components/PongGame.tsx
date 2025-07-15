@@ -33,7 +33,7 @@ const PongGame: React.FC = () => {
   const gameRef = useRef(initialGameState());
   const [isRunning, setIsRunning] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
-  const [_, setRerender] = useState(0); // force rerender for winner
+  const [, setRerender] = useState(0); // force rerender for winner
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

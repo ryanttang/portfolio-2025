@@ -120,9 +120,12 @@ function MorphingBlobs() {
     { x: Math.random() * Math.PI * 2, y: Math.random() * Math.PI * 2 },
   ]);
 
+  // Create shadow textures for each shape
+  const shadowTextures = React.useMemo(() => [createShadowTexture(), createShadowTexture()], []);
+
   useFrame(({ camera }) => {
     setShapes(prevShapes => {
-      let next = prevShapes.map(s => ({ ...s }));
+      const next = prevShapes.map(s => ({ ...s }));
       // Move shapes and bounce off edges
       for (let i = 0; i < next.length; ++i) {
         next[i].pos.x += next[i].vel.x;
@@ -181,8 +184,6 @@ function MorphingBlobs() {
         const shadowOffset = 0.015; // almost directly under the shape
         const shadowX = s.pos.x + shadowOffset;
         const shadowY = s.pos.y + (-((viewport.scrollY + viewport.height / 2) / viewport.height) * 4.4 + 2.2) - 0.35 - shadowOffset;
-        // Create shadow texture once per shape
-        const shadowTex = React.useMemo(() => createShadowTexture(), []);
         // Get the current rotation for this shape
         const rot = rotationRefs.current[i];
         return (
@@ -195,7 +196,7 @@ function MorphingBlobs() {
             >
               <planeGeometry args={[0.7, 0.28]} />
               <meshBasicMaterial
-                map={shadowTex}
+                map={shadowTextures[i]}
                 transparent
                 opacity={0.7}
                 depthWrite={false}
