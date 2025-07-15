@@ -7,7 +7,7 @@ import * as THREE from "three";
 import { BottomMarquee } from "@/components/GreetingMarquee";
 import { Canvas } from "@react-three/fiber";
 import React from "react";
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import VantaRingsBackground from "@/components/VantaRingsBackground";
 import { useSpring, a } from '@react-spring/three';
 import { FaLinkedin, FaGithub, FaEnvelope, FaFileAlt } from "react-icons/fa";
@@ -194,7 +194,6 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
 }
 
 function AboutCard({ onClose }: { onClose: () => void }) {
-  const [vantaReady, setVantaReady] = useState(false);
   return (
     <motion.div
       className="fixed inset-0 z-[9999] flex items-center justify-center"
@@ -204,7 +203,6 @@ function AboutCard({ onClose }: { onClose: () => void }) {
       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
       onClick={onClose}
       style={{ background: 'rgba(24,24,27,0.60)', backdropFilter: 'blur(6px)' }}
-      onAnimationComplete={() => setVantaReady(true)}
     >
       <motion.div
         className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-xl w-full relative flex flex-col items-center"
@@ -259,7 +257,6 @@ function AboutCard({ onClose }: { onClose: () => void }) {
 }
 
 function DesignModal({ onClose }: { onClose: () => void }) {
-  const [vantaReady, setVantaReady] = useState(false);
   // Include all assets in public/DesignAssets
   const images = [
     "/DesignAssets/WAVYFMFLYER2.png",
@@ -292,10 +289,9 @@ function DesignModal({ onClose }: { onClose: () => void }) {
       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
       onClick={onClose}
       style={{ background: 'rgba(24,24,27,0.60)', backdropFilter: 'blur(6px)' }}
-      onAnimationComplete={() => setVantaReady(true)}
     >
       <motion.div
-        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-6xl w-full relative flex flex-col items-center overflow-y-auto"
+        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-6xl w-full max-h-[90vh] relative flex flex-col items-center overflow-y-auto"
         onClick={e => e.stopPropagation()}
         initial={{ scale: 0.98 }}
         animate={{ scale: 1 }}
@@ -305,14 +301,14 @@ function DesignModal({ onClose }: { onClose: () => void }) {
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
         <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">Design Portfolio</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {images.map((src, idx) => (
             !hidden.has(idx) && (
-              <div key={idx} className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => handleEnlarge(src)}>
+              <div key={idx} className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => handleEnlarge(src)}>
                 <img
                   src={src}
                   alt={`Design ${idx + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-cover"
                   onError={() => handleImgError(idx)}
                 />
               </div>
@@ -321,8 +317,8 @@ function DesignModal({ onClose }: { onClose: () => void }) {
         </div>
         {enlarged && (
           <div className="fixed inset-0 z-[40000] flex items-center justify-center bg-black/90 p-4" onClick={handleCloseEnlarge}>
-            <div className="relative max-w-4xl max-h-[90vh]">
-              <button onClick={handleCloseEnlarge} className="absolute top-4 right-4 text-2xl text-white hover:text-gray-300 transition">✕</button>
+            <div className="relative max-w-4xl max-h-[90vh] overflow-y-auto">
+              <button onClick={handleCloseEnlarge} className="absolute top-4 right-4 text-2xl text-white hover:text-gray-300 transition z-10">✕</button>
               <img src={enlarged} alt="Enlarged design" className="max-w-full max-h-full object-contain" />
             </div>
           </div>
@@ -337,11 +333,20 @@ function DesignModal({ onClose }: { onClose: () => void }) {
 export default function HomePageClient() {
   const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffect = useRef<unknown>(null);
-  const router = useRouter();
   const params = useParams();
   // slug is an array or undefined
   const slug = params?.slug as string[] | undefined;
   const modalType = slug && slug[0] ? slug[0] : null;
+
+  // Add state for About modal
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const handleAboutClick = () => setShowAboutModal(true);
+  const handleAboutModalClose = () => setShowAboutModal(false);
+
+  // Add state for Design modal
+  const [showDesignModal, setShowDesignModal] = useState(false);
+  const handleDesignClick = () => setShowDesignModal(true);
+  const handleDesignModalClose = () => setShowDesignModal(false);
 
   // Add state for Development modal
   const [showDevModal, setShowDevModal] = useState(false);
@@ -412,12 +417,7 @@ export default function HomePageClient() {
 
   // Open About Card
   const handleOrbClick = () => {
-    router.push('/about');
-  };
-
-  // Open Design Modal
-  const handleDesignClick = () => {
-    router.push('/design');
+    handleAboutClick();
   };
 
 
@@ -632,6 +632,26 @@ export default function HomePageClient() {
 
       {/* Modals */}
       <AnimatePresence>
+        {showAboutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <AboutCard onClose={handleAboutModalClose} />
+          </motion.div>
+        )}
+        {showDesignModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <DesignModal onClose={handleDesignModalClose} />
+          </motion.div>
+        )}
         {showDevModal && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -729,6 +749,32 @@ export default function HomePageClient() {
 
       {/* Bottom Marquee */}
       <BottomMarquee />
+      
+      {/* DJ Mixes Button - Bottom Left Corner */}
+      <motion.a
+        href="https://soundcloud.com/tangleton"
+        target="_blank"
+        rel="noopener noreferrer"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        whileHover={{ scale: 1.05, y: -2 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-20 left-4 z-[200] px-3 py-2 rounded-full font-semibold text-sm tracking-wide border border-[#e6c47a]/50 bg-[#18181b]/80 backdrop-blur-md text-[#e6c47a] hover:text-[#18181b] hover:bg-[#e6c47a]/90 focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 transition-all duration-200 shadow-lg"
+        style={{
+          boxShadow: '0 2px 12px #e6c47a22, 0 1px 0 #e6c47a33',
+          border: '1px solid #e6c47a',
+          background: 'linear-gradient(90deg, #232323 80%, #e6c47a11 100%)',
+          color: '#e6c47a',
+          transition: 'box-shadow 0.2s, border-color 0.2s, background 0.2s',
+          borderRadius: 9999,
+          fontSize: '0.875rem',
+          letterSpacing: '0.1em',
+        }}
+        aria-label="DJ Mixes on SoundCloud"
+      >
+        DJ Mixes
+      </motion.a>
     </div>
   );
 } 
