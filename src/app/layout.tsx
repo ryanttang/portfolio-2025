@@ -190,6 +190,19 @@ export default function RootLayout({
         <meta name="twitter:creator" content="@ryantang" />
         <meta name="twitter:image:alt" content="Ryan Tang - Designer, Developer, Creative Director" />
         
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-GEN1KNZPSP"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-GEN1KNZPSP');
+            `,
+          }}
+        />
+        
         {/* Google Tag Manager */}
         <script
           dangerouslySetInnerHTML={{
