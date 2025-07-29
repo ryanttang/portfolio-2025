@@ -189,6 +189,20 @@ export default function RootLayout({
         <meta name="twitter:site" content="@ryantang" />
         <meta name="twitter:creator" content="@ryantang" />
         <meta name="twitter:image:alt" content="Ryan Tang - Designer, Developer, Creative Director" />
+        
+        {/* Google Tag Manager */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+              new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+              j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+              'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer','GTM-MZ7T3Q5R');
+            `,
+          }}
+        />
+        {/* End Google Tag Manager */}
       </head>
       <body
         className={[
@@ -213,6 +227,17 @@ export default function RootLayout({
             __html: JSON.stringify(structuredData),
           }}
         />
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe 
+            src="https://www.googletagmanager.com/ns.html?id=GTM-MZ7T3Q5R"
+            height="0" 
+            width="0" 
+            style="display:none;visibility:hidden"
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
+        
         {/* Vanta.js Script */}
         <script src="/dist/vanta.rings.min.js" defer></script>
         <AppShell>{children}</AppShell>
