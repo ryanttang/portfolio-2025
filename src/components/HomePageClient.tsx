@@ -546,13 +546,13 @@ export default function HomePageClient() {
         </motion.h1>
         {/* Social Icons Row */}
         <div className="flex justify-center items-center gap-4 sm:gap-6 mt-4 mb-2 px-4">
-          <a href="https://linkedin.com/in/ryantang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="https://linkedin.com/in/rttang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaLinkedin />
           </a>
-          <a href="https://github.com/ryantang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="https://github.com/ryanttang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaGithub />
           </a>
-          <a href="mailto:ryan@example.com" aria-label="Email" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="mailto:tangs.email@.com" aria-label="Email" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaEnvelope />
           </a>
           <a href="/RyanTang_Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
