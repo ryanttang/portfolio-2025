@@ -552,10 +552,10 @@ export default function HomePageClient() {
           <a href="https://github.com/ryanttang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaGithub />
           </a>
-          <a href="mailto:tangs.email@.com" aria-label="Email" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="mailto:tangs.email@gmail.com" aria-label="Email" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaEnvelope />
           </a>
-          <a href="/RyanTang_Resume.pdf" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="/RyanTangResume2025.png" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaFileAlt />
           </a>
         </div>
@@ -664,31 +664,36 @@ export default function HomePageClient() {
                 <button onClick={handleDevModalClose} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-xl sm:text-2xl text-gray-400 hover:text-black transition">✕</button>
                 <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Development Projects</h2>
                 <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" style={{ minHeight: '4px', height: '4px' }} />
-                <div className="text-center italic text-[#e6c47a] mb-4 text-sm sm:text-base" style={{ fontWeight: 500 }}>More info coming soon</div>
                 <div className="flex flex-col gap-6 w-full">
                   <div className="flex flex-col items-center w-full">
-                    {/* 16:9 Placeholder for LogoGrab */}
-                    <div className="w-full aspect-[16/9] bg-gray-200 flex items-center justify-center rounded-lg mb-3 border-2 border-dashed border-gray-400">
-                      <span className="text-gray-500 text-lg">Screenshot Placeholder</span>
-                    </div>
-                    <a href="https://logograb.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">LogoGrab</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Quick logo search & downloader for any brand</span>
+                    {/* Screenshot for Cannagrab.App */}
+                    <img
+                      src="/cannagrab-screen.png"
+                      alt="Cannagrab.App Screenshot"
+                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
+                    />
+                    <a href="https://cannagrab.app" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">Cannagrab.App</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis marketplace and discovery platform</span>
                   </div>
                   <div className="flex flex-col items-center w-full">
-                    {/* 16:9 Placeholder for SEOBot */}
-                    <div className="w-full aspect-[16/9] bg-gray-200 flex items-center justify-center rounded-lg mb-3 border-2 border-dashed border-gray-400">
-                      <span className="text-gray-500 text-lg">Screenshot Placeholder</span>
-                    </div>
-                    <a href="https://seobot.us" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">SEOBot</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">AI-powered Lightweight SEO Assistance Tool</span>
+                    {/* Screenshot for fivetwentyfour studios landing page */}
+                    <img
+                      src="/524-screen.png"
+                      alt="fivetwentyfour studios landing page Screenshot"
+                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
+                    />
+                    <a href="https://fivetwentyfour.studios" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">fivetwentyfour studios</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Creative studio showcase and business landing page</span>
                   </div>
                   <div className="flex flex-col items-center w-full">
-                    {/* 16:9 Placeholder for VC13 */}
-                    <div className="w-full aspect-[16/9] bg-gray-200 flex items-center justify-center rounded-lg mb-3 border-2 border-dashed border-gray-400">
-                      <span className="text-gray-500 text-lg">Screenshot Placeholder</span>
-                    </div>
-                    <a href="https://vc13.game" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">VC13</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">AI-powered Vietnamese card game</span>
+                    {/* Screenshot for DJ tangleton EPK */}
+                    <img
+                      src="/tangleton-screen.png"
+                      alt="DJ tangleton EPK Screenshot"
+                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
+                    />
+                    <a href="https://tangleton.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">DJ tangleton EPK</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Electronic Press Kit and music showcase</span>
                   </div>
                 </div>
               </div>
