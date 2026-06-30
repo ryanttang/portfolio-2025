@@ -606,17 +606,17 @@ export default function HomePageClient() {
             `}</style>
         </motion.h1>
         {/* Social Icons Row */}
-        <div className="inline-flex justify-center items-center gap-4 sm:gap-6 mt-4 mb-2 text-white mx-auto">
-          <a href="https://linkedin.com/in/rttang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+        <div className="w-full flex justify-center items-center gap-4 sm:gap-6 mt-4 mb-2 text-white">
+          <a href="https://linkedin.com/in/rttang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaLinkedin />
           </a>
-          <a href="https://github.com/ryanttang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="https://github.com/ryanttang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaGithub />
           </a>
-          <a href="mailto:tangs.email@gmail.com" aria-label="Email" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="mailto:tangs.email@gmail.com" aria-label="Email" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaEnvelope />
           </a>
-          <a href="/RyanTangResume2025.png" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="/RyanTangResume2025.png" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaFileAlt />
           </a>
         </div>
@@ -735,7 +735,7 @@ export default function HomePageClient() {
                       className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
                     />
                     <a href="https://cannagrab.app" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">Cannagrab.App</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis marketplace and discovery platform</span>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis Brands Logo Search & Bulk Downloader</span>
                   </div>
                   <div className="flex flex-col items-center w-full">
                     {/* Screenshot for fivetwentyfour studios landing page */}
@@ -756,6 +756,24 @@ export default function HomePageClient() {
                     />
                     <a href="https://tangleton.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">DJ tangleton EPK</a>
                     <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Electronic Press Kit and music showcase</span>
+                  </div>
+                  <div className="flex flex-col items-center w-full">
+                    <img
+                      src="/catalystsocialclub-screen.png"
+                      alt="Catalyst Social Club Screenshot"
+                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
+                    />
+                    <a href="https://catalystsocialclub.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">Catalyst Social Club</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis lounge events and event space in Hawthorne, CA</span>
+                  </div>
+                  <div className="flex flex-col items-center w-full">
+                    <img
+                      src="/thcmembersonlyclub-screen.png"
+                      alt="THC Members Only Club Screenshot"
+                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
+                    />
+                    <a href="https://thcmembersonlyclub.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">THC Members Only Club</a>
+                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis events calendar and community platform</span>
                   </div>
                 </div>
               </div>
