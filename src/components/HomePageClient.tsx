@@ -216,7 +216,7 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
 function AboutCard({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
-      className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center`}
+      className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center p-4`}
       initial={{ opacity: 0, scale: 0.92, y: 40 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, x: -120 }}
@@ -225,17 +225,19 @@ function AboutCard({ onClose }: { onClose: () => void }) {
       style={{ background: 'rgba(24,24,27,0.60)', backdropFilter: 'blur(6px)' }}
     >
       <motion.div
-        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-xl w-full relative flex flex-col items-center"
+        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-full sm:max-w-xl w-full max-h-[90vh] relative flex flex-col items-center overflow-y-auto"
         onClick={e => e.stopPropagation()}
         initial={{ scale: 0.98 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.98, x: -120, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-        style={{ zIndex: 2 }}
+        style={{ zIndex: 2, maxHeight: '90vh' }}
       >
-        <button onClick={onClose} className={modalCloseBtn}>✕</button>
-        <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">About Me</h2>
-        <div className="prose prose-lg max-w-none">
+        <div className="sticky top-0 z-20 flex w-full justify-end bg-white/95 backdrop-blur-sm pb-2 shrink-0">
+          <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-400 hover:text-black hover:bg-black/5 transition">✕</button>
+        </div>
+        <h2 className="text-xl sm:text-3xl font-extrabold mb-4 sm:mb-6 -mt-2 text-[#18181b] tracking-widest uppercase">About Me</h2>
+        <div className="prose prose-sm sm:prose-lg max-w-none w-full">
           <p className="text-gray-700 mb-4">
             I&apos;m a passionate developer and designer focused on creating innovative digital experiences. 
             With expertise in modern web technologies and user-centered design, I build solutions that 
@@ -246,7 +248,7 @@ function AboutCard({ onClose }: { onClose: () => void }) {
             I believe in the power of thoughtful design to create meaningful connections between 
             users and technology.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
             <div>
               <h3 className="text-xl font-bold text-[#18181b] mb-3">Skills</h3>
               <ul className="space-y-2 text-gray-700">
