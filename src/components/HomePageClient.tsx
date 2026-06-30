@@ -157,17 +157,14 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
       )}
       <div
         style={{
-          position: 'absolute',
-          left: '50%',
-          top: 'calc(50% + 60px)',
-          transform: 'translate(-50%, -100%)',
-          zIndex: 2,
+          position: 'relative',
           width: orbSize,
           height: orbSize,
+          margin: '0 auto',
+          zIndex: 2,
           cursor: 'pointer',
           transition: 'transform 0.2s cubic-bezier(.4,0,.2,1)',
-          filter: 'drop-shadow(0 0 32px #e6c47a88) drop-shadow(0 0 16px #00c3ff88)', // subtle gold and blue glow
-          // Removed boxShadow to eliminate border/outline
+          filter: 'drop-shadow(0 0 32px #e6c47a88) drop-shadow(0 0 16px #00c3ff88)',
         }}
         title="About Me"
         onClick={onClick}
@@ -207,8 +204,8 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
             animation: pulse 1.6s infinite cubic-bezier(.4,0,.2,1);
           }
           @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -100%) scale(1); }
-            50% { transform: translate(-50%, -100%) scale(1.04); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
           }
         `}</style>
       </div>
@@ -309,7 +306,7 @@ function DesignModal({ onClose }: { onClose: () => void }) {
     "/DesignAssets/4everforward.png",
   ];
   const sections = [
-    { title: "Album Covers", images: albumCovers },
+    { title: "Covers", images: albumCovers },
     { title: "Flyers", images: flyers },
   ];
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -578,15 +575,13 @@ export default function HomePageClient() {
           </div>
         </div>
       )}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-50">
-        {/* Floating Sphere */}
-        <div className="relative flex flex-col items-center">
-          <div title="About Me" style={{ position: 'relative', width: 80, height: 80 }}>
+      <div className="absolute inset-0 flex items-center justify-center z-50 px-4">
+        <div className="flex flex-col items-center w-full max-w-full">
+          <div className="mb-2 sm:mb-3 flex justify-center w-full">
             <FloatingSphere onClick={handleOrbClick} />
           </div>
-        </div>
         <motion.h1
-          className="hero-heading text-white font-extrabold uppercase text-center select-none relative px-4"
+          className="hero-heading text-white font-extrabold uppercase text-center select-none w-full"
           style={{
             ...headingStyle,
             letterSpacing: '0.02em',
@@ -611,7 +606,7 @@ export default function HomePageClient() {
             `}</style>
         </motion.h1>
         {/* Social Icons Row */}
-        <div className="flex justify-center items-center gap-4 sm:gap-6 mt-4 mb-2 px-4">
+        <div className="inline-flex justify-center items-center gap-4 sm:gap-6 mt-4 mb-2 text-white mx-auto">
           <a href="https://linkedin.com/in/rttang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
             <FaLinkedin />
           </a>
@@ -693,6 +688,7 @@ export default function HomePageClient() {
           >
             Retail & Ecommerce
           </motion.div>
+        </div>
         </div>
       </div>
 
@@ -831,7 +827,7 @@ export default function HomePageClient() {
         transition={{ delay: 1, duration: 0.5 }}
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-20 left-4 z-[200] px-3 py-2 rounded-full font-semibold text-sm tracking-wide border border-[#e6c47a]/50 bg-[#18181b]/80 backdrop-blur-md text-[#e6c47a] hover:text-[#18181b] hover:bg-[#e6c47a]/90 focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 transition-all duration-200 shadow-lg"
+        className="fixed bottom-20 left-4 z-[200] inline-flex items-center justify-center px-3 py-2 rounded-full font-semibold text-sm border border-[#e6c47a]/50 bg-[#18181b]/80 backdrop-blur-md text-[#e6c47a] hover:text-[#18181b] hover:bg-[#e6c47a]/90 focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 transition-all duration-200 shadow-lg"
         style={{
           boxShadow: '0 2px 12px #e6c47a22, 0 1px 0 #e6c47a33',
           border: '1px solid #e6c47a',
@@ -840,11 +836,10 @@ export default function HomePageClient() {
           transition: 'box-shadow 0.2s, border-color 0.2s, background 0.2s',
           borderRadius: 9999,
           fontSize: '0.875rem',
-          letterSpacing: '0.1em',
         }}
         aria-label="DJ Mixes on SoundCloud"
       >
-        DJ Mixes
+        <span style={{ letterSpacing: '0.1em', marginRight: '-0.1em' }}>DJ Mixes</span>
       </motion.a>
     </div>
   );
