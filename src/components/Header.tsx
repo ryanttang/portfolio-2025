@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 
 const navLinks = [
@@ -6,11 +6,16 @@ const navLinks = [
   { label: "Resume", href: "/RyanTangResume2025.png", download: true },
 ];
 
-export default function Header() {
+export default function Header({ menuHidden = false }: { menuHidden?: boolean }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (menuHidden) setOpen(false);
+  }, [menuHidden]);
+
   return (
-    <header className="fixed top-0 left-0 w-full z-[50000] bg-transparent">
-      <nav className="max-w-6xl mx-auto grid grid-cols-3 items-center px-2 sm:px-4 py-2 sm:py-4">
+    <header className="fixed top-0 left-0 w-full z-[300] bg-transparent">
+      <nav className="relative z-[2] max-w-6xl mx-auto grid grid-cols-3 items-center px-2 sm:px-4 py-2 sm:py-4">
         {/* Logo/Brand */}
         <a href="#home" className="col-span-1 justify-self-start flex items-center logo-animate" style={{ minWidth: 'clamp(60px, 15vw, 108px)', minHeight: 'clamp(60px, 15vw, 108px)' }}>
           <Image
@@ -46,22 +51,22 @@ export default function Header() {
         <div className="col-span-1" />
         {/* Hamburger Menu */}
         <button
-          className="flex flex-col justify-center items-center w-14 h-14 col-span-1 justify-self-end"
+          className={`flex flex-col justify-center items-center w-14 h-14 col-span-1 justify-self-end transition-opacity duration-200${menuHidden ? " invisible pointer-events-none" : ""}`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             setOpen((v) => !v);
-            console.log('Menu toggled to:', !open);
           }}
           aria-label="Toggle menu"
+          aria-hidden={menuHidden}
+          tabIndex={menuHidden ? -1 : 0}
           style={{ 
             cursor: 'pointer', 
             background: 'rgba(230, 196, 122, 0.2)',
             border: '2px solid rgba(230, 196, 122, 0.6)',
             borderRadius: '8px',
-            zIndex: 50000,
             position: 'relative',
-            pointerEvents: 'auto',
+            pointerEvents: menuHidden ? 'none' : 'auto',
             minWidth: '56px',
             minHeight: '56px'
           }}
@@ -139,7 +144,7 @@ export default function Header() {
       </nav>
       {/* Overlay Menu */}
       <div
-        className={`menu-overlay fixed inset-0 bg-[#18181b] bg-opacity-95 flex flex-col items-center justify-center transition-all duration-500 z-[49999] overflow-y-auto${open ? ' open' : ''}`}
+        className={`menu-overlay fixed inset-0 bg-[#18181b] bg-opacity-95 flex flex-col items-center justify-center transition-all duration-500 z-[1] overflow-y-auto${open ? ' open' : ''}`}
         style={{ backdropFilter: 'blur(2px)' }}
         onClick={() => setOpen(false)}
       >

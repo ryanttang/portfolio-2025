@@ -7,7 +7,30 @@ import * as THREE from "three";
 import { BottomMarquee } from "@/components/GreetingMarquee";
 import { Canvas } from "@react-three/fiber";
 import React from "react";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+
+const SECTION_SLUGS = {
+  development: 'development',
+  design: 'design',
+  retail: 'retail',
+} as const;
+
+type SectionSlug = (typeof SECTION_SLUGS)[keyof typeof SECTION_SLUGS];
+
+const VALID_SECTION_SLUGS = new Set<string>(Object.values(SECTION_SLUGS));
+
+function getActiveSection(slug: string[] | undefined): SectionSlug | null {
+  const first = slug?.[0];
+  if (!first || !VALID_SECTION_SLUGS.has(first)) return null;
+  return first as SectionSlug;
+}
+
+const MODAL_Z = "z-[10000]";
+const MODAL_LIGHTBOX_Z = "z-[10010]";
+const modalCloseBtn =
+  "absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-xl sm:text-2xl text-gray-400 hover:text-black hover:bg-black/5 transition";
+const modalCloseBtnDark =
+  "absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-xl sm:text-2xl text-white hover:text-gray-300 hover:bg-white/10 transition";
 import VantaRingsBackground from "@/components/VantaRingsBackground";
 import { useSpring, a } from '@react-spring/three';
 import { FaLinkedin, FaGithub, FaEnvelope, FaFileAlt } from "react-icons/fa";
@@ -196,7 +219,7 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
 function AboutCard({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center`}
       initial={{ opacity: 0, scale: 0.92, y: 40 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, x: -120 }}
@@ -213,7 +236,7 @@ function AboutCard({ onClose }: { onClose: () => void }) {
         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
         style={{ zIndex: 2 }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
+        <button onClick={onClose} className={modalCloseBtn}>✕</button>
         <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">About Me</h2>
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 mb-4">
@@ -299,7 +322,7 @@ function DesignModal({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center`}
       initial={{ opacity: 0, scale: 0.92, y: 40 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, x: -120 }}
@@ -316,7 +339,7 @@ function DesignModal({ onClose }: { onClose: () => void }) {
         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
         style={{ zIndex: 2, maxHeight: '90vh' }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
+        <button onClick={onClose} className={modalCloseBtn}>✕</button>
         <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">Design Portfolio</h2>
         <div className="w-full space-y-10">
           {sections.map(({ title, images }) => (
@@ -340,9 +363,9 @@ function DesignModal({ onClose }: { onClose: () => void }) {
           ))}
         </div>
         {enlarged && (
-          <div className="fixed inset-0 z-[40000] flex items-center justify-center bg-black/90 p-4" onClick={handleCloseEnlarge}>
+          <div className={`fixed inset-0 ${MODAL_LIGHTBOX_Z} flex items-center justify-center bg-black/90 p-4`} onClick={handleCloseEnlarge}>
             <div className="relative max-w-4xl max-h-[90vh] overflow-y-auto">
-              <button onClick={handleCloseEnlarge} className="absolute top-4 right-4 text-2xl text-white hover:text-gray-300 transition z-10">✕</button>
+              <button onClick={handleCloseEnlarge} className={modalCloseBtnDark}>✕</button>
               <img src={enlarged} alt="Enlarged design" className="max-w-full max-h-full object-contain" />
             </div>
           </div>
@@ -358,34 +381,41 @@ export default function HomePageClient() {
   const vantaRef = useRef<HTMLDivElement>(null);
   const vantaEffect = useRef<unknown>(null);
   const params = useParams();
-  // slug is an array or undefined
+  const router = useRouter();
   const slug = params?.slug as string[] | undefined;
-  const modalType = slug && slug[0] ? slug[0] : null;
+  const activeSection = getActiveSection(slug);
+  const modalType = activeSection;
 
   // Add state for About modal
   const [showAboutModal, setShowAboutModal] = useState(false);
   const handleAboutClick = () => setShowAboutModal(true);
   const handleAboutModalClose = () => setShowAboutModal(false);
 
-  // Add state for Design modal
-  const [showDesignModal, setShowDesignModal] = useState(false);
-  const handleDesignClick = () => setShowDesignModal(true);
-  const handleDesignModalClose = () => setShowDesignModal(false);
+  const openSection = (section: SectionSlug) => {
+    router.push(`/${section}`, { scroll: false });
+  };
+  const closeSection = () => {
+    router.push('/', { scroll: false });
+  };
 
-  // Add state for Development modal
-  const [showDevModal, setShowDevModal] = useState(false);
-  const handleDevClick = () => setShowDevModal(true);
-  const handleDevModalClose = () => setShowDevModal(false);
+  const handleDevClick = () => openSection(SECTION_SLUGS.development);
+  const handleDevModalClose = closeSection;
+  const handleDesignClick = () => openSection(SECTION_SLUGS.design);
+  const handleDesignModalClose = closeSection;
+  const handleRetailClick = () => openSection(SECTION_SLUGS.retail);
+  const handleRetailModalClose = closeSection;
 
-  // Add state for Retail & Ecommerce modal
-  const [showRetailModal, setShowRetailModal] = useState(false);
-  const handleRetailClick = () => setShowRetailModal(true);
-  const handleRetailModalClose = () => setShowRetailModal(false);
+  const showDevModal = activeSection === SECTION_SLUGS.development;
+  const showDesignModal = activeSection === SECTION_SLUGS.design;
+  const showRetailModal = activeSection === SECTION_SLUGS.retail;
 
   // Tetris modal state
   const [showTetris, setShowTetris] = useState(false);
   const handleTetrisOpen = () => setShowTetris(true);
   const handleTetrisClose = () => setShowTetris(false);
+
+  const isAnyModalOpen =
+    showAboutModal || activeSection !== null || showTetris;
 
   // Tetris block color state for button
   const tetrisBlocks = ['🟦','🟩','🟧','🟥','🟨','🟪','🟫'];
@@ -403,7 +433,7 @@ export default function HomePageClient() {
       vantaEffect.current = null;
     }
     // Only initialize if modal is NOT open
-    if ((!modalType || modalType === '') && vantaRef.current) {
+    if (!modalType && vantaRef.current) {
       // Use global VANTA object
       if (typeof window !== 'undefined' && window.VANTA && window.VANTA.RINGS) {
         vantaEffect.current = window.VANTA.RINGS({
@@ -483,7 +513,7 @@ export default function HomePageClient() {
   return (
     <div className="w-screen h-screen min-h-screen min-w-full bg-[#18181b] fixed inset-0 z-0">
       <VantaRingsBackground zIndex={1} />
-      <Header />
+      <Header menuHidden={isAnyModalOpen} />
       {/* Play Tetris Button - fixed bottom right, circular and unique style */}
       <button
         onClick={handleTetrisOpen}
@@ -526,9 +556,9 @@ export default function HomePageClient() {
       </button>
       {/* Tetris Modal Overlay */}
       {showTetris && (
-        <div className="fixed inset-0 z-[30000] flex items-center justify-center bg-black/80 p-4" onClick={handleTetrisClose}>
+        <div className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center bg-black/80 p-4`} onClick={handleTetrisClose}>
           <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 max-w-full sm:max-w-2xl w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
-            <button onClick={handleTetrisClose} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-xl sm:text-2xl text-gray-400 hover:text-black transition">✕</button>
+            <button onClick={handleTetrisClose} className={modalCloseBtn}>✕</button>
             <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Play Tetris</h2>
             <div className="w-full flex justify-center items-center mt-4 mb-2">
               <TetrisGame />
@@ -683,9 +713,9 @@ export default function HomePageClient() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={handleDevModalClose}>
+            <div className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center bg-black/70 p-4`} onClick={handleDevModalClose}>
               <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-full sm:max-w-md w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
-                <button onClick={handleDevModalClose} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-xl sm:text-2xl text-gray-400 hover:text-black transition">✕</button>
+                <button onClick={handleDevModalClose} className={modalCloseBtn}>✕</button>
                 <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Development Projects</h2>
                 <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" style={{ minHeight: '4px', height: '4px' }} />
                 <div className="flex flex-col gap-6 w-full">
@@ -731,9 +761,9 @@ export default function HomePageClient() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 p-4" onClick={handleRetailModalClose}>
+            <div className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center bg-black/70 p-4`} onClick={handleRetailModalClose}>
               <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-full sm:max-w-2xl w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
-                <button onClick={handleRetailModalClose} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-xl sm:text-2xl text-gray-400 hover:text-black transition">✕</button>
+                <button onClick={handleRetailModalClose} className={modalCloseBtn}>✕</button>
                 <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Retail & Ecommerce</h2>
                 <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 w-full">
