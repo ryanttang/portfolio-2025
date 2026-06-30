@@ -257,25 +257,42 @@ function AboutCard({ onClose }: { onClose: () => void }) {
 }
 
 function DesignModal({ onClose }: { onClose: () => void }) {
-  // Include all assets in public/DesignAssets
-  const images = [
+  const albumCovers = [
+    "/DesignAssets/QUITPLAYING001.jpg",
+    "/DesignAssets/QUITPLAYING002.jpg",
+    "/DesignAssets/QUITPLAYING003.jpg",
+    "/DesignAssets/QUITPLAYING004.jpg",
+    "/DesignAssets/QUITPLAYING005.jpeg",
+    "/DesignAssets/QUITPLAYING006.jpeg",
+    "/DesignAssets/RLLYLIKEWHATUDOVOL1.JPG",
+    "/DesignAssets/DONTMATTERWHATUDOVOL2.jpg",
+    "/DesignAssets/AFTERTHEAFTERS.jpg",
+  ];
+  const flyers = [
     "/DesignAssets/WAVYFMFLYER2.png",
     "/DesignAssets/WAVYFMFLYER001-FINAL.jpeg",
+    "/DesignAssets/WAVYFMONEYEAR.png",
+    "/DesignAssets/WAVYBLINDBARBER2.PNG",
+    "/DesignAssets/ISOWAVYFLYER-TRIP.PNG",
     "/DesignAssets/mindfulthoughts.png",
     "/DesignAssets/ISOULATIONFLYER-FINAL.png",
     "/DesignAssets/ISOULATIONDAYPARTY.png",
     "/DesignAssets/ISOULATION-FRANCHISE-final.png",
+    "/DesignAssets/ISOULATIONTOKYO.jpg",
+    "/DesignAssets/ISOULATIONANDFRIENDS.jpg",
     "/DesignAssets/froyonionsoul.png",
     "/DesignAssets/FAMNFRIENDSFLYER.png",
     "/DesignAssets/donttrip1.png",
     "/DesignAssets/4everforward.png",
   ];
-  // Track which images failed to load
-  const [hidden, setHidden] = useState<Set<number>>(new Set());
-  const handleImgError = (idx: number) => {
-    setHidden(prev => new Set(prev).add(idx));
+  const sections = [
+    { title: "Album Covers", images: albumCovers },
+    { title: "Flyers", images: flyers },
+  ];
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const handleImgError = (src: string) => {
+    setHidden(prev => new Set(prev).add(src));
   };
-  // Enlarged image modal state
   const [enlarged, setEnlarged] = useState<string | null>(null);
   const handleEnlarge = (src: string) => setEnlarged(src);
   const handleCloseEnlarge = () => setEnlarged(null);
@@ -301,18 +318,25 @@ function DesignModal({ onClose }: { onClose: () => void }) {
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-black transition">✕</button>
         <h2 className="text-2xl sm:text-3xl font-extrabold mb-6 text-[#18181b] tracking-widest uppercase">Design Portfolio</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {images.map((src, idx) => (
-            !hidden.has(idx) && (
-              <div key={idx} className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => handleEnlarge(src)}>
-                <img
-                  src={src}
-                  alt={`Design ${idx + 1}`}
-                  className="w-full h-auto object-cover"
-                  onError={() => handleImgError(idx)}
-                />
+        <div className="w-full space-y-10">
+          {sections.map(({ title, images }) => (
+            <div key={title}>
+              <h3 className="text-lg sm:text-xl font-bold mb-4 text-[#18181b] tracking-wide uppercase">{title}</h3>
+              <div className="grid grid-cols-3 gap-4">
+                {images.map((src) => (
+                  !hidden.has(src) && (
+                    <div key={src} className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => handleEnlarge(src)}>
+                      <img
+                        src={src}
+                        alt={src.split("/").pop() ?? "Design asset"}
+                        className="w-full h-auto object-cover"
+                        onError={() => handleImgError(src)}
+                      />
+                    </div>
+                  )
+                ))}
               </div>
-            )
+            </div>
           ))}
         </div>
         {enlarged && (
