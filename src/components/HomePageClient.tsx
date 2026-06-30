@@ -348,11 +348,23 @@ function DesignModal({ onClose }: { onClose: () => void }) {
               <div className="grid grid-cols-3 gap-4">
                 {images.map((src) => (
                   !hidden.has(src) && (
-                    <div key={src} className="bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200" onClick={() => handleEnlarge(src)}>
+                    <div
+                      key={src}
+                      className={`bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200 ${
+                        title === "Flyers"
+                          ? "aspect-[4/5] flex items-center justify-center"
+                          : ""
+                      }`}
+                      onClick={() => handleEnlarge(src)}
+                    >
                       <img
                         src={src}
                         alt={src.split("/").pop() ?? "Design asset"}
-                        className="w-full h-auto object-cover"
+                        className={
+                          title === "Flyers"
+                            ? "max-w-full max-h-full object-contain"
+                            : "w-full h-auto object-cover"
+                        }
                         onError={() => handleImgError(src)}
                       />
                     </div>
