@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 
 const navLinks = [
+  { label: "Services", href: "/services" },
   { label: "Email Me", href: "mailto:tangs.email@gmail.com" },
   { label: "Resume", href: "/RyanTangResume2025.png", download: true },
 ];
@@ -17,7 +18,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
     <header className="fixed top-0 left-0 w-full z-[300] bg-transparent">
       <nav className="relative z-[2] max-w-6xl mx-auto grid grid-cols-3 items-center px-2 sm:px-4 py-2 sm:py-4">
         {/* Logo/Brand */}
-        <a href="#home" className="col-span-1 justify-self-start flex items-center logo-animate" style={{ minWidth: 'clamp(60px, 15vw, 108px)', minHeight: 'clamp(60px, 15vw, 108px)' }}>
+        <a href="/" className="col-span-1 justify-self-start flex items-center logo-animate" style={{ minWidth: 'clamp(60px, 15vw, 108px)', minHeight: 'clamp(60px, 15vw, 108px)' }}>
           <Image
             src="/cloudlogo.png"
             alt="Logo"

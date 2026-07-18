@@ -1,9 +1,12 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import LoadingScreen from "./LoadingScreen";
 import VantaRingsBackground from "./VantaRingsBackground";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const showMotionBg = pathname !== "/services";
   // Use a ref to persist loading state across navigations
   const hasLoadedRef = useRef(false);
   const [loading, setLoading] = useState(() => !hasLoadedRef.current);
@@ -22,13 +25,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }}>
-        <VantaRingsBackground zIndex={1} />
-      </div>
+      {showMotionBg && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, width: '100vw', height: '100vh', pointerEvents: 'none' }}>
+          <VantaRingsBackground zIndex={1} />
+        </div>
+      )}
       <LoadingScreen show={loading} />
       <div style={{ opacity: loading ? 0 : 1, transition: 'opacity 0.5s', position: 'relative', zIndex: 10 }}>
         {children}
       </div>
     </>
   );
-} 
+}
