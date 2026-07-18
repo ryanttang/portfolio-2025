@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import { FaEnvelope } from "react-icons/fa";
 
@@ -705,9 +706,9 @@ export default function ServicesPageClient() {
           </div>
 
           <footer className="mt-10 pt-6 border-t border-[#e6c47a]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-base text-[#a1a1aa]">
-            <a href="/" className="hover:text-[#e6c47a] transition tracking-wide uppercase text-sm font-semibold">
+            <Link href="/" className="hover:text-[#e6c47a] transition tracking-wide uppercase text-sm font-semibold">
               ← Back to portfolio
-            </a>
+            </Link>
             <a href="mailto:tangs.email@gmail.com" className="hover:text-[#e6c47a] transition">
               tangs.email@gmail.com
             </a>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const navLinks = [
   { label: "Services", href: "/services" },
@@ -18,7 +19,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
     <header className="fixed top-0 left-0 w-full z-[300] bg-transparent">
       <nav className="relative z-[2] max-w-6xl mx-auto grid grid-cols-3 items-center px-2 sm:px-4 py-2 sm:py-4">
         {/* Logo/Brand */}
-        <a href="/" className="col-span-1 justify-self-start flex items-center logo-animate" style={{ minWidth: 'clamp(60px, 15vw, 108px)', minHeight: 'clamp(60px, 15vw, 108px)' }}>
+        <Link href="/" className="col-span-1 justify-self-start flex items-center logo-animate" style={{ minWidth: 'clamp(60px, 15vw, 108px)', minHeight: 'clamp(60px, 15vw, 108px)' }}>
           <Image
             src="/cloudlogo.png"
             alt="Logo"
@@ -28,7 +29,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
             priority
             className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28"
           />
-        </a>
+        </Link>
         <style jsx>{`
           .logo-animate {
             animation: cloudRock 9s cubic-bezier(.4,0,.2,1) infinite;
@@ -161,6 +162,14 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
                 >
                   {link.label}
                 </a>
+              ) : link.href.startsWith("/") ? (
+                <Link
+                  href={link.href}
+                  className="menu-link"
+                  onClick={() => setOpen(false)}
+                >
+                  {link.label}
+                </Link>
               ) : (
                 <a
                   href={link.href}
