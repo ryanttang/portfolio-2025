@@ -7,9 +7,9 @@ import { FaEnvelope } from "react-icons/fa";
 
 const tabs = [
   { id: "overview", label: "Overview" },
-  { id: "projects", label: "Projects" },
+  { id: "projects", label: "Services" },
   { id: "retainers", label: "Retainers" },
-  { id: "intensives", label: "Intensives" },
+  { id: "intensives", label: "Consulting" },
   { id: "terms", label: "Terms" },
 ] as const;
 
@@ -27,10 +27,10 @@ const lifecycleSteps = [
 
 const overviewGroups = [
   {
-    title: "Projects",
+    title: "Services",
     items: [
-      { label: "Strategy Intensives", price: "$1,250" },
-      { label: "Digital Web Projects", price: "$2,500" },
+      { label: "Web & Marketing Strategy", price: "$1,250" },
+      { label: "Web & Marketing Projects", price: "$2,500" },
       { label: "Website Design & Development", price: "$5,000" },
     ],
   },
@@ -38,20 +38,20 @@ const overviewGroups = [
     title: "Retainers",
     items: [
       { label: "Consulting", price: "$500" },
-      { label: "Monthly Growth Partnerships", price: "$2,500/mo" },
+      { label: "Monthly Support", price: "$5,000/mo" },
     ],
   },
 ];
 
 const dayRateExamples = [
-  "Marketing strategy workshops",
-  "Website planning & architecture",
-  "Brand and digital audits",
-  "Campaign planning",
-  "Analytics & conversion reviews",
-  "On-site consulting",
-  "Marketing-team training",
-  "Executive strategy sessions",
+  "Marketing Strategy Workshops",
+  "Website Planning & Architecture",
+  "Brand and Digital Audits",
+  "Campaign Planning",
+  "Analytics & Conversion Reviews",
+  "On-Site Consulting",
+  "Marketing-Team Training",
+  "Executive Strategy Sessions",
 ];
 
 const intensiveStrategy = [
@@ -85,8 +85,8 @@ const retainers = [
     ],
   },
   {
-    name: "Growth Partner",
-    price: "$4,000",
+    name: "Monthly Support",
+    price: "$5,000",
     positioning: "Strategy plus ongoing marketing execution",
     bestFor: "Businesses ready for consistent campaign and channel support",
     capacity: "~20–25 hours allocated",
@@ -108,42 +108,38 @@ const projectSections = [
   {
     id: "strategy",
     label: "Strategy & Brand",
-    description: "Clarity, positioning, and a plan before you build.",
     items: [
-      { project: "Digital Marketing Audit", range: "$1,500–$3,000" },
-      { project: "Full Marketing Strategy", range: "$3,500–$7,500" },
-      { project: "Brand Identity Package", range: "$3,500–$8,000" },
+      { project: "Digital Marketing Audit", range: "$1,500" },
+      { project: "Full Marketing Strategy", range: "$3,500" },
+      { project: "Brand Identity Package", range: "$3,500" },
     ],
   },
   {
     id: "websites",
     label: "Websites",
-    description: "From landing pages to e-commerce—priced by complexity, not page count.",
     items: [
-      { project: "Landing Page", range: "$2,000–$4,000" },
-      { project: "Small Business Website", range: "$5,000–$8,000" },
-      { project: "Custom Marketing Website", range: "$8,000–$15,000" },
-      { project: "E-Commerce Website", range: "$10,000–$25,000+" },
-      { project: "Website Redesign", range: "$7,500–$15,000+" },
-      { project: "SEO Optimization", range: "$1,500–$3,000" },
+      { project: "Landing Page", range: "$2,000" },
+      { project: "Small Business Website", range: "$5,000" },
+      { project: "Custom Marketing Website", range: "$8,000" },
+      { project: "E-Commerce Website", range: "$10,000" },
+      { project: "Website Redesign", range: "$7,500" },
+      { project: "SEO Optimization", range: "$1,500" },
     ],
   },
   {
     id: "systems",
     label: "Systems & Growth",
-    description: "SEO, automation, and reporting that compound after launch.",
     items: [
-      { project: "SEO Foundation Project", range: "$2,500–$6,000" },
-      { project: "Email/SMS Automation Setup", range: "$2,500–$7,500" },
-      { project: "Marketing Dashboard", range: "$2,500–$6,000" },
+      { project: "SEO Foundation Project", range: "$2,500" },
+      { project: "Email/SMS Automation Setup", range: "$2,500" },
+      { project: "Marketing Dashboard", range: "$2,500" },
     ],
   },
   {
     id: "custom",
     label: "Custom Build",
-    description: "Fully customized web applications fine-tuned to your business.",
     items: [
-      { project: "Custom Web Application", range: "$10,000–$30,000+" },
+      { project: "Custom Web Application", range: "$20,000" },
     ],
   },
 ] as const;
@@ -151,32 +147,63 @@ const projectSections = [
 type ProjectSectionId = (typeof projectSections)[number]["id"];
 
 const complexityFactors = [
-  "Strategy & discovery",
-  "Custom vs. template",
+  "Strategy & Discovery",
+  "Custom vs. Template",
   "Copywriting",
   "SEO",
   "Integrations",
-  "E-commerce",
-  "Custom functionality",
+  "E-Commerce",
+  "Custom Functionality",
   "Analytics",
   "CRM",
   "Automation",
   "Testing",
   "Training",
-  "Post-launch support",
+  "Post-Launch Support",
+  "Build Time",
+  "Maintenance",
+];
+
+const systemsComplexityFactors = [
+  "SEO Audit Depth",
+  "Keyword & Content Scope",
+  "Technical Fixes",
+  "Email/SMS Channels",
+  "Automation Flows",
+  "Audience Segmentation",
+  "Platform Integrations",
+  "CRM Sync",
+  "Data Sources",
+  "KPI Selection",
+  "Custom Reporting",
+  "Dashboard Complexity",
+  "Testing & QA",
+  "Training & Handoff",
+  "Maintenance",
 ];
 
 const combinedServices = [
-  "Brand positioning",
-  "UX strategy",
-  "Web design",
+  "Brand Positioning",
+  "UX Strategy",
+  "Web Design",
   "Development",
   "SEO",
   "Analytics",
-  "Conversion optimization",
-  "Email capture",
-  "Marketing automation",
-  "Launch strategy",
+  "Conversion Optimization",
+  "Email Capture",
+  "Email/SMS Marketing",
+  "Campaigns",
+  "Retention",
+  "Marketing Automation",
+  "Launch Strategy",
+];
+
+const skills = [
+  "Full Stack Development",
+  "Campaigns & Automations",
+  "Data & Analytics",
+  "Graphic Design",
+  "Copywriting",
 ];
 
 const projectTerms = [
@@ -200,17 +227,10 @@ const cardClass =
 const cardActiveClass =
   "rounded-xl border border-[#e6c47a] bg-[#e6c47a]/10 p-4 sm:p-5 transition shadow-[0_0_0_1px_#e6c47a44]";
 
-function TabPanelLead({ children }: { children: React.ReactNode }) {
-  return <p className="text-[#a1a1aa] text-base sm:text-lg leading-relaxed mb-5 max-w-2xl">{children}</p>;
-}
-
 export default function ServicesPageClient() {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [activeRetainer, setActiveRetainer] = useState(0);
   const [activeProjectSection, setActiveProjectSection] = useState<ProjectSectionId>("websites");
-  const selectedRetainer = retainers[activeRetainer];
-  const selectedProjectSection =
-    projectSections.find((section) => section.id === activeProjectSection) ?? projectSections[1];
 
   return (
     <div
@@ -293,19 +313,20 @@ export default function ServicesPageClient() {
             })}
           </div>
 
-          {/* Panels */}
+          {/* Panels — all kept in DOM for crawlability; inactive use hidden */}
           <div className="min-h-[420px]">
-            {activeTab === "overview" && (
-              <div role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
-                <TabPanelLead>
-                  Transparent starting points. Exact quotes reflect scope, complexity, and outcomes.
-                </TabPanelLead>
+            <div
+              role="tabpanel"
+              id="panel-overview"
+              aria-labelledby="tab-overview"
+              hidden={activeTab !== "overview"}
+            >
                 <div className="grid sm:grid-cols-2 gap-3 mb-6">
                   {overviewGroups.map((group) => (
                     <div key={group.title} className={cardClass}>
-                      <p className="text-[#e6c47a] text-sm tracking-wide mb-4 font-semibold">
+                      <h2 className="text-[#e6c47a] text-sm tracking-wide mb-4 font-semibold">
                         {group.title}
-                      </p>
+                      </h2>
                       <ul className="space-y-3">
                         {group.items.map((item) => (
                           <li
@@ -325,11 +346,11 @@ export default function ServicesPageClient() {
                 <div className={`${cardClass} overflow-hidden`}>
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-8">
                     <div>
-                      <p className="text-[#e6c47a] text-sm tracking-wide mb-1 font-semibold">
+                      <h2 className="text-[#e6c47a] text-sm tracking-wide mb-1 font-semibold">
                         Full Lifecycle
-                      </p>
+                      </h2>
                       <p className="text-[#a1a1aa] text-sm sm:text-base leading-relaxed">
-                        From opportunity to ongoing optimization—not just advisory.
+                        What I Provide
                       </p>
                     </div>
                     <p className="text-[#e6c47a]/70 text-xs font-semibold tracking-wide hidden sm:block">
@@ -391,9 +412,9 @@ export default function ServicesPageClient() {
                   </ol>
                 </div>
                 <div className={`${cardClass} mt-3`}>
-                  <p className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                  <h2 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
                     Combined Disciplines
-                  </p>
+                  </h2>
                   <div className="flex flex-wrap gap-2">
                     {combinedServices.map((item) => (
                       <span
@@ -405,19 +426,34 @@ export default function ServicesPageClient() {
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
+                <div className={`${cardClass} mt-3`}>
+                  <h2 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                    Skills
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.map((item) => (
+                      <span
+                        key={item}
+                        className="text-sm sm:text-base text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2.5 py-1"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+            </div>
 
-            {activeTab === "intensives" && (
-              <div role="tabpanel" id="panel-intensives" aria-labelledby="tab-intensives">
-                <TabPanelLead>
-                  Day rates of $1,000–$1,500 for focused access—workshops, audits, planning, and training. Preparation, meetings, documentation, and follow-up are part of the engagement.
-                </TabPanelLead>
+            <div
+              role="tabpanel"
+              id="panel-intensives"
+              aria-labelledby="tab-intensives"
+              hidden={activeTab !== "intensives"}
+            >
                 <div className="grid lg:grid-cols-[1.2fr_1fr] gap-4">
                   <div className={`${cardClass} border-[#e6c47a]/45`}>
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
                       <h2 className="text-xl sm:text-2xl font-bold text-white">
-                        Digital Strategy Intensive
+                        Web & Digital Marketing Consulting
                       </h2>
                       <p className="text-[#e6c47a] text-3xl font-extrabold shrink-0">
                         $1,250
@@ -425,7 +461,7 @@ export default function ServicesPageClient() {
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                        <p className="text-[#e6c47a] text-sm font-semibold mb-1">Strategy</p>
+                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Strategy</h3>
                         <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
                           Direction, priorities, and decision support
                         </p>
@@ -438,7 +474,7 @@ export default function ServicesPageClient() {
                         </ul>
                       </div>
                       <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                        <p className="text-[#e6c47a] text-sm font-semibold mb-1">Deliverables</p>
+                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Deliverables</h3>
                         <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
                           Hands-on outputs and executed work
                         </p>
@@ -453,9 +489,9 @@ export default function ServicesPageClient() {
                     </div>
                   </div>
                   <div className={cardClass}>
-                    <p className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                    <h3 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
                       Common Uses
-                    </p>
+                    </h3>
                     <ul className="space-y-2">
                       {dayRateExamples.map((item) => (
                         <li key={item} className="text-[#c4c4c8] text-base border-b border-[#e6c47a]/10 pb-2 last:border-0 last:pb-0">
@@ -465,14 +501,14 @@ export default function ServicesPageClient() {
                     </ul>
                   </div>
                 </div>
-              </div>
-            )}
+            </div>
 
-            {activeTab === "retainers" && (
-              <div role="tabpanel" id="panel-retainers" aria-labelledby="tab-retainers">
-                <TabPanelLead>
-                  Predictable partnership with clear boundaries—access, expertise, priorities, and reserved capacity.
-                </TabPanelLead>
+            <div
+              role="tabpanel"
+              id="panel-retainers"
+              aria-labelledby="tab-retainers"
+              hidden={activeTab !== "retainers"}
+            >
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4">
                   {retainers.map((tier, i) => {
                     const selected = activeRetainer === i;
@@ -499,61 +535,66 @@ export default function ServicesPageClient() {
                     );
                   })}
                 </div>
-                <div className={cardClass}>
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">
-                        {selectedRetainer.name}
-                      </h2>
-                      <p className="text-[#c4c4c8] text-base mb-1">{selectedRetainer.positioning}</p>
-                      <p className="text-[#a1a1aa] text-base">{selectedRetainer.bestFor}</p>
+                {retainers.map((tier, i) => (
+                  <div
+                    key={tier.name}
+                    className={cardClass}
+                    hidden={activeRetainer !== i}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
+                      <div>
+                        <h2 className="text-2xl font-bold text-white mb-1">
+                          {tier.name}
+                        </h2>
+                        <p className="text-[#c4c4c8] text-base mb-1">{tier.positioning}</p>
+                        <p className="text-[#a1a1aa] text-base">{tier.bestFor}</p>
+                      </div>
+                      <div className="shrink-0 sm:text-right">
+                        <p className="text-[#e6c47a] text-3xl font-extrabold">
+                          {tier.price}
+                          <span className="text-base font-semibold text-[#a1a1aa] ml-1">/mo</span>
+                        </p>
+                        <p className="text-[#e6c47a]/80 text-sm font-semibold mt-1">{tier.capacity}</p>
+                      </div>
                     </div>
-                    <div className="shrink-0 sm:text-right">
-                      <p className="text-[#e6c47a] text-3xl font-extrabold">
-                        {selectedRetainer.price}
-                        <span className="text-base font-semibold text-[#a1a1aa] ml-1">/mo</span>
-                      </p>
-                      <p className="text-[#e6c47a]/80 text-sm font-semibold mt-1">{selectedRetainer.capacity}</p>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
+                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Strategy</h3>
+                        <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
+                          Direction, priorities, and decision support
+                        </p>
+                        <ul className="space-y-2">
+                          {tier.strategy.map((item) => (
+                            <li key={item} className="text-[#c4c4c8] text-base leading-snug">
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
+                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Deliverables</h3>
+                        <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
+                          Hands-on outputs and executed work
+                        </p>
+                        <ul className="space-y-2">
+                          {tier.deliverables.map((item) => (
+                            <li key={item} className="text-[#c4c4c8] text-base leading-snug">
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                      <p className="text-[#e6c47a] text-sm font-semibold mb-1">Strategy</p>
-                      <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
-                        Direction, priorities, and decision support
-                      </p>
-                      <ul className="space-y-2">
-                        {selectedRetainer.strategy.map((item) => (
-                          <li key={item} className="text-[#c4c4c8] text-base leading-snug">
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                      <p className="text-[#e6c47a] text-sm font-semibold mb-1">Deliverables</p>
-                      <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
-                        Hands-on outputs and executed work
-                      </p>
-                      <ul className="space-y-2">
-                        {selectedRetainer.deliverables.map((item) => (
-                          <li key={item} className="text-[#c4c4c8] text-base leading-snug">
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+                ))}
+            </div>
 
-            {activeTab === "projects" && (
-              <div role="tabpanel" id="panel-projects" aria-labelledby="tab-projects">
-                <TabPanelLead>
-                  Clear ranges by project type. Final quotes depend on complexity—not page count alone.
-                </TabPanelLead>
-
+            <div
+              role="tabpanel"
+              id="panel-projects"
+              aria-labelledby="tab-projects"
+              hidden={activeTab !== "projects"}
+            >
                 <div
                   role="tablist"
                   aria-label="Project categories"
@@ -567,6 +608,8 @@ export default function ServicesPageClient() {
                         type="button"
                         role="tab"
                         aria-selected={selected}
+                        id={`project-tab-${section.id}`}
+                        aria-controls={`project-panel-${section.id}`}
                         onClick={() => setActiveProjectSection(section.id)}
                         className={`rounded-full px-4 py-2 text-sm font-semibold border transition ${
                           selected
@@ -581,86 +624,121 @@ export default function ServicesPageClient() {
                   })}
                 </div>
 
-                <p className="text-[#a1a1aa] text-sm sm:text-base mb-4">
-                  {selectedProjectSection.description}
-                </p>
-
-                <div
-                  className={`grid gap-2 sm:gap-3 mb-4 ${
-                    selectedProjectSection.items.length === 1
-                      ? "grid-cols-1 sm:grid-cols-2"
-                      : "grid-cols-2 lg:grid-cols-3"
-                  }`}
-                >
-                  {selectedProjectSection.items.map((row) => (
-                    <div key={row.project} className={cardClass}>
-                      <p className="text-[#c4c4c8] text-sm sm:text-base mb-2 leading-snug">{row.project}</p>
-                      <p className="text-[#e6c47a] text-base sm:text-lg font-extrabold">
-                        {row.range}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {activeProjectSection === "websites" && (
-                  <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                    <div className={cardClass}>
-                      <p className="text-[#a1a1aa] text-xs tracking-wide mb-1">Basic Website</p>
-                      <h3 className="text-lg font-bold text-white mb-1">
-                        Design & Development
-                      </h3>
-                      <p className="text-[#e6c47a] text-3xl font-extrabold mb-2">
-                        $6,000
-                      </p>
-                      <p className="text-[#a1a1aa] text-sm leading-relaxed">
-                        Website design and development as a standalone deliverable.
-                      </p>
-                    </div>
-                    <div className={`${cardClass} border-[#e6c47a]/50`}>
-                      <p className="text-[#e6c47a] text-xs tracking-wide mb-1">Growth-Focused</p>
-                      <h3 className="text-lg font-bold text-white mb-1">
-                        Business Growth System
-                      </h3>
-                      <p className="text-[#e6c47a] text-3xl font-extrabold mb-2">
-                        $10,000–$15,000
-                      </p>
-                      <p className="text-[#a1a1aa] text-sm leading-relaxed">
-                        Strategy, custom site, SEO, analytics, lead gen, and launch support.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {(activeProjectSection === "websites" || activeProjectSection === "custom") && (
-                  <div className={cardClass}>
-                    <p className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
-                      What Drives Pricing
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {complexityFactors.map((item) => (
-                        <span
-                          key={item}
-                          className="text-sm text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2 py-1"
-                        >
-                          {item}
-                        </span>
+                {projectSections.map((section) => (
+                  <div
+                    key={section.id}
+                    role="tabpanel"
+                    id={`project-panel-${section.id}`}
+                    aria-labelledby={`project-tab-${section.id}`}
+                    hidden={activeProjectSection !== section.id}
+                  >
+                    <h2 className="sr-only">{section.label}</h2>
+                    <div
+                      className={`grid gap-2 sm:gap-3 mb-4 ${
+                        section.items.length === 1
+                          ? "grid-cols-1 sm:grid-cols-2"
+                          : "grid-cols-2 lg:grid-cols-3"
+                      }`}
+                    >
+                      {section.items.map((row) => (
+                        <div key={row.project} className={cardClass}>
+                          <h3 className="text-[#c4c4c8] text-sm sm:text-base mb-2 leading-snug font-normal">
+                            {row.project}
+                          </h3>
+                          <p className="text-[#e6c47a] text-base sm:text-lg font-extrabold">
+                            {row.range}
+                            <span className="ml-1 text-[10px] sm:text-xs font-semibold text-[#a1a1aa]">
+                              /Starting Rate
+                            </span>
+                          </p>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
 
-            {activeTab === "terms" && (
-              <div role="tabpanel" id="panel-terms" aria-labelledby="tab-terms">
-                <TabPanelLead>
-                  Clear payment structure and scope rules keep projects on track.
-                </TabPanelLead>
+                    {section.id === "websites" && (
+                      <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                        <div className={cardClass}>
+                          <p className="text-[#a1a1aa] text-xs tracking-wide mb-1">Basic Website</p>
+                          <h3 className="text-lg font-bold text-white mb-1">
+                            Design & Development
+                          </h3>
+                          <p className="text-[#e6c47a] text-3xl font-extrabold mb-2">
+                            $6,000
+                            <span className="ml-1 text-xs font-semibold text-[#a1a1aa]">
+                              /Starting Rate
+                            </span>
+                          </p>
+                          <p className="text-[#a1a1aa] text-sm leading-relaxed">
+                            Website design and development as a standalone deliverable.
+                          </p>
+                        </div>
+                        <div className={`${cardClass} border-[#e6c47a]/50`}>
+                          <p className="text-[#e6c47a] text-xs tracking-wide mb-1">Growth-Focused</p>
+                          <h3 className="text-lg font-bold text-white mb-1">
+                            Business Growth System
+                          </h3>
+                          <p className="text-[#e6c47a] text-3xl font-extrabold mb-2">
+                            $10,000
+                            <span className="ml-1 text-xs font-semibold text-[#a1a1aa]">
+                              /Starting Rate
+                            </span>
+                          </p>
+                          <p className="text-[#a1a1aa] text-sm leading-relaxed">
+                            Strategy, custom site, SEO, analytics, lead gen, and launch support.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {(section.id === "websites" || section.id === "custom") && (
+                      <div className={cardClass}>
+                        <h3 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                          What Drives Pricing
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {complexityFactors.map((item) => (
+                            <span
+                              key={item}
+                              className="text-sm text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2 py-1"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {section.id === "systems" && (
+                      <div className={cardClass}>
+                        <h3 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                          What Drives Pricing
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {systemsComplexityFactors.map((item) => (
+                            <span
+                              key={item}
+                              className="text-sm text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2 py-1"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+
+            <div
+              role="tabpanel"
+              id="panel-terms"
+              aria-labelledby="tab-terms"
+              hidden={activeTab !== "terms"}
+            >
+                <h2 className="sr-only">Terms</h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={cardClass}>
-                    <h3
-                      className="text-base font-semibold text-white mb-3"
-                    >
+                    <h3 className="text-base font-semibold text-white mb-3">
                       Projects Under ~$10k
                     </h3>
                     <ol className="space-y-2.5 text-[#c4c4c8] text-base">
@@ -671,9 +749,7 @@ export default function ServicesPageClient() {
                     <p className="text-[#a1a1aa] text-sm mt-3">Smaller projects: 50% / 50%</p>
                   </div>
                   <div className={cardClass}>
-                    <h3
-                      className="text-base font-semibold text-white mb-3"
-                    >
+                    <h3 className="text-base font-semibold text-white mb-3">
                       Project Terms
                     </h3>
                     <ul className="space-y-2">
@@ -686,9 +762,7 @@ export default function ServicesPageClient() {
                     </ul>
                   </div>
                   <div className={`${cardClass} sm:col-span-2 lg:col-span-1`}>
-                    <h3
-                      className="text-base font-semibold text-white mb-3"
-                    >
+                    <h3 className="text-base font-semibold text-white mb-3">
                       Retainer Terms
                     </h3>
                     <ul className="space-y-2">
@@ -701,8 +775,7 @@ export default function ServicesPageClient() {
                     </ul>
                   </div>
                 </div>
-              </div>
-            )}
+            </div>
           </div>
 
           <footer className="mt-10 pt-6 border-t border-[#e6c47a]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-base text-[#a1a1aa]">
