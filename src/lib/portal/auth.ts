@@ -154,20 +154,14 @@ export async function sendPortalInviteEmail(
   const invite = await createPortalInvite(clientId, context?.onboardingId);
   const url = `${getAppUrl()}/portal/invite/${invite.token}`;
 
-  const projectLine = context?.projectName
-    ? `\nProject: ${context.projectName}`
-    : "";
-  const servicesLine =
-    context?.services && context.services.length > 0
-      ? `\nServices: ${context.services.join(", ")}`
-      : "";
-  const projectHtml = context?.projectName
-    ? `<p><strong>Project:</strong> ${context.projectName}</p>`
-    : "";
-  const servicesHtml =
-    context?.services && context.services.length > 0
-      ? `<p><strong>Services:</strong> ${context.services.join(", ")}</p>`
-      : "";
+  const { renderPortalInviteEmail } = await import("@/lib/email/templates/transactional");
+  const branded = await renderPortalInviteEmail({
+    clientName: client.name,
+    inviteUrl: url,
+    projectName: context?.projectName,
+    services: context?.services,
+    expiresDays: INVITE_DAYS,
+  });
 
   const result = await sendEmail({
     to: [client.email],
@@ -175,8 +169,8 @@ export async function sendPortalInviteEmail(
       ? `Set up your portal — ${context.projectName}`
       : "Set up your client portal",
     clientId,
-    text: `Hi ${client.name},\n\nYou're invited to your client portal.${projectLine}${servicesLine}\n\nUse this link to set your password and get started:\n\n${url}\n\nThis link expires in ${INVITE_DAYS} days.\n\nThank you,\nRyan Tang`,
-    html: `<p>Hi ${client.name},</p><p>You're invited to your client portal.</p>${projectHtml}${servicesHtml}<p>Use this link to set your password and get started:</p><p><a href="${url}">${url}</a></p><p>This link expires in ${INVITE_DAYS} days.</p><p>Thank you,<br/>Ryan Tang</p>`,
+    text: branded.text,
+    html: branded.html,
   });
 
   await addActivity(clientId, "portal", "Portal invite sent", invite.id);
