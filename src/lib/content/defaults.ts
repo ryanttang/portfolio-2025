@@ -108,7 +108,7 @@ export const defaultContent: Record<string, unknown> = {
     sections: [
       {
         id: "strategy",
-        label: "Strategy & Brand",
+        label: "Marketing Strategy & Branding",
         items: [
           { project: "Digital Marketing Audit", range: "$1,500" },
           { project: "Full Marketing Strategy", range: "$3,500" },
@@ -172,6 +172,7 @@ export const defaultContent: Record<string, unknown> = {
       tagline: "I design and build digital & marketing systems that help businesses grow.",
       supporting:
         "Let me help you build your ideal business tool and marketing funnels, customized to how you work.",
+      availability: "Available for projects, retainers, and consulting.",
       pillars:
         "Strategy • Branding • Websites • Marketing • Automation • AI • Analytics",
     },
@@ -228,17 +229,8 @@ export const defaultContent: Record<string, unknown> = {
     ],
     serviceSections: [
       {
-        id: "strategy",
-        label: "Strategy & Brand",
-        items: [
-          "Digital Marketing Audit",
-          "Full Marketing Strategy",
-          "Brand Identity Package",
-        ],
-      },
-      {
         id: "websites",
-        label: "Websites",
+        label: "Website Development",
         items: [
           "Landing Page",
           "Small Business Website",
@@ -249,18 +241,33 @@ export const defaultContent: Record<string, unknown> = {
         ],
       },
       {
+        id: "custom",
+        label: "Custom Build",
+        items: [
+          "Custom Web Application",
+          "Custom Built Internal Tools",
+          "Project Management Tools",
+          "Data Dashboards",
+        ],
+      },
+      {
         id: "systems",
-        label: "Systems & Growth",
+        label: "Marketing Systems & Campaigns",
         items: [
           "SEO Foundation Project",
           "Email/SMS Automation Setup",
           "Marketing Dashboard",
+          "Rewards & Loyalty Systems",
         ],
       },
       {
-        id: "custom",
-        label: "Custom Build",
-        items: ["Custom Web Application"],
+        id: "strategy",
+        label: "Marketing Strategy & Branding",
+        items: [
+          "Digital Marketing Audit",
+          "Full Marketing Strategy",
+          "Brand Identity Package",
+        ],
       },
     ],
     retainers: [

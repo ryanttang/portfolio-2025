@@ -20,9 +20,6 @@ function mailtoHref(email: string) {
 }
 
 export default function HelloPageClient({ content }: { content: HelloContent }) {
-  const [activeSectionId, setActiveSectionId] = useState(
-    () => content.serviceSections[0]?.id ?? "",
-  );
   const [showPortfolio, setShowPortfolio] = useState(false);
 
   const { greeting, links, whoICanHelp, consulting, cta } = content;
@@ -74,6 +71,11 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
                   {greeting.supporting ? (
                     <p className="text-[#c4c4c8] text-sm sm:text-base font-bold leading-snug mt-0.5">
                       {greeting.supporting}
+                    </p>
+                  ) : null}
+                  {greeting.availability ? (
+                    <p className="text-[#fdf0d5]/80 text-xs sm:text-sm font-light italic tracking-wide mt-3 sm:mt-4">
+                      {greeting.availability}
                     </p>
                   ) : null}
                 </div>
@@ -140,193 +142,186 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
             <DevProjectsModal onClose={() => setShowPortfolio(false)} />
           ) : null}
 
-          <section className={cardClass} aria-labelledby="who-help-heading">
+          <section aria-labelledby="who-help-heading">
             <h2
               id="who-help-heading"
-              className="text-[#fdf0d5] text-sm tracking-wide mb-4 font-semibold"
+              className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
             >
               {whoICanHelp.title}
             </h2>
-            <ul className="space-y-3">
-              {whoICanHelp.items.map((item) => (
-                <li
-                  key={item}
-                  className="text-[#c4c4c8] text-base leading-snug border-b border-[#fdf0d5]/15 pb-3 last:border-0 last:pb-0"
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <div className={cardClass}>
+              <ul className="space-y-3">
+                {whoICanHelp.items.map((item) => (
+                  <li
+                    key={item}
+                    className="text-[#c4c4c8] text-sm sm:text-base leading-snug border-b border-[#fdf0d5]/15 pb-3 last:border-0 last:pb-0"
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
 
           <section aria-labelledby="services-heading">
             <h2
               id="services-heading"
-              className="text-[#fdf0d5] text-sm tracking-wide mb-4 font-semibold"
+              className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
             >
               What I Can Help With
             </h2>
-            <div
-              role="tablist"
-              aria-label="Service categories"
-              className="flex flex-nowrap gap-2 mb-5 overflow-x-auto pb-1 scrollbar-none"
-              style={{ scrollbarWidth: "none" }}
-            >
-              {content.serviceSections.map((section) => {
-                const selected = activeSectionId === section.id;
+            <div className="grid grid-cols-2 gap-3">
+              {content.serviceSections.map((section, i) => {
+                const headerTone =
+                  [
+                    "border-[#fdf0d5]/50 bg-[#fdf0d5]/15 text-[#fdf0d5]",
+                    "border-[#7dd3fc]/50 bg-[#7dd3fc]/15 text-[#7dd3fc]",
+                    "border-[#c4b5fd]/50 bg-[#c4b5fd]/15 text-[#c4b5fd]",
+                    "border-[#86efac]/50 bg-[#86efac]/15 text-[#86efac]",
+                  ][i % 4] ?? "border-[#fdf0d5]/50 bg-[#fdf0d5]/15 text-[#fdf0d5]";
+
                 return (
-                  <button
-                    key={section.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    id={`hello-tab-${section.id}`}
-                    aria-controls={`hello-panel-${section.id}`}
-                    onClick={() => setActiveSectionId(section.id)}
-                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold border transition ${
-                      selected
-                        ? "border-[#fdf0d5] bg-[#fdf0d5]/15 text-[#fdf0d5]"
-                        : "border-[#fdf0d5]/25 text-[#a1a1aa] hover:text-white hover:border-[#fdf0d5]/50"
-                    }`}
-                    style={{ minWidth: "auto", minHeight: "auto" }}
-                  >
-                    {section.label}
-                  </button>
+                  <div key={section.id} className={cardClass}>
+                    <h3
+                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] sm:text-sm font-semibold tracking-wide mb-3 ${headerTone}`}
+                    >
+                      {section.label}
+                    </h3>
+                    <ul className="space-y-2 sm:space-y-3">
+                      {section.items.map((item) => (
+                        <li
+                          key={item}
+                          className="text-[#c4c4c8] text-xs sm:text-base leading-snug border-b border-[#fdf0d5]/15 pb-2 sm:pb-3 last:border-0 last:pb-0"
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 );
               })}
             </div>
-
-            {content.serviceSections.map((section) => (
-              <div
-                key={section.id}
-                role="tabpanel"
-                id={`hello-panel-${section.id}`}
-                aria-labelledby={`hello-tab-${section.id}`}
-                hidden={activeSectionId !== section.id}
-                className={`${cardClass} max-w-md`}
-              >
-                <h3 className="sr-only">{section.label}</h3>
-                <ul className="space-y-3">
-                  {section.items.map((item) => (
-                    <li
-                      key={item}
-                      className="text-[#c4c4c8] text-base leading-snug border-b border-[#fdf0d5]/15 pb-3 last:border-0 last:pb-0"
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
           </section>
 
-          <div className="grid grid-cols-2 gap-3">
-            <section className={`${cardClass} overflow-hidden`} aria-labelledby="lifecycle-heading">
-              <div className="mb-6">
-                <h2
-                  id="lifecycle-heading"
-                  className="text-[#fdf0d5] text-sm tracking-wide mb-1 font-semibold"
-                >
-                  How I Work
-                </h2>
-                <p className="text-[#a1a1aa] text-sm leading-relaxed">
-                  Full lifecycle support
-                </p>
-              </div>
-
-              <ol className="relative pl-2 list-none">
-                <div
-                  aria-hidden
-                  className="absolute left-[23px] top-4 bottom-4 w-px"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #fdf0d522, #fdf0d5, #fdf0d5, #fdf0d522)",
-                  }}
-                />
-                {content.lifecycle.map((step, i) => (
-                  <li key={step} className="relative flex items-start gap-4 pb-5 last:pb-0">
-                    <span
-                      className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#fdf0d5] bg-[#18181b] text-[#fdf0d5] text-xs font-bold"
-                      style={{ boxShadow: "0 0 14px #fdf0d555" }}
+          <div className="grid grid-cols-2 gap-3 items-stretch">
+            <section
+              aria-labelledby="lifecycle-heading"
+              className="flex flex-col min-h-0"
+            >
+              <h2
+                id="lifecycle-heading"
+                className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
+              >
+                How I Work
+              </h2>
+              <div className={`${cardClass} overflow-hidden flex-1 flex flex-col`}>
+                <ol className="relative pl-2 list-none flex-1 flex flex-col justify-between">
+                  <div
+                    aria-hidden
+                    className="absolute left-[23px] top-4 bottom-4 w-px"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #fdf0d522, #fdf0d5, #fdf0d5, #fdf0d522)",
+                    }}
+                  />
+                  {content.lifecycle.map((step, i) => (
+                    <li
+                      key={step}
+                      className="relative flex items-start gap-3 sm:gap-4 py-1 first:pt-0 last:pb-0"
                     >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="pt-1 text-[#c4c4c8] text-base leading-snug">{step}</span>
-                  </li>
-                ))}
-              </ol>
+                      <span
+                        className="relative z-10 flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#fdf0d5] bg-[#18181b] text-[#fdf0d5] text-[10px] sm:text-xs font-bold"
+                        style={{ boxShadow: "0 0 14px #fdf0d555" }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="pt-1 text-[#c4c4c8] text-xs sm:text-base leading-snug">
+                        {step}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </section>
 
-            <section className={cardClass} aria-labelledby="skills-heading">
+            <section
+              aria-labelledby="skills-heading"
+              className="flex flex-col min-h-0"
+            >
               <h2
                 id="skills-heading"
-                className="text-[#fdf0d5] text-sm tracking-wide mb-4 font-semibold"
+                className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
               >
                 Skills
               </h2>
-              <div className="space-y-4">
-                {content.skillGroups.map((group) => (
-                  <div key={group.skill}>
-                    <h3 className="text-white text-sm sm:text-base font-semibold mb-2 leading-snug">
-                      {group.skill}
-                    </h3>
-                    {group.disciplines.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {group.disciplines.map((item) => (
-                          <span
-                            key={item}
-                            className="text-xs sm:text-sm text-[#c4c4c8] border border-[#fdf0d5]/20 rounded-lg px-2 py-0.5"
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
+              <div className={`${cardClass} flex-1`}>
+                <div className="space-y-4">
+                  {content.skillGroups.map((group) => (
+                    <div key={group.skill}>
+                      <h3 className="text-white text-sm sm:text-base font-semibold mb-2 leading-snug">
+                        {group.skill}
+                      </h3>
+                      {group.disciplines.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {group.disciplines.map((item) => (
+                            <span
+                              key={item}
+                              className="text-xs sm:text-sm text-[#c4c4c8] border border-[#fdf0d5]/20 rounded-lg px-2 py-0.5"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           </div>
 
-          <section aria-labelledby="retainers-heading">
-            <h2
-              id="retainers-heading"
-              className="text-[#fdf0d5] text-sm tracking-wide mb-4 font-semibold"
-            >
-              Retainers Services
-            </h2>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {content.retainers.map((tier) => (
-                <div key={tier.name} className={cardClass}>
-                  <h3 className="text-xl font-bold text-white mb-3">{tier.name}</h3>
-                  <p className="text-[#c4c4c8] text-base leading-relaxed whitespace-pre-line">
-                    {tier.summary.includes("\n")
-                      ? tier.summary.replace(/\n+/g, "\n\n")
-                      : tier.summary.replace(/\.\s+/, ".\n\n")}
-                  </p>
-                </div>
-              ))}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <h2
+                id="retainers-heading"
+                className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
+              >
+                Retainers Services
+              </h2>
             </div>
-          </section>
+            <div>
+              <h2
+                id="consulting-heading"
+                className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
+              >
+                Consulting Services
+              </h2>
+            </div>
 
-          <section aria-labelledby="consulting-heading">
-            <h2
-              id="consulting-heading"
-              className="text-[#fdf0d5] text-sm tracking-wide mb-4 font-semibold"
-            >
-              Consulting Services
-            </h2>
-            <div className={`${cardClass} border-[#fdf0d5]/45 max-w-2xl`}>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+            {content.retainers.map((tier) => (
+              <div key={tier.name} className={cardClass}>
+                <h3 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-3">
+                  {tier.name}
+                </h3>
+                <p className="text-[#c4c4c8] text-xs sm:text-sm leading-relaxed whitespace-pre-line">
+                  {tier.summary.includes("\n")
+                    ? tier.summary.replace(/\n+/g, "\n\n")
+                    : tier.summary.replace(/\.\s+/, ".\n\n")}
+                </p>
+              </div>
+            ))}
+
+            <div className={`${cardClass} border-[#fdf0d5]/45`}>
+              <h3 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-3">
                 {consulting.title}
               </h3>
-              <p className="text-[#c4c4c8] text-base leading-relaxed whitespace-pre-line">
+              <p className="text-[#c4c4c8] text-xs sm:text-sm leading-relaxed whitespace-pre-line">
                 {consulting.summary.includes("\n")
                   ? consulting.summary.replace(/\n+/g, "\n\n")
                   : consulting.summary.replace(/\.\s+/, ".\n\n")}
               </p>
             </div>
-          </section>
+          </div>
 
           <section className={`${cardClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
             <div>

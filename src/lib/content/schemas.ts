@@ -82,6 +82,9 @@ export const helloSchema = z.object({
       .default(
         "Let me help you build your ideal business tool and marketing funnels, customized to how you work.",
       ),
+    availability: z
+      .string()
+      .default("Available for projects, retainers, and consulting."),
     pillars: z.string(),
   }),
   links: z.object({

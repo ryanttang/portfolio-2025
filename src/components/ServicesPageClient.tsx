@@ -107,7 +107,7 @@ const retainers = [
 const projectSections = [
   {
     id: "strategy",
-    label: "Strategy & Brand",
+    label: "Marketing Strategy & Branding",
     items: [
       { project: "Digital Marketing Audit", range: "$1,500" },
       { project: "Full Marketing Strategy", range: "$3,500" },
@@ -128,7 +128,7 @@ const projectSections = [
   },
   {
     id: "systems",
-    label: "Systems & Growth",
+    label: "Marketing Systems & Campaigns",
     items: [
       { project: "SEO Foundation Project", range: "$2,500" },
       { project: "Email/SMS Automation Setup", range: "$2,500" },
@@ -140,6 +140,9 @@ const projectSections = [
     label: "Custom Build",
     items: [
       { project: "Custom Web Application", range: "$20,000" },
+      { project: "Custom Built Internal Tools", range: "$20,000" },
+      { project: "Project Management Tools", range: "$10,000" },
+      { project: "Data Dashboards", range: "$8,000" },
     ],
   },
 ] as const;
