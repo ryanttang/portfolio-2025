@@ -1,0 +1,56 @@
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { emailAttachments, emailMessages, emailThreads } from "@/db/schema";
+
+export async function listThreads(limit = 50) {
+  return db
+    .select()
+    .from(emailThreads)
+    .orderBy(desc(emailThreads.lastMessageAt))
+    .limit(limit);
+}
+
+export async function getThread(id: string) {
+  const [thread] = await db
+    .select()
+    .from(emailThreads)
+    .where(eq(emailThreads.id, id))
+    .limit(1);
+  return thread || null;
+}
+
+export async function getThreadMessages(threadId: string) {
+  return db
+    .select()
+    .from(emailMessages)
+    .where(eq(emailMessages.threadId, threadId))
+    .orderBy(emailMessages.createdAt);
+}
+
+export async function getMessageAttachments(messageId: string) {
+  return db
+    .select()
+    .from(emailAttachments)
+    .where(eq(emailAttachments.messageId, messageId));
+}
+
+export async function markThreadRead(threadId: string) {
+  await db
+    .update(emailMessages)
+    .set({ readAt: new Date() })
+    .where(
+      and(
+        eq(emailMessages.threadId, threadId),
+        eq(emailMessages.direction, "inbound"),
+        isNull(emailMessages.readAt),
+      ),
+    );
+}
+
+export async function unreadCount() {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(emailMessages)
+    .where(and(eq(emailMessages.direction, "inbound"), isNull(emailMessages.readAt)));
+  return row?.count ?? 0;
+}

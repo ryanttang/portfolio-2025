@@ -27,20 +27,56 @@ A modern, interactive portfolio site built with Next.js, React, TypeScript, Tail
    ```bash
    npm install
    ```
-2. **Run the development server:**
+2. **Copy env and start local Postgres:**
+   ```bash
+   cp .env.example .env.local
+   docker compose up -d
+   npm run db:push   # or apply drizzle/*.sql
+   npm run db:seed
+   ```
+   Local DB listens on host port **55432** (avoids conflicts with other Postgres installs). Default admin: `admin@ryantang.site` / `changeme` (override via `ADMIN_EMAIL` / `ADMIN_PASSWORD`).
+3. **Run the development server:**
    ```bash
    npm run dev
    ```
-   The app will start on [http://localhost:3000](http://localhost:3000) or the next available port.
+   Public site: [http://localhost:3000](http://localhost:3000) · Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
+
+## Admin dashboard
+Solo-admin tools at `/admin` (Auth.js credentials):
+
+| Area | Path | Notes |
+|------|------|--------|
+| Overview / Traffic / Content / Settings | `/admin/*` | CMS JSON editors, first-party pageviews |
+| CRM | `/admin/crm` | Clients, notes, activity timeline |
+| Onboarding | `/admin/onboarding` | Intake wizard config, questionnaires, portal invites |
+| Inbox | `/admin/inbox` | Resend send + inbound webhook |
+| Contracts | `/admin/contracts` | Create/send; public sign at `/sign/[token]` |
+| Invoices | `/admin/invoices` | PDF email + PayPal pay page `/pay/[token]` |
+
+Client portal (magic-link invite → set password → `/portal`): onboarding wizard, milestones, updates, agreements & invoices.
+
+### Neon
+When your Neon database is ready, set `DATABASE_URL` to the Neon connection string (add `?sslmode=require`). Same Drizzle schema and migrations apply—no code changes.
+
+### Resend inbound (receive email)
+1. Verify sending domain and set `RESEND_FROM_EMAIL`.
+2. Configure Resend inbound MX (or use a `*.resend.app` address for testing).
+3. Webhook URL: `https://your-domain/api/webhooks/resend` for `email.received`.
+4. Set `RESEND_WEBHOOK_SECRET` from the Resend dashboard.
+
+### PayPal
+Sandbox: set `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_MODE=sandbox`. Webhook: `/api/webhooks/paypal`. Invoices can still be marked paid manually.
+
+### Contract signing cert (optional locally)
+Set `AGREEMENT_SIGNING_ENABLED=true` and provide PKCS#12 via `AGREEMENT_SIGNING_P12_BASE64` + passphrase. Without a cert, PDFs are still generated and stored; cryptographic seal is skipped.
 
 ## Deployment
-- **Recommended:** Deploy to [Vercel](https://vercel.com/) or [Netlify](https://www.netlify.com/) for best results.
+- **Recommended:** [Vercel](https://vercel.com/) with Neon Postgres + Vercel Blob + Resend env vars.
 - **Production build:**
    ```bash
    npm run build
    npm start
    ```
-- All assets are local; no backend or database required.
 
 ## Current Snapshot
 - Modal-driven About, Design, Development, and Retail modals

@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Syne, Space_Grotesk, Rajdhani, Audiowide, Major_Mono_Display, Saira, VT323, Rubik_Mono_One, Bungee, Exo } from "next/font/google";
 import "./globals.css";
 import AppShell from "../components/AppShell";
+import PageviewTracker from "../components/analytics/PageviewTracker";
 
 const syne = Syne({ variable: "--font-syne", subsets: ["latin"], display: "swap" });
 const spaceGrotesk = Space_Grotesk({ variable: "--font-space-grotesk", subsets: ["latin"], display: "swap" });
@@ -253,7 +255,12 @@ export default function RootLayout({
         
         {/* Vanta.js Script */}
         <script src="/dist/vanta.rings.min.js" defer></script>
-        <AppShell>{children}</AppShell>
+        <AppShell>
+          <Suspense fallback={null}>
+            <PageviewTracker />
+          </Suspense>
+          {children}
+        </AppShell>
       </body>
     </html>
   );
