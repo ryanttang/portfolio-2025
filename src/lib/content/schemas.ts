@@ -77,6 +77,11 @@ export const helloSchema = z.object({
     eyebrow: z.string(),
     headline: z.string(),
     tagline: z.string(),
+    supporting: z
+      .string()
+      .default(
+        "Let me help you build your ideal business tool and marketing funnels, customized to how you work.",
+      ),
     pillars: z.string(),
   }),
   links: z.object({

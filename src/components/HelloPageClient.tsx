@@ -60,20 +60,35 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
               <p className="text-[#fdf0d5] text-[11px] sm:text-sm font-semibold tracking-wide mb-3 whitespace-nowrap overflow-x-auto scrollbar-none" style={{ scrollbarWidth: "none" }}>
                 {greeting.pillars}
               </p>
-              <p className="text-[#c4c4c8] text-base sm:text-lg font-bold leading-relaxed max-w-xl">
-                {greeting.tagline}
-              </p>
+              <div className="flex items-center gap-4 sm:gap-5 mb-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/headshot.jpeg"
+                  alt="Ryan Tang"
+                  className="w-36 h-36 sm:w-44 sm:h-44 rounded-full object-cover shrink-0 border-2 border-[#fdf0d5]/40"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[#c4c4c8] text-sm sm:text-base font-bold leading-snug">
+                    {greeting.tagline}
+                  </p>
+                  {greeting.supporting ? (
+                    <p className="text-[#c4c4c8] text-sm sm:text-base font-bold leading-snug mt-0.5">
+                      {greeting.supporting}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between gap-4 text-white">
-              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+            <div className="flex flex-nowrap items-center justify-between gap-3 sm:gap-4 text-white">
+              <div className="flex flex-nowrap items-center gap-3 sm:gap-5">
                 {links.linkedin ? (
                   <a
                     href={links.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="LinkedIn"
-                    className="text-2xl sm:text-3xl transition hover:text-[#fdf0d5]"
+                    className="inline-flex items-center justify-center size-10 sm:size-11 shrink-0 text-2xl sm:text-3xl transition hover:text-[#fdf0d5]"
                   >
                     <FaLinkedin />
                   </a>
@@ -84,7 +99,7 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="GitHub"
-                    className="text-2xl sm:text-3xl transition hover:text-[#fdf0d5]"
+                    className="inline-flex items-center justify-center size-10 sm:size-11 shrink-0 text-2xl sm:text-3xl transition hover:text-[#fdf0d5]"
                   >
                     <FaGithub />
                   </a>
@@ -95,24 +110,24 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Resume"
-                    className="text-2xl sm:text-3xl transition hover:text-[#fdf0d5]"
+                    className="inline-flex items-center justify-center size-10 sm:size-11 shrink-0 text-2xl sm:text-3xl transition hover:text-[#fdf0d5]"
                   >
                     <FaFileAlt />
                   </a>
                 ) : null}
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 shrink-0">
+              <div className="flex flex-nowrap items-center justify-end gap-2 sm:gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => setShowPortfolio(true)}
-                  className="inline-flex items-center justify-center rounded-full px-4 sm:px-6 py-2.5 font-semibold border-2 border-[#fdf0d5]/50 bg-transparent text-[#fdf0d5] text-sm sm:text-base transition hover:border-[#fdf0d5] hover:bg-[#fdf0d5]/10 shrink-0"
+                  className="inline-flex items-center justify-center h-10 sm:h-11 rounded-full px-3 sm:px-5 text-xs sm:text-sm font-semibold border-2 border-[#fdf0d5]/50 bg-transparent text-[#fdf0d5] transition hover:border-[#fdf0d5] hover:bg-[#fdf0d5]/10 whitespace-nowrap"
                 >
                   View Portfolio
                 </button>
                 {links.email ? (
                   <a
                     href={emailHref}
-                    className="inline-flex items-center justify-center rounded-full px-4 sm:px-6 py-2.5 font-semibold border-2 border-[#fdf0d5] bg-[#232323] text-[#f5f5f5] text-sm sm:text-base shadow-[0_4px_18px_#fdf0d533] transition hover:bg-[#fdf0d5] hover:text-[#18181b] shrink-0"
+                    className="inline-flex items-center justify-center h-10 sm:h-11 rounded-full px-3 sm:px-5 text-xs sm:text-sm font-semibold border-2 border-[#fdf0d5] bg-[#232323] text-[#f5f5f5] shadow-[0_4px_18px_#fdf0d533] transition hover:bg-[#fdf0d5] hover:text-[#18181b] whitespace-nowrap"
                   >
                     Connect With Me
                   </a>

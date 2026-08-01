@@ -169,7 +169,9 @@ export const defaultContent: Record<string, unknown> = {
     greeting: {
       eyebrow: "Ryan Tang · Hello",
       headline: "Digital & Marketing Strategist",
-      tagline: "I design and build digital systems that help businesses grow.",
+      tagline: "I design and build digital & marketing systems that help businesses grow.",
+      supporting:
+        "Let me help you build your ideal business tool and marketing funnels, customized to how you work.",
       pillars:
         "Strategy • Branding • Websites • Marketing • Automation • AI • Analytics",
     },

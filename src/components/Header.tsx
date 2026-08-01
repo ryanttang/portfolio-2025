@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 const navLinks = [
-  { label: "Services", href: "/services" },
+  { label: "My Services", href: "/hello" },
   { label: "Email Me", href: "mailto:tangs.email@gmail.com" },
   { label: "Resume", href: "/RyanTangResume2025.png", download: true },
 ];

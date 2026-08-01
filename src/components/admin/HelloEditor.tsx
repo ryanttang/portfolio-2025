@@ -92,6 +92,20 @@ export default function HelloEditor({ initial }: { initial: HelloContent }) {
             className={inputClass}
           />
         </label>
+        <label className={labelClass}>
+          Supporting line
+          <textarea
+            value={data.greeting.supporting}
+            onChange={(e) =>
+              setData({
+                ...data,
+                greeting: { ...data.greeting, supporting: e.target.value },
+              })
+            }
+            rows={2}
+            className={inputClass}
+          />
+        </label>
       </section>
 
       <section className="space-y-3">
