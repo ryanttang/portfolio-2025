@@ -143,6 +143,28 @@ export const defaultContent: Record<string, unknown> = {
       },
     ],
   },
+  services_terms: {
+    projectPaymentLines: [
+      "50% to begin",
+      "25% after design approval",
+      "25% before launch",
+    ],
+    projectPaymentNote: "Smaller projects: 50% / 50%",
+    projectTerms: [
+      "Two revision rounds included; additional revisions billed separately",
+      "Client delays may shift the delivery timeline",
+      "Out-of-scope requests require a change order",
+      "Rush projects carry a 25–50% premium",
+    ],
+    retainerTerms: [
+      "Paid at the beginning of each month",
+      "Three-month initial commitment",
+      "Defined monthly capacity",
+      "Unused capacity expires",
+      "Additional work billed at $150/hour or quoted separately",
+      "30-day cancellation notice after the initial term",
+    ],
+  },
 };
 
 export function getDefaultContent(key: string): unknown {

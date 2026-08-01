@@ -10,6 +10,7 @@ import {
   servicesOverviewSchema,
   servicesProjectsSchema,
   servicesRetainersSchema,
+  servicesTermsSchema,
   type AboutContent,
   type ContentKey,
   type DesignContent,
@@ -18,6 +19,7 @@ import {
   type ServicesOverviewContent,
   type ServicesProjectsContent,
   type ServicesRetainersContent,
+  type ServicesTermsContent,
 } from "@/lib/content/schemas";
 
 const SECTIONS: { key: ContentKey; label: string; hint: string }[] = [
@@ -56,6 +58,11 @@ const SECTIONS: { key: ContentKey; label: string; hint: string }[] = [
     label: "Services retainers",
     hint: "Retainer packages. Also feeds onboarding options.",
   },
+  {
+    key: "services_terms",
+    label: "Services terms",
+    hint: "Public Services page Terms tab. Independent from contract templates.",
+  },
 ];
 
 type SectionPayload = {
@@ -66,6 +73,7 @@ type SectionPayload = {
   services_overview: ServicesOverviewContent;
   services_projects: ServicesProjectsContent;
   services_retainers: ServicesRetainersContent;
+  services_terms: ServicesTermsContent;
 };
 
 function normalizeSection<K extends ContentKey>(
@@ -87,6 +95,15 @@ function normalizeSection<K extends ContentKey>(
       return servicesProjectsSchema.parse(payload ?? { sections: [] }) as SectionPayload[K];
     case "services_retainers":
       return servicesRetainersSchema.parse(payload ?? { items: [] }) as SectionPayload[K];
+    case "services_terms":
+      return servicesTermsSchema.parse(
+        payload ?? {
+          projectPaymentLines: [],
+          projectPaymentNote: "",
+          projectTerms: [],
+          retainerTerms: [],
+        },
+      ) as SectionPayload[K];
     default: {
       const _exhaustive: never = key;
       return _exhaustive;
@@ -334,6 +351,13 @@ function SectionForm({
         <ServicesRetainersForm
           data={data as ServicesRetainersContent}
           onChange={onChange as (n: ServicesRetainersContent) => void}
+        />
+      );
+    case "services_terms":
+      return (
+        <ServicesTermsForm
+          data={data as ServicesTermsContent}
+          onChange={onChange as (n: ServicesTermsContent) => void}
         />
       );
     default: {
@@ -783,6 +807,44 @@ function ServicesRetainersForm({
             items: [...data.items, { name: "", price: "", positioning: "" }],
           })
         }
+      />
+    </div>
+  );
+}
+
+function ServicesTermsForm({
+  data,
+  onChange,
+}: {
+  data: ServicesTermsContent;
+  onChange: (n: ServicesTermsContent) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <StringList
+        label="Project payment lines"
+        values={data.projectPaymentLines}
+        onChange={(projectPaymentLines) => onChange({ ...data, projectPaymentLines })}
+        placeholder="e.g. 50% to begin"
+        hint="Shown under “Projects Under ~$10k” on the public Terms tab."
+      />
+      <Field
+        label="Project payment note"
+        value={data.projectPaymentNote}
+        onChange={(projectPaymentNote) => onChange({ ...data, projectPaymentNote })}
+        hint="e.g. Smaller projects: 50% / 50%"
+      />
+      <StringList
+        label="Project terms"
+        values={data.projectTerms}
+        onChange={(projectTerms) => onChange({ ...data, projectTerms })}
+        placeholder="Term line"
+      />
+      <StringList
+        label="Retainer terms"
+        values={data.retainerTerms}
+        onChange={(retainerTerms) => onChange({ ...data, retainerTerms })}
+        placeholder="Term line"
       />
     </div>
   );

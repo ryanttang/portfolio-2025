@@ -143,6 +143,23 @@ export const emailTemplates = pgTable(
   (t) => [uniqueIndex("email_templates_slug_idx").on(t.slug)],
 );
 
+export const contractTemplates = pgTable(
+  "contract_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    kind: text("kind").notNull().default("project"), // project | retainer | consulting
+    titleTemplate: text("title_template").notNull().default(""),
+    bodyTemplate: text("body_template").notNull().default(""),
+    terms: jsonb("terms").$type<string[]>().notNull().default([]),
+    paymentNotes: text("payment_notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("contract_templates_slug_idx").on(t.slug)],
+);
+
 export const contracts = pgTable(
   "contracts",
   {

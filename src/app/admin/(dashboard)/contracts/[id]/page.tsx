@@ -6,6 +6,7 @@ import { contractSignatures, contracts } from "@/db/schema";
 import { getClient } from "@/lib/crm/clients";
 import { getAppUrl } from "@/lib/env";
 import ContractActions from "@/components/admin/ContractActions";
+import ContractDraftEditor from "@/components/admin/ContractDraftEditor";
 
 export default async function ContractDetailPage({
   params,
@@ -23,6 +24,7 @@ export default async function ContractDetailPage({
     .limit(1);
 
   const signUrl = `${getAppUrl()}/sign/${contract.token}`;
+  const isDraft = contract.status === "draft";
 
   return (
     <div>
@@ -34,6 +36,16 @@ export default async function ContractDetailPage({
       </h1>
       <p className="mt-1 text-sm text-white/50">
         {client?.name} · <span className="capitalize">{contract.status}</span>
+        {contract.amountCents != null && (
+          <>
+            {" "}
+            · $
+            {(contract.amountCents / 100).toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </>
+        )}
       </p>
 
       <ContractActions
@@ -43,9 +55,18 @@ export default async function ContractDetailPage({
         signedPdfUrl={sig?.signedPdfUrl || null}
       />
 
-      <pre className="mt-6 max-h-[480px] overflow-y-auto whitespace-pre-wrap border border-white/10 bg-[#141414] p-4 text-sm text-white/80">
-        {contract.bodyText}
-      </pre>
+      {isDraft ? (
+        <ContractDraftEditor
+          id={contract.id}
+          initialTitle={contract.title}
+          initialBody={contract.bodyText}
+          initialAmountCents={contract.amountCents}
+        />
+      ) : (
+        <pre className="mt-6 max-h-[480px] overflow-y-auto whitespace-pre-wrap border border-white/10 bg-[#141414] p-4 text-sm text-white/80">
+          {contract.bodyText}
+        </pre>
+      )}
     </div>
   );
 }

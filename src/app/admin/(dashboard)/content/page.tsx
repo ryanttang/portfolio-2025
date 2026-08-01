@@ -10,6 +10,7 @@ const SECTIONS: { key: ContentKey; label: string }[] = [
   { key: "services_overview", label: "Services overview" },
   { key: "services_projects", label: "Services projects" },
   { key: "services_retainers", label: "Services retainers" },
+  { key: "services_terms", label: "Services terms" },
 ];
 
 export default async function ContentPage() {

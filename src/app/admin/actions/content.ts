@@ -106,6 +106,22 @@ export async function addClientNoteAction(clientId: string, body: string) {
   return { ok: true };
 }
 
+export async function deleteClientAction(id: string) {
+  await requireAdmin();
+  try {
+    const { deleteClient } = await import("@/lib/crm/clients");
+    const row = await deleteClient(id);
+    if (!row) return { ok: false as const, error: "Client not found" };
+    revalidatePath("/admin/crm");
+    return { ok: true as const };
+  } catch (err) {
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Delete failed",
+    };
+  }
+}
+
 export async function sendInboxEmailAction(data: {
   to: string;
   cc?: string;

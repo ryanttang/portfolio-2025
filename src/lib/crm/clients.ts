@@ -1,6 +1,12 @@
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { clientActivities, clientNotes, clients } from "@/db/schema";
+import {
+  clientActivities,
+  clientNotes,
+  clients,
+  contracts,
+  invoices,
+} from "@/db/schema";
 import { logAudit } from "@/lib/audit";
 
 export type ClientStatus = "lead" | "active" | "past" | "archived";
@@ -90,6 +96,29 @@ export async function updateClient(
     .where(eq(clients.id, id))
     .returning();
   if (row) await logAudit("update", "client", id, data);
+  return row || null;
+}
+
+export async function deleteClient(id: string) {
+  const [[contract], [invoice]] = await Promise.all([
+    db
+      .select({ id: contracts.id })
+      .from(contracts)
+      .where(eq(contracts.clientId, id))
+      .limit(1),
+    db
+      .select({ id: invoices.id })
+      .from(invoices)
+      .where(eq(invoices.clientId, id))
+      .limit(1),
+  ]);
+  if (contract || invoice) {
+    throw new Error(
+      "Cannot delete a client with contracts or invoices. Archive them instead.",
+    );
+  }
+  const [row] = await db.delete(clients).where(eq(clients.id, id)).returning();
+  if (row) await logAudit("delete", "client", id, { email: row.email });
   return row || null;
 }
 

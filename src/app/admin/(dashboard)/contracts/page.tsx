@@ -24,12 +24,20 @@ export default async function ContractsPage() {
           <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold">Contracts</h1>
           <p className="mt-1 text-sm text-white/50">Create, send, and track signed agreements.</p>
         </div>
-        <Link
-          href="/admin/contracts/new"
-          className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
-        >
-          New contract
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/contracts/templates"
+            className="border border-white/15 px-4 py-2 text-sm text-white/70 hover:text-[#e6c47a]"
+          >
+            Templates
+          </Link>
+          <Link
+            href="/admin/contracts/new"
+            className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+          >
+            New contract
+          </Link>
+        </div>
       </div>
 
       <div className="mt-6 border border-white/10">

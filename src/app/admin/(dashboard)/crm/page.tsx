@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listClients } from "@/lib/crm/clients";
+import ClientRowActions from "@/components/admin/ClientRowActions";
 import CrmCreateForm from "@/components/admin/CrmCreateForm";
 
 export default async function CrmPage({
@@ -70,12 +71,13 @@ export default async function CrmPage({
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Tags</th>
               <th className="px-4 py-3">Company</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {clients.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-white/40">
+                <td colSpan={6} className="px-4 py-8 text-white/40">
                   No clients yet.
                 </td>
               </tr>
@@ -106,6 +108,9 @@ export default async function CrmPage({
                   </div>
                 </td>
                 <td className="px-4 py-3 text-white/50">{c.company || "—"}</td>
+                <td className="px-4 py-3 text-right">
+                  <ClientRowActions clientId={c.id} clientName={c.name} />
+                </td>
               </tr>
             ))}
           </tbody>

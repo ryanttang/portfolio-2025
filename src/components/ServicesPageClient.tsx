@@ -206,14 +206,19 @@ const skills = [
   "Copywriting",
 ];
 
-const projectTerms = [
+const DEFAULT_PROJECT_PAYMENT_LINES = [
+  "50% to begin",
+  "25% after design approval",
+  "25% before launch",
+];
+const DEFAULT_PROJECT_PAYMENT_NOTE = "Smaller projects: 50% / 50%";
+const DEFAULT_PROJECT_TERMS = [
   "Two revision rounds included; additional revisions billed separately",
   "Client delays may shift the delivery timeline",
   "Out-of-scope requests require a change order",
   "Rush projects carry a 25–50% premium",
 ];
-
-const retainerTerms = [
+const DEFAULT_RETAINER_TERMS = [
   "Paid at the beginning of each month",
   "Three-month initial commitment",
   "Defined monthly capacity",
@@ -227,7 +232,29 @@ const cardClass =
 const cardActiveClass =
   "rounded-xl border border-[#e6c47a] bg-[#e6c47a]/10 p-4 sm:p-5 transition shadow-[0_0_0_1px_#e6c47a44]";
 
-export default function ServicesPageClient() {
+export type ServicesTermsProps = {
+  projectPaymentLines: string[];
+  projectPaymentNote: string;
+  projectTerms: string[];
+  retainerTerms: string[];
+};
+
+export default function ServicesPageClient({
+  terms,
+}: {
+  terms?: ServicesTermsProps | null;
+}) {
+  const projectPaymentLines = terms?.projectPaymentLines?.length
+    ? terms.projectPaymentLines
+    : DEFAULT_PROJECT_PAYMENT_LINES;
+  const projectPaymentNote = terms?.projectPaymentNote ?? DEFAULT_PROJECT_PAYMENT_NOTE;
+  const projectTerms = terms?.projectTerms?.length
+    ? terms.projectTerms
+    : DEFAULT_PROJECT_TERMS;
+  const retainerTerms = terms?.retainerTerms?.length
+    ? terms.retainerTerms
+    : DEFAULT_RETAINER_TERMS;
+
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [activeRetainer, setActiveRetainer] = useState(0);
   const [activeProjectSection, setActiveProjectSection] = useState<ProjectSectionId>("websites");
@@ -742,11 +769,25 @@ export default function ServicesPageClient() {
                       Projects Under ~$10k
                     </h3>
                     <ol className="space-y-2.5 text-[#c4c4c8] text-base">
-                      <li className="flex gap-2"><span className="text-[#e6c47a] font-bold">50%</span> to begin</li>
-                      <li className="flex gap-2"><span className="text-[#e6c47a] font-bold">25%</span> after design approval</li>
-                      <li className="flex gap-2"><span className="text-[#e6c47a] font-bold">25%</span> before launch</li>
+                      {projectPaymentLines.map((line) => {
+                        const match = line.match(/^(\d+%)\s*(.*)$/);
+                        return (
+                          <li key={line} className="flex gap-2">
+                            {match ? (
+                              <>
+                                <span className="text-[#e6c47a] font-bold">{match[1]}</span>
+                                {match[2]}
+                              </>
+                            ) : (
+                              line
+                            )}
+                          </li>
+                        );
+                      })}
                     </ol>
-                    <p className="text-[#a1a1aa] text-sm mt-3">Smaller projects: 50% / 50%</p>
+                    {projectPaymentNote && (
+                      <p className="text-[#a1a1aa] text-sm mt-3">{projectPaymentNote}</p>
+                    )}
                   </div>
                   <div className={cardClass}>
                     <h3 className="text-base font-semibold text-white mb-3">

@@ -13,7 +13,9 @@ export default async function SettingsPage() {
   return (
     <div>
       <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold">Settings</h1>
-      <p className="mt-1 text-sm text-white/50">Brand, invoice letterhead, email, and integrations.</p>
+      <p className="mt-1 text-sm text-white/50">
+        Brand identity, invoice letterhead, email branding, and feature preferences.
+      </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <StatusCard label="Resend" ok={isResendConfigured()} />

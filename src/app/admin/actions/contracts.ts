@@ -118,3 +118,34 @@ export async function getContractSignature(contractId: string) {
     .limit(1);
   return sig || null;
 }
+
+const templateSchema = z.object({
+  name: z.string().min(1),
+  titleTemplate: z.string().min(1),
+  bodyTemplate: z.string().min(1),
+  terms: z.array(z.string()),
+  paymentNotes: z.string().optional().nullable(),
+  kind: z.enum(["project", "retainer", "consulting"]).optional(),
+});
+
+export async function updateContractTemplateAction(
+  id: string,
+  data: z.infer<typeof templateSchema>,
+) {
+  await requireAdmin();
+  const parsed = templateSchema.parse(data);
+  const { updateContractTemplate } = await import("@/lib/contracts/templates");
+  const row = await updateContractTemplate(id, {
+    name: parsed.name,
+    titleTemplate: parsed.titleTemplate,
+    bodyTemplate: parsed.bodyTemplate,
+    terms: parsed.terms.map((t) => t.trim()).filter(Boolean),
+    paymentNotes: parsed.paymentNotes?.trim() || null,
+    kind: parsed.kind,
+  });
+  if (!row) throw new Error("Template not found");
+  await logAudit("update", "contract_template", id);
+  revalidatePath("/admin/contracts/templates");
+  revalidatePath("/admin/contracts/new");
+  return { ok: true };
+}

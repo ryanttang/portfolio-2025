@@ -29,6 +29,13 @@
       "when": 1785567957335,
       "tag": "0003_brainy_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785574468820,
+      "tag": "0004_contract_templates",
+      "breakpoints": true
     }
   ]
 }

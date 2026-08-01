@@ -65,6 +65,13 @@ export const servicesRetainersSchema = z.object({
   ),
 });
 
+export const servicesTermsSchema = z.object({
+  projectPaymentLines: z.array(z.string()),
+  projectPaymentNote: z.string(),
+  projectTerms: z.array(z.string()),
+  retainerTerms: z.array(z.string()),
+});
+
 export const contentSchemas = {
   about: aboutSchema,
   projects: projectsSchema,
@@ -73,6 +80,7 @@ export const contentSchemas = {
   services_overview: servicesOverviewSchema,
   services_projects: servicesProjectsSchema,
   services_retainers: servicesRetainersSchema,
+  services_terms: servicesTermsSchema,
 } as const;
 
 export type ContentKey = keyof typeof contentSchemas;
@@ -83,6 +91,7 @@ export type RetailContent = z.infer<typeof retailSchema>;
 export type ServicesOverviewContent = z.infer<typeof servicesOverviewSchema>;
 export type ServicesProjectsContent = z.infer<typeof servicesProjectsSchema>;
 export type ServicesRetainersContent = z.infer<typeof servicesRetainersSchema>;
+export type ServicesTermsContent = z.infer<typeof servicesTermsSchema>;
 
 export function isContentKey(key: string): key is ContentKey {
   return key in contentSchemas;

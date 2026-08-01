@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import ServicesPageClient from "@/components/ServicesPageClient";
+import { getContent } from "@/lib/content";
+import type { ServicesTermsContent } from "@/lib/content/schemas";
 
 const title = "Services & Pricing | Ryan Tang";
 const description =
@@ -265,7 +267,9 @@ const servicesStructuredData = {
   ],
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const terms = await getContent<ServicesTermsContent>("services_terms");
+
   return (
     <>
       <script
@@ -274,7 +278,7 @@ export default function ServicesPage() {
           __html: JSON.stringify(servicesStructuredData),
         }}
       />
-      <ServicesPageClient />
+      <ServicesPageClient terms={terms} />
     </>
   );
 }
