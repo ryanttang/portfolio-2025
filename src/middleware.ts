@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { decodeViewAsCookie, VIEW_AS_COOKIE } from "@/lib/portal/view-as";
 
-function useSecureCookies(req: NextRequest) {
+function prefersSecureCookies(req: NextRequest) {
   if (process.env.AUTH_URL?.startsWith("https://")) return true;
   if (process.env.NEXTAUTH_URL?.startsWith("https://")) return true;
   return req.nextUrl.protocol === "https:";
@@ -14,7 +14,7 @@ async function readToken(req: NextRequest) {
     req,
     secret: process.env.AUTH_SECRET,
     // Required on HTTPS (Vercel): session cookie is `__Secure-authjs.session-token`
-    secureCookie: useSecureCookies(req),
+    secureCookie: prefersSecureCookies(req),
   });
 }
 
@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/portal")) {
     const token = await readToken(req);
 
-    const viewAs = decodeViewAsCookie(req.cookies.get(VIEW_AS_COOKIE)?.value);
+    const viewAs = await decodeViewAsCookie(req.cookies.get(VIEW_AS_COOKIE)?.value);
     const asClient = token?.role === "client";
     const asAdminViewing =
       Boolean(token) && token?.role !== "client" && Boolean(viewAs);

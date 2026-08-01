@@ -1,10 +1,9 @@
-import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 export const VIEW_AS_COOKIE = "portal_view_as";
 const TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
-type Payload = {
+export type ViewAsPayload = {
   clientId: string;
   adminId: string;
   exp: number;
@@ -16,34 +15,68 @@ function secret() {
   return s;
 }
 
-function sign(body: string) {
-  return createHmac("sha256", secret()).update(body).digest("base64url");
+function toBase64Url(bytes: ArrayBuffer | Uint8Array) {
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = "";
+  for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]!);
+  // btoa is available in Edge and Node 18+
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-export function encodeViewAsCookie(clientId: string, adminId: string) {
-  const payload: Payload = {
+function fromBase64Url(value: string) {
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = padded.length % 4 === 0 ? "" : "=".repeat(4 - (padded.length % 4));
+  const binary = atob(padded + pad);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function hmacKey() {
+  return crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret()),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
+}
+
+async function sign(body: string) {
+  const key = await hmacKey();
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body));
+  return toBase64Url(sig);
+}
+
+function timingSafeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
+export async function encodeViewAsCookie(clientId: string, adminId: string) {
+  const payload: ViewAsPayload = {
     clientId,
     adminId,
     exp: Date.now() + TTL_MS,
   };
-  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  return `${body}.${sign(body)}`;
+  const body = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
+  const sig = await sign(body);
+  return `${body}.${sig}`;
 }
 
-export function decodeViewAsCookie(value: string | undefined | null): Payload | null {
+export async function decodeViewAsCookie(
+  value: string | undefined | null,
+): Promise<ViewAsPayload | null> {
   if (!value) return null;
   const [body, sig] = value.split(".");
   if (!body || !sig) return null;
-  const expected = sign(body);
   try {
-    const a = Buffer.from(sig);
-    const b = Buffer.from(expected);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
-  } catch {
-    return null;
-  }
-  try {
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as Payload;
+    const expected = await sign(body);
+    if (!timingSafeEqual(sig, expected)) return null;
+    const json = new TextDecoder().decode(fromBase64Url(body));
+    const payload = JSON.parse(json) as ViewAsPayload;
     if (!payload.clientId || !payload.adminId || !payload.exp) return null;
     if (payload.exp < Date.now()) return null;
     return payload;
@@ -59,7 +92,7 @@ export async function getViewAsPayload() {
 
 export async function setViewAsCookie(clientId: string, adminId: string) {
   const jar = await cookies();
-  jar.set(VIEW_AS_COOKIE, encodeViewAsCookie(clientId, adminId), {
+  jar.set(VIEW_AS_COOKIE, await encodeViewAsCookie(clientId, adminId), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
