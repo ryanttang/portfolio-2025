@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { saveSettingAction } from "@/app/admin/actions/content";
 import RichTextEditor from "@/components/admin/email/RichTextEditor";
-import EmailPreview from "@/components/admin/email/EmailPreview";
+import EmailPreviewModal from "@/components/admin/email/EmailPreviewModal";
 import type { EmailSettings } from "@/lib/email/templates/render";
 
 const DEFAULTS: Required<
@@ -58,7 +58,7 @@ export default function EmailBrandSettings({ email }: { email: unknown }) {
   const [showSiteInFooter, setShowSiteInFooter] = useState(
     initial.showSiteInFooter !== false,
   );
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [showPreview, setShowPreview] = useState(false);
   const [msg, setMsg] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -115,101 +115,82 @@ export default function EmailBrandSettings({ email }: { email: unknown }) {
             Header, signature, and footer applied to inbox and transactional emails.
           </p>
         </div>
-        <div className="flex gap-1 border border-white/10 p-0.5">
-          <button
-            type="button"
-            onClick={() => setMode("edit")}
-            className={`px-2 py-1 text-xs ${mode === "edit" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("preview")}
-            className={`px-2 py-1 text-xs ${mode === "preview" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
-          >
-            Preview
-          </button>
+        <button
+          type="button"
+          onClick={() => setShowPreview(true)}
+          className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+        >
+          Preview
+        </button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="From name" value={fromName} onChange={setFromName} />
+        <Field label="From email" value={fromEmail} onChange={setFromEmail} />
+      </div>
+
+      <div className="border-t border-white/10 pt-4">
+        <h3 className="text-xs uppercase tracking-wider text-white/40">Header</h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Header title"
+            value={headerTitle}
+            onChange={setHeaderTitle}
+            hint="Shown in the dark header bar (defaults to from name)"
+          />
+          <Field
+            label="Tagline (optional)"
+            value={headerTagline}
+            onChange={setHeaderTagline}
+            hint="Small line under the title"
+          />
+          <ColorField label="Header background" value={headerBg} onChange={setHeaderBg} />
+          <ColorField label="Accent color" value={accentColor} onChange={setAccentColor} />
+          <div className="sm:col-span-2">
+            <Field
+              label="Logo URL (optional)"
+              value={logoUrl}
+              onChange={setLogoUrl}
+              hint="If set, logo replaces the text title in the header"
+            />
+          </div>
         </div>
       </div>
 
-      {mode === "preview" ? (
-        <EmailPreview
-          bodyHtml={previewBody}
-          subject="Brand preview"
-          brandOverrides={brandOverrides}
+      <div className="border-t border-white/10 pt-4">
+        <h3 className="text-xs uppercase tracking-wider text-white/40">Signature</h3>
+        <p className="mt-1 mb-2 text-xs text-white/35">
+          Appended after the message body on outbound branded emails.
+        </p>
+        <RichTextEditor
+          value={signatureHtml || "<p></p>"}
+          onChange={setSignatureHtml}
+          placeholder="Your signature…"
+          minHeight="100px"
         />
-      ) : (
-        <>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="From name" value={fromName} onChange={setFromName} />
-            <Field label="From email" value={fromEmail} onChange={setFromEmail} />
-          </div>
+      </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <h3 className="text-xs uppercase tracking-wider text-white/40">Header</h3>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <Field
-                label="Header title"
-                value={headerTitle}
-                onChange={setHeaderTitle}
-                hint="Shown in the dark header bar (defaults to from name)"
-              />
-              <Field
-                label="Tagline (optional)"
-                value={headerTagline}
-                onChange={setHeaderTagline}
-                hint="Small line under the title"
-              />
-              <ColorField label="Header background" value={headerBg} onChange={setHeaderBg} />
-              <ColorField label="Accent color" value={accentColor} onChange={setAccentColor} />
-              <div className="sm:col-span-2">
-                <Field
-                  label="Logo URL (optional)"
-                  value={logoUrl}
-                  onChange={setLogoUrl}
-                  hint="If set, logo replaces the text title in the header"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/10 pt-4">
-            <h3 className="text-xs uppercase tracking-wider text-white/40">Signature</h3>
-            <p className="mt-1 mb-2 text-xs text-white/35">
-              Appended after the message body on outbound branded emails.
-            </p>
-            <RichTextEditor
-              value={signatureHtml || "<p></p>"}
-              onChange={setSignatureHtml}
-              placeholder="Your signature…"
-              minHeight="100px"
-            />
-          </div>
-
-          <div className="border-t border-white/10 pt-4">
-            <h3 className="text-xs uppercase tracking-wider text-white/40">Footer</h3>
-            <p className="mt-1 mb-2 text-xs text-white/35">
-              Bottom strip under the divider — address, disclaimer, or links.
-            </p>
-            <RichTextEditor
-              value={footerHtml || "<p></p>"}
-              onChange={setFooterHtml}
-              placeholder="Footer text…"
-              minHeight="80px"
-            />
-            <label className="mt-3 flex items-center gap-2 text-sm text-white/70">
-              <input
-                type="checkbox"
-                checked={showSiteInFooter}
-                onChange={(e) => setShowSiteInFooter(e.target.checked)}
-                className="accent-[#e6c47a]"
-              />
-              Show site URL in footer
-            </label>
-          </div>
-        </>
-      )}
+      <div className="border-t border-white/10 pt-4">
+        <h3 className="text-xs uppercase tracking-wider text-white/40">Footer</h3>
+        <p className="mt-1 mb-2 text-xs text-white/35">
+          Bottom strip under the divider — address, disclaimer, or links.
+        </p>
+        <RichTextEditor
+          value={footerHtml || "<p></p>"}
+          onChange={setFooterHtml}
+          placeholder="Footer text…"
+          minHeight="80px"
+        />
+        <label className="mt-3 flex items-center gap-2 text-sm text-white/70">
+          <input
+            type="checkbox"
+            checked={showSiteInFooter}
+            onChange={(e) => setShowSiteInFooter(e.target.checked)}
+            className="accent-[#e6c47a]"
+          />
+          Show site URL in footer
+        </label>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <button
@@ -222,6 +203,15 @@ export default function EmailBrandSettings({ email }: { email: unknown }) {
         </button>
         {msg && <p className="text-sm text-white/50">{msg}</p>}
       </div>
+
+      <EmailPreviewModal
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        bodyHtml={previewBody}
+        subject="Brand preview"
+        brandOverrides={brandOverrides}
+        title="Email brand preview"
+      />
     </div>
   );
 }

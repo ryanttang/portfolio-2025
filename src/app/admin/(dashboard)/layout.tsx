@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { and, eq, isNull, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/db";
-import { emailMessages } from "@/db/schema";
+import { unreadCount } from "@/lib/email/threads";
 import AdminShell from "@/components/admin/AdminShell";
 import AdminProviders from "@/components/admin/AdminProviders";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardLayout({
   children,
@@ -16,20 +16,16 @@ export default async function AdminDashboardLayout({
     redirect("/admin/login");
   }
 
-  let unreadCount = 0;
+  let unread = 0;
   try {
-    const [row] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(emailMessages)
-      .where(and(eq(emailMessages.direction, "inbound"), isNull(emailMessages.readAt)));
-    unreadCount = row?.count ?? 0;
+    unread = await unreadCount();
   } catch {
-    unreadCount = 0;
+    unread = 0;
   }
 
   return (
     <AdminProviders>
-      <AdminShell unreadCount={unreadCount}>{children}</AdminShell>
+      <AdminShell unreadCount={unread}>{children}</AdminShell>
     </AdminProviders>
   );
 }

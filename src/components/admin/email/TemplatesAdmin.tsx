@@ -9,7 +9,7 @@ import {
   updateEmailTemplateAction,
 } from "@/app/admin/actions/content";
 import RichTextEditor from "@/components/admin/email/RichTextEditor";
-import EmailPreview from "@/components/admin/email/EmailPreview";
+import EmailPreviewModal from "@/components/admin/email/EmailPreviewModal";
 
 export type TemplateRow = {
   id: string;
@@ -40,7 +40,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
   const [category, setCategory] = useState(selected?.category || "general");
   const [subject, setSubject] = useState(selected?.subject || "");
   const [bodyHtml, setBodyHtml] = useState(selected?.bodyHtml || "<p></p>");
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [showPreview, setShowPreview] = useState(false);
   const [status, setStatus] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -52,7 +52,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
     setSubject(t.subject);
     setBodyHtml(t.bodyHtml);
     setCreating(false);
-    setMode("edit");
+    setShowPreview(false);
     setStatus("");
   }
 
@@ -64,7 +64,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
     setCategory("general");
     setSubject("");
     setBodyHtml("<p></p>");
-    setMode("edit");
+    setShowPreview(false);
     setStatus("");
   }
 
@@ -164,22 +164,13 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
                   </span>
                 )}
               </h2>
-              <div className="flex gap-1 border border-white/10 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setMode("edit")}
-                  className={`px-2 py-1 text-xs ${mode === "edit" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("preview")}
-                  className={`px-2 py-1 text-xs ${mode === "preview" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
-                >
-                  Preview
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreview(true)}
+                className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+              >
+                Preview
+              </button>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -224,16 +215,12 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
               />
             </label>
 
-            {mode === "edit" ? (
-              <RichTextEditor
-                value={bodyHtml}
-                onChange={setBodyHtml}
-                minHeight="220px"
-                editable={creating || !selected?.isPreset}
-              />
-            ) : (
-              <EmailPreview bodyHtml={bodyHtml} subject={subject} />
-            )}
+            <RichTextEditor
+              value={bodyHtml}
+              onChange={setBodyHtml}
+              minHeight="220px"
+              editable={creating || !selected?.isPreset}
+            />
 
             {selected?.isPreset && !creating ? (
               <div className="flex gap-2">
@@ -269,6 +256,14 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
           </>
         )}
       </div>
+
+      <EmailPreviewModal
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        bodyHtml={bodyHtml}
+        subject={subject}
+        title="Template preview"
+      />
     </div>
   );
 }

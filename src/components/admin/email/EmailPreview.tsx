@@ -8,10 +8,12 @@ export default function EmailPreview({
   bodyHtml,
   subject,
   brandOverrides,
+  iframeClassName = "h-[420px] w-full bg-[#f4f2ed]",
 }: {
   bodyHtml: string;
   subject?: string;
   brandOverrides?: Partial<EmailSettings>;
+  iframeClassName?: string;
 }) {
   const [html, setHtml] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,7 +79,7 @@ export default function EmailPreview({
         title="Email preview"
         sandbox=""
         srcDoc={html}
-        className="h-[420px] w-full bg-[#f4f2ed]"
+        className={iframeClassName}
       />
     </div>
   );

@@ -1,7 +1,8 @@
 import { getContent } from "@/lib/content";
-import ContentEditor from "@/components/admin/ContentEditor";
+import ContentManager from "@/components/admin/ContentEditor";
+import type { ContentKey } from "@/lib/content/schemas";
 
-const SECTIONS = [
+const SECTIONS: { key: ContentKey; label: string }[] = [
   { key: "about", label: "About" },
   { key: "projects", label: "Projects" },
   { key: "design", label: "Design" },
@@ -19,17 +20,5 @@ export default async function ContentPage() {
     })),
   );
 
-  return (
-    <div>
-      <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold">Content</h1>
-      <p className="mt-1 text-sm text-white/50">
-        Edit site sections as JSON. Public pages fall back to defaults if empty.
-      </p>
-      <div className="mt-8 space-y-6">
-        {entries.map((e) => (
-          <ContentEditor key={e.key} contentKey={e.key} label={e.label} initial={e.payload} />
-        ))}
-      </div>
-    </div>
-  );
+  return <ContentManager entries={entries} />;
 }

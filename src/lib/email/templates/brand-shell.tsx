@@ -63,7 +63,7 @@ export function BrandShell({
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
           margin: 0,
-          padding: "32px 12px",
+          padding: "24px 12px",
         }}
       >
         <Container

@@ -70,5 +70,25 @@ export async function unreadCount() {
     .select({ count: sql<number>`count(*)::int` })
     .from(emailMessages)
     .where(and(eq(emailMessages.direction, "inbound"), isNull(emailMessages.readAt)));
-  return row?.count ?? 0;
+  return Number(row?.count ?? 0);
+}
+
+export async function unreadCountsByThread(threadIds: string[]) {
+  if (threadIds.length === 0) return {} as Record<string, number>;
+  const { inArray } = await import("drizzle-orm");
+  const rows = await db
+    .select({
+      threadId: emailMessages.threadId,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(emailMessages)
+    .where(
+      and(
+        inArray(emailMessages.threadId, threadIds),
+        eq(emailMessages.direction, "inbound"),
+        isNull(emailMessages.readAt),
+      ),
+    )
+    .groupBy(emailMessages.threadId);
+  return Object.fromEntries(rows.map((r) => [r.threadId, Number(r.count ?? 0)]));
 }

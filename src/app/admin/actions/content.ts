@@ -14,7 +14,14 @@ async function requireAdmin() {
 
 export async function saveContentAction(key: string, payloadJson: string) {
   await requireAdmin();
-  const payload = JSON.parse(payloadJson);
+  const { parseContent } = await import("@/lib/content/schemas");
+  let raw: unknown;
+  try {
+    raw = JSON.parse(payloadJson);
+  } catch {
+    throw new Error("Invalid JSON");
+  }
+  const payload = parseContent(key, raw);
   await setContent(key, payload);
   await logAudit("update", "site_content", key);
   revalidatePath("/admin/content");
@@ -160,6 +167,7 @@ export async function sendInboxEmailAction(data: {
     attachments,
   });
   revalidatePath("/admin/inbox");
+  revalidatePath("/admin", "layout");
   if (clientId) revalidatePath(`/admin/crm/${clientId}`);
   if (result.error) return { ok: false, error: result.error };
   return { ok: true, threadId: result.threadId };
@@ -243,6 +251,7 @@ export async function markThreadReadAction(threadId: string) {
   const { markThreadRead } = await import("@/lib/email/threads");
   await markThreadRead(threadId);
   revalidatePath("/admin/inbox");
+  revalidatePath("/admin", "layout");
   return { ok: true };
 }
 

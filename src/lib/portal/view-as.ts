@@ -9,6 +9,13 @@ export type ViewAsPayload = {
   exp: number;
   /** When set, Exit returns to this project editor instead of CRM. */
   returnOnboardingId?: string;
+  /** Preferred admin return path (e.g. /admin/portal). Must start with /admin. */
+  returnPath?: string;
+};
+
+export type ViewAsCookieOpts = {
+  returnOnboardingId?: string;
+  returnPath?: string;
 };
 
 function secret() {
@@ -21,7 +28,6 @@ function toBase64Url(bytes: ArrayBuffer | Uint8Array) {
   const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   let binary = "";
   for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]!);
-  // btoa is available in Edge and Node 18+
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
@@ -57,16 +63,24 @@ function timingSafeEqual(a: string, b: string) {
   return out === 0;
 }
 
+function sanitizeReturnPath(path?: string) {
+  if (!path || !path.startsWith("/admin")) return undefined;
+  if (path.includes("//") || path.includes("\\")) return undefined;
+  return path;
+}
+
 export async function encodeViewAsCookie(
   clientId: string,
   adminId: string,
-  opts?: { returnOnboardingId?: string },
+  opts?: ViewAsCookieOpts,
 ) {
+  const returnPath = sanitizeReturnPath(opts?.returnPath);
   const payload: ViewAsPayload = {
     clientId,
     adminId,
     exp: Date.now() + TTL_MS,
     ...(opts?.returnOnboardingId ? { returnOnboardingId: opts.returnOnboardingId } : {}),
+    ...(returnPath ? { returnPath } : {}),
   };
   const body = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const sig = await sign(body);
@@ -86,6 +100,9 @@ export async function decodeViewAsCookie(
     const payload = JSON.parse(json) as ViewAsPayload;
     if (!payload.clientId || !payload.adminId || !payload.exp) return null;
     if (payload.exp < Date.now()) return null;
+    if (payload.returnPath) {
+      payload.returnPath = sanitizeReturnPath(payload.returnPath);
+    }
     return payload;
   } catch {
     return null;
@@ -100,7 +117,7 @@ export async function getViewAsPayload() {
 export async function setViewAsCookie(
   clientId: string,
   adminId: string,
-  opts?: { returnOnboardingId?: string },
+  opts?: ViewAsCookieOpts,
 ) {
   const jar = await cookies();
   jar.set(VIEW_AS_COOKIE, await encodeViewAsCookie(clientId, adminId, opts), {

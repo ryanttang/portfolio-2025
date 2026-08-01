@@ -301,7 +301,7 @@ export async function deleteMilestoneAction(
 
 export async function startViewAsClientAction(
   clientId: string,
-  opts?: { onboardingId?: string },
+  opts?: { onboardingId?: string; returnPath?: string },
 ) {
   const session = await requireAdmin();
   await ensureClientAccount(clientId);
@@ -322,7 +322,10 @@ export async function startViewAsClientAction(
     }
   }
 
-  await setViewAsCookie(clientId, session.user.id, { returnOnboardingId });
+  await setViewAsCookie(clientId, session.user.id, {
+    returnOnboardingId,
+    returnPath: opts?.returnPath,
+  });
   await logAudit("view_as_start", "client", clientId, {
     adminId: session.user.id,
     onboardingId: returnOnboardingId || null,
@@ -336,6 +339,9 @@ export async function stopViewAsClientAction(clientId?: string) {
   await clearViewAsCookie();
   const cid = clientId || payload?.clientId || null;
   await logAudit("view_as_stop", "client", cid, { adminId: session.user.id });
+  if (payload?.returnPath) {
+    redirect(payload.returnPath);
+  }
   if (payload?.returnOnboardingId) {
     redirect(`/admin/onboarding/${payload.returnOnboardingId}`);
   }

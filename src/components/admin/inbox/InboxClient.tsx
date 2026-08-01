@@ -10,7 +10,7 @@ import {
   uploadEmailAttachmentAction,
 } from "@/app/admin/actions/content";
 import RichTextEditor from "@/components/admin/email/RichTextEditor";
-import EmailPreview from "@/components/admin/email/EmailPreview";
+import EmailPreviewModal from "@/components/admin/email/EmailPreviewModal";
 import TemplatePicker, {
   type TemplateOption,
 } from "@/components/admin/email/TemplatePicker";
@@ -23,6 +23,7 @@ type Thread = {
   clientId: string | null;
   lastMessageAt: string;
   participants: string[];
+  unreadCount?: number;
 };
 
 type Attachment = {
@@ -77,16 +78,15 @@ export default function InboxClient({
 }) {
   const router = useRouter();
   const [showCompose, setShowCompose] = useState(composeOpen);
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [to, setTo] = useState(defaultTo);
   const [cc, setCc] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("<p></p>");
   const [replyBody, setReplyBody] = useState("<p></p>");
-  const [replyMode, setReplyMode] = useState<"edit" | "preview">("edit");
   const [status, setStatus] = useState("");
   const [pendingFiles, setPendingFiles] = useState<PendingAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<"compose" | "reply" | null>(null);
 
   const attachmentsByMessage = useMemo(() => {
     const map = new Map<string, Attachment[]>();
@@ -185,7 +185,6 @@ export default function InboxClient({
   function applyTemplate(t: TemplateOption) {
     setSubject(t.subject);
     setBody(t.bodyHtml);
-    setMode("edit");
   }
 
   function insertMergeToken(token: string) {
@@ -223,7 +222,6 @@ export default function InboxClient({
               type="button"
               onClick={() => {
                 setShowCompose(true);
-                setMode("edit");
               }}
               className="text-xs text-[#e6c47a]"
             >
@@ -244,7 +242,22 @@ export default function InboxClient({
                   initialThreadId === t.id ? "bg-white/10" : ""
                 }`}
               >
-                <p className="truncate font-medium text-white/90">{t.subject}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <p
+                    className={`truncate ${
+                      (t.unreadCount ?? 0) > 0
+                        ? "font-semibold text-white"
+                        : "font-medium text-white/90"
+                    }`}
+                  >
+                    {t.subject}
+                  </p>
+                  {(t.unreadCount ?? 0) > 0 && (
+                    <span className="shrink-0 rounded-full bg-[#e6c47a] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-black">
+                      {t.unreadCount}
+                    </span>
+                  )}
+                </div>
                 <p className="truncate text-xs text-white/40">
                   {t.clientId && clientNameById[t.clientId]
                     ? clientNameById[t.clientId]
@@ -261,22 +274,13 @@ export default function InboxClient({
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-semibold">Compose</h2>
-              <div className="flex gap-1 border border-white/10 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setMode("edit")}
-                  className={`px-2 py-1 text-xs ${mode === "edit" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("preview")}
-                  className={`px-2 py-1 text-xs ${mode === "preview" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
-                >
-                  Preview
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setPreview("compose")}
+                className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+              >
+                Preview
+              </button>
             </div>
             <TemplatePicker templates={templates} onSelect={applyTemplate} />
             <input
@@ -297,25 +301,19 @@ export default function InboxClient({
               placeholder="Subject"
               className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
             />
-            {mode === "edit" ? (
-              <>
-                <div className="flex flex-wrap gap-1">
-                  {MERGE_FIELD_OPTIONS.map((f) => (
-                    <button
-                      key={f.token}
-                      type="button"
-                      onClick={() => insertMergeToken(f.token)}
-                      className="border border-white/15 px-2 py-0.5 text-[10px] text-white/50 hover:text-[#e6c47a]"
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-                <RichTextEditor value={body} onChange={setBody} />
-              </>
-            ) : (
-              <EmailPreview bodyHtml={body} subject={subject} />
-            )}
+            <div className="flex flex-wrap gap-1">
+              {MERGE_FIELD_OPTIONS.map((f) => (
+                <button
+                  key={f.token}
+                  type="button"
+                  onClick={() => insertMergeToken(f.token)}
+                  className="border border-white/15 px-2 py-0.5 text-[10px] text-white/50 hover:text-[#e6c47a]"
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <RichTextEditor value={body} onChange={setBody} />
             <div className="flex flex-wrap items-center gap-3">
               <label className="cursor-pointer border border-white/20 px-3 py-1.5 text-xs text-white/70">
                 {uploading ? "Uploading…" : "Attach files"}
@@ -388,104 +386,108 @@ export default function InboxClient({
                 )}
               </div>
             </div>
-            <div className="space-y-4 max-h-[50vh] overflow-y-auto">
-              {initialMessages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`border border-white/10 p-3 ${
-                    m.direction === "outbound" ? "bg-white/[0.03]" : ""
-                  }`}
-                >
-                  <div className="flex justify-between gap-2 text-xs text-white/40">
-                    <span>
-                      {m.direction === "outbound" ? "You" : m.fromEmail} →{" "}
-                      {m.toEmails.join(", ")}
-                    </span>
-                    <span>{new Date(m.createdAt).toLocaleString()}</span>
-                  </div>
-                  <p className="mt-1 text-sm font-medium">{m.subject}</p>
-                  <HtmlMessageBody htmlBody={m.htmlBody} textBody={m.textBody} />
-                  {(attachmentsByMessage.get(m.id) || []).length > 0 && (
-                    <ul className="mt-2 flex flex-wrap gap-2">
-                      {(attachmentsByMessage.get(m.id) || []).map((a) => (
-                        <li key={a.id}>
-                          <a
-                            href={a.storageUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="border border-white/15 px-2 py-1 text-xs text-[#e6c47a] hover:bg-white/5"
-                          >
-                            {a.filename}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 border-t border-white/10 pt-4 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs uppercase tracking-wider text-white/40">Reply</span>
-                <div className="flex gap-1 border border-white/10 p-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setReplyMode("edit")}
-                    className={`px-2 py-1 text-xs ${replyMode === "edit" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+            <div className="flex min-h-[min(70vh,760px)] flex-col">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+                {initialMessages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`border border-white/10 p-3 ${
+                      m.direction === "outbound" ? "bg-white/[0.03]" : ""
+                    }`}
                   >
-                    Edit
-                  </button>
+                    <div className="flex justify-between gap-2 text-xs text-white/40">
+                      <span>
+                        {m.direction === "outbound" ? "You" : m.fromEmail} →{" "}
+                        {m.toEmails.join(", ")}
+                      </span>
+                      <span>{new Date(m.createdAt).toLocaleString()}</span>
+                    </div>
+                    <p className="mt-1 text-sm font-medium">{m.subject}</p>
+                    <HtmlMessageBody htmlBody={m.htmlBody} textBody={m.textBody} />
+                    {(attachmentsByMessage.get(m.id) || []).length > 0 && (
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {(attachmentsByMessage.get(m.id) || []).map((a) => (
+                          <li key={a.id}>
+                            <a
+                              href={a.storageUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="border border-white/15 px-2 py-1 text-xs text-[#e6c47a] hover:bg-white/5"
+                            >
+                              {a.filename}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 shrink-0 border-t border-white/10 pt-4 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs uppercase tracking-wider text-white/40">Reply</span>
                   <button
                     type="button"
-                    onClick={() => setReplyMode("preview")}
-                    className={`px-2 py-1 text-xs ${replyMode === "preview" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+                    onClick={() => setPreview("reply")}
+                    className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
                   >
                     Preview
                   </button>
                 </div>
-              </div>
-              {replyMode === "edit" ? (
                 <RichTextEditor
                   value={replyBody}
                   onChange={setReplyBody}
                   placeholder="Reply…"
-                  minHeight="120px"
+                  minHeight="100px"
                 />
-              ) : (
-                <EmailPreview bodyHtml={replyBody} subject={activeThread?.subject} />
-              )}
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="cursor-pointer border border-white/20 px-3 py-1.5 text-xs text-white/70">
-                  {uploading ? "Uploading…" : "Attach"}
-                  <input
-                    type="file"
-                    multiple
-                    className="hidden"
-                    disabled={uploading}
-                    onChange={(e) => {
-                      void uploadFiles(e.target.files);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
-                {pendingFiles.map((f) => (
-                  <span key={f.filename + f.size} className="text-xs text-white/50">
-                    {f.filename}
-                  </span>
-                ))}
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="cursor-pointer border border-white/20 px-3 py-1.5 text-xs text-white/70">
+                    {uploading ? "Uploading…" : "Attach"}
+                    <input
+                      type="file"
+                      multiple
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        void uploadFiles(e.target.files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {pendingFiles.map((f) => (
+                    <span key={f.filename + f.size} className="text-xs text-white/50">
+                      {f.filename}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={reply}
+                  className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+                >
+                  Reply
+                </button>
+                {status && <p className="text-sm text-white/50">{status}</p>}
               </div>
-              <button
-                type="button"
-                onClick={reply}
-                className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
-              >
-                Reply
-              </button>
-              {status && <p className="text-sm text-white/50">{status}</p>}
             </div>
           </div>
         )}
       </div>
+
+      <EmailPreviewModal
+        open={preview === "compose"}
+        onClose={() => setPreview(null)}
+        bodyHtml={body}
+        subject={subject}
+        title="Compose preview"
+      />
+      <EmailPreviewModal
+        open={preview === "reply"}
+        onClose={() => setPreview(null)}
+        bodyHtml={replyBody}
+        subject={activeThread?.subject}
+        title="Reply preview"
+      />
     </div>
   );
 }
