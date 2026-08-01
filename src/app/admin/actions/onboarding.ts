@@ -54,11 +54,19 @@ export async function createOnboardingAction(clientId: string, projectName?: str
   return { ok: true, id: row.id };
 }
 
+const serviceSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  group: z.string().min(1),
+  price: z.string().optional(),
+});
+
 export async function updateOnboardingAction(
   id: string,
   data: {
     projectName?: string;
     welcomeMessage?: string;
+    services?: { id: string; label: string; group: string; price?: string }[];
     contractEnabled?: boolean;
     contractId?: string | null;
     depositEnabled?: boolean;
@@ -66,7 +74,11 @@ export async function updateOnboardingAction(
   },
 ) {
   await requireAdmin();
-  const row = await updateOnboarding(id, data);
+  const parsed = {
+    ...data,
+    services: data.services ? z.array(serviceSchema).parse(data.services) : undefined,
+  };
+  const row = await updateOnboarding(id, parsed);
   if (!row) throw new Error("Not found");
   revalidateOnboarding(id, row.clientId);
   return { ok: true };
@@ -77,7 +89,11 @@ export async function sendOnboardingInviteAction(id: string) {
   const onboarding = await getOnboarding(id);
   if (!onboarding) throw new Error("Not found");
 
-  const { url, result } = await sendPortalInviteEmail(onboarding.clientId);
+  const serviceLabels = (onboarding.services || []).map((s) => s.label);
+  const { url, result } = await sendPortalInviteEmail(onboarding.clientId, {
+    projectName: onboarding.projectName,
+    services: serviceLabels,
+  });
 
   if (onboarding.status === "draft") {
     await updateOnboarding(id, { status: "sent" });

@@ -302,6 +302,11 @@ export const onboardings = pgTable(
     welcomeMessage: text("welcome_message").notNull().default(
       "Welcome! Let's get your project set up. This short flow collects what I need to kick things off.",
     ),
+    /** Selected service offerings for this onboarding (from CMS catalog). */
+    services: jsonb("services")
+      .$type<{ id: string; label: string; group: string; price?: string }[]>()
+      .notNull()
+      .default([]),
     contractEnabled: boolean("contract_enabled").notNull().default(false),
     contractId: uuid("contract_id").references(() => contracts.id, { onDelete: "set null" }),
     depositEnabled: boolean("deposit_enabled").notNull().default(false),

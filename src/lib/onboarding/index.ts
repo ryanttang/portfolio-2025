@@ -87,6 +87,7 @@ export async function updateOnboarding(
   data: Partial<{
     projectName: string;
     welcomeMessage: string;
+    services: { id: string; label: string; group: string; price?: string }[];
     contractEnabled: boolean;
     contractId: string | null;
     depositEnabled: boolean;

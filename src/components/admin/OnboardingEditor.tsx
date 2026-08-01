@@ -21,6 +21,7 @@ type Onboarding = {
   welcomeMessage: string;
   status: string;
   currentStep: string;
+  services: { id: string; label: string; group: string; price?: string }[];
   contractEnabled: boolean;
   contractId: string | null;
   depositEnabled: boolean;
@@ -39,6 +40,13 @@ type Question = {
 
 type Option = { id: string; label: string };
 
+type ServiceOption = {
+  id: string;
+  label: string;
+  group: string;
+  price?: string;
+};
+
 export default function OnboardingEditor({
   onboarding,
   questions,
@@ -47,6 +55,7 @@ export default function OnboardingEditor({
   templates,
   answers,
   inviteUrl,
+  serviceCatalog,
 }: {
   onboarding: Onboarding;
   questions: Question[];
@@ -55,10 +64,14 @@ export default function OnboardingEditor({
   templates: Option[];
   answers: { id: string; key: string | null; questionId: string | null; value: unknown }[];
   inviteUrl: string | null;
+  serviceCatalog: ServiceOption[];
 }) {
   const router = useRouter();
   const [projectName, setProjectName] = useState(onboarding.projectName);
   const [welcomeMessage, setWelcomeMessage] = useState(onboarding.welcomeMessage);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(
+    () => (onboarding.services || []).map((s) => s.id),
+  );
   const [contractEnabled, setContractEnabled] = useState(onboarding.contractEnabled);
   const [contractId, setContractId] = useState(onboarding.contractId || "");
   const [depositEnabled, setDepositEnabled] = useState(onboarding.depositEnabled);
@@ -70,12 +83,30 @@ export default function OnboardingEditor({
   const [templateId, setTemplateId] = useState("");
   const [templateName, setTemplateName] = useState("");
 
+  const serviceGroups = (() => {
+    const map = new Map<string, ServiceOption[]>();
+    for (const opt of serviceCatalog) {
+      const list = map.get(opt.group) || [];
+      list.push(opt);
+      map.set(opt.group, list);
+    }
+    return Array.from(map.entries());
+  })();
+
+  function toggleService(id: string) {
+    setSelectedServiceIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
   async function saveConfig() {
     setSaving(true);
     setMessage("");
+    const services = serviceCatalog.filter((s) => selectedServiceIds.includes(s.id));
     await updateOnboardingAction(onboarding.id, {
       projectName,
       welcomeMessage,
+      services,
       contractEnabled,
       contractId: contractEnabled && contractId ? contractId : null,
       depositEnabled,
@@ -89,6 +120,16 @@ export default function OnboardingEditor({
   async function sendInvite() {
     setSaving(true);
     setMessage("");
+    const services = serviceCatalog.filter((s) => selectedServiceIds.includes(s.id));
+    await updateOnboardingAction(onboarding.id, {
+      projectName,
+      welcomeMessage,
+      services,
+      contractEnabled,
+      contractId: contractEnabled && contractId ? contractId : null,
+      depositEnabled,
+      invoiceId: depositEnabled && invoiceId ? invoiceId : null,
+    });
     const result = await sendOnboardingInviteAction(onboarding.id);
     setSaving(false);
     setMessage(
@@ -160,6 +201,57 @@ export default function OnboardingEditor({
             className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
           />
         </label>
+
+        <div className="border border-white/10 p-3">
+          <p className="text-xs uppercase tracking-wider text-white/40">Services</p>
+          <p className="mt-1 text-xs text-white/35">
+            Select what this onboarding / invite is for. Shown to the client and included in the
+            invite email.
+          </p>
+          {serviceGroups.length === 0 ? (
+            <p className="mt-3 text-sm text-white/40">
+              No services in CMS yet. Add them under Content → services keys.
+            </p>
+          ) : (
+            <div className="mt-3 space-y-4">
+              {serviceGroups.map(([group, items]) => (
+                <div key={group}>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#e6c47a]/80">
+                    {group}
+                  </p>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {items.map((item) => {
+                      const checked = selectedServiceIds.includes(item.id);
+                      return (
+                        <li key={item.id}>
+                          <label className="flex cursor-pointer items-start gap-2 text-sm text-white/80">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleService(item.id)}
+                              className="mt-1"
+                            />
+                            <span>
+                              {item.label}
+                              {item.price ? (
+                                <span className="ml-1 text-white/35">{item.price}</span>
+                              ) : null}
+                            </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+          {selectedServiceIds.length > 0 && (
+            <p className="mt-3 text-xs text-white/40">
+              {selectedServiceIds.length} selected
+            </p>
+          )}
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 border border-white/10 p-3">

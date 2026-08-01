@@ -7,15 +7,14 @@ import { getClient } from "@/lib/crm/clients";
 import {
   getOnboardingBundle,
   listTemplates,
+  listPortalMilestones,
+  listPortalUpdates,
 } from "@/lib/onboarding";
+import { listAvailableServices } from "@/lib/onboarding/services";
 import { getLatestUnusedInvite } from "@/lib/portal/auth";
 import { getAppUrl } from "@/lib/env";
 import OnboardingEditor from "@/components/admin/OnboardingEditor";
 import PortalContentEditor from "@/components/admin/PortalContentEditor";
-import {
-  listPortalMilestones,
-  listPortalUpdates,
-} from "@/lib/onboarding";
 
 export default async function OnboardingDetailPage({
   params,
@@ -30,7 +29,7 @@ export default async function OnboardingDetailPage({
   const client = await getClient(onboarding.clientId);
   if (!client) notFound();
 
-  const [clientContracts, clientInvoices, templates, updates, milestones, invite] =
+  const [clientContracts, clientInvoices, templates, updates, milestones, invite, serviceCatalog] =
     await Promise.all([
       db.select().from(contracts).where(eq(contracts.clientId, client.id)),
       db.select().from(invoices).where(eq(invoices.clientId, client.id)),
@@ -38,6 +37,7 @@ export default async function OnboardingDetailPage({
       listPortalUpdates(client.id),
       listPortalMilestones(client.id),
       getLatestUnusedInvite(client.id),
+      listAvailableServices(),
     ]);
 
   return (
@@ -79,7 +79,10 @@ export default async function OnboardingDetailPage({
       )}
 
       <OnboardingEditor
-        onboarding={onboarding}
+        onboarding={{
+          ...onboarding,
+          services: onboarding.services || [],
+        }}
         questions={questions}
         contracts={clientContracts.map((c) => ({
           id: c.id,
@@ -92,6 +95,7 @@ export default async function OnboardingDetailPage({
         templates={templates.map((t) => ({ id: t.id, label: t.name }))}
         answers={answers}
         inviteUrl={invite ? `${getAppUrl()}/portal/invite/${invite.token}` : null}
+        serviceCatalog={serviceCatalog}
       />
 
       <div className="mt-8">

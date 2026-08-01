@@ -52,6 +52,18 @@ export default async function PortalHomePage() {
       <p className="mt-2 text-sm text-white/50">
         Progress, updates, and documents for your engagement.
       </p>
+      {onboarding?.services && onboarding.services.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {onboarding.services.map((s) => (
+            <li
+              key={s.id}
+              className="border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/70"
+            >
+              {s.label}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <section className="mt-10">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">

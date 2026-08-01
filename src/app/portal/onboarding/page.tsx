@@ -45,8 +45,12 @@ export default async function PortalOnboardingPage() {
   }
 
   return (
-    <OnboardingWizard
-      onboarding={{ ...bundle.onboarding, currentStep }}
+      <OnboardingWizard
+      onboarding={{
+        ...bundle.onboarding,
+        currentStep,
+        services: bundle.onboarding.services || [],
+      }}
       client={client}
       questions={bundle.questions}
       answers={bundle.answers}

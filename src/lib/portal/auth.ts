@@ -135,19 +135,39 @@ export async function verifyClientPassword(email: string, password: string) {
   return account;
 }
 
-export async function sendPortalInviteEmail(clientId: string) {
+export async function sendPortalInviteEmail(
+  clientId: string,
+  context?: { projectName?: string; services?: string[] },
+) {
   const client = await getClient(clientId);
   if (!client?.email) throw new Error("Client has no email");
 
   const invite = await createPortalInvite(clientId);
   const url = `${getAppUrl()}/portal/invite/${invite.token}`;
 
+  const projectLine = context?.projectName
+    ? `\nProject: ${context.projectName}`
+    : "";
+  const servicesLine =
+    context?.services && context.services.length > 0
+      ? `\nServices: ${context.services.join(", ")}`
+      : "";
+  const projectHtml = context?.projectName
+    ? `<p><strong>Project:</strong> ${context.projectName}</p>`
+    : "";
+  const servicesHtml =
+    context?.services && context.services.length > 0
+      ? `<p><strong>Services:</strong> ${context.services.join(", ")}</p>`
+      : "";
+
   const result = await sendEmail({
     to: [client.email],
-    subject: "Set up your client portal",
+    subject: context?.projectName
+      ? `Set up your portal — ${context.projectName}`
+      : "Set up your client portal",
     clientId,
-    text: `Hi ${client.name},\n\nYou're invited to your client portal. Use this link to set your password and get started:\n\n${url}\n\nThis link expires in ${INVITE_DAYS} days.\n\nThank you,\nRyan Tang`,
-    html: `<p>Hi ${client.name},</p><p>You're invited to your client portal. Use this link to set your password and get started:</p><p><a href="${url}">${url}</a></p><p>This link expires in ${INVITE_DAYS} days.</p><p>Thank you,<br/>Ryan Tang</p>`,
+    text: `Hi ${client.name},\n\nYou're invited to your client portal.${projectLine}${servicesLine}\n\nUse this link to set your password and get started:\n\n${url}\n\nThis link expires in ${INVITE_DAYS} days.\n\nThank you,\nRyan Tang`,
+    html: `<p>Hi ${client.name},</p><p>You're invited to your client portal.</p>${projectHtml}${servicesHtml}<p>Use this link to set your password and get started:</p><p><a href="${url}">${url}</a></p><p>This link expires in ${INVITE_DAYS} days.</p><p>Thank you,<br/>Ryan Tang</p>`,
   });
 
   await addActivity(clientId, "portal", "Portal invite sent", invite.id);

@@ -42,6 +42,7 @@ export default function OnboardingWizard({
     status: string;
     contractEnabled: boolean;
     depositEnabled: boolean;
+    services: { id: string; label: string; group: string; price?: string }[];
   };
   client: {
     name: string;
@@ -108,6 +109,7 @@ export default function OnboardingWizard({
         {step === "welcome" && (
           <WelcomeStep
             message={onboarding.welcomeMessage}
+            services={onboarding.services || []}
             onContinue={async () => {
               await advanceOnboardingAction("welcome");
               router.refresh();
@@ -177,9 +179,11 @@ export default function OnboardingWizard({
 
 function WelcomeStep({
   message,
+  services,
   onContinue,
 }: {
   message: string;
+  services: { id: string; label: string; group: string; price?: string }[];
   onContinue: () => Promise<void>;
 }) {
   const [loading, setLoading] = useState(false);
@@ -187,6 +191,22 @@ function WelcomeStep({
     <div>
       <h2 className="font-[family-name:var(--font-syne)] text-xl font-bold">Welcome</h2>
       <p className="mt-4 whitespace-pre-wrap text-white/70">{message}</p>
+      {services.length > 0 && (
+        <div className="mt-6">
+          <p className="text-xs uppercase tracking-wider text-white/40">Services included</p>
+          <ul className="mt-2 space-y-1">
+            {services.map((s) => (
+              <li key={s.id} className="text-sm text-white/75">
+                {s.label}
+                {s.price ? <span className="ml-2 text-white/35">{s.price}</span> : null}
+                <span className="ml-2 text-[10px] uppercase tracking-wider text-white/30">
+                  {s.group}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <button
         type="button"
         disabled={loading}
