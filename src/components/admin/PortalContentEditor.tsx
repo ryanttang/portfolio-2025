@@ -8,15 +8,18 @@ import {
   deleteMilestoneAction,
   deleteUpdateAction,
   updateMilestoneAction,
+  updateUpdateAction,
 } from "@/app/admin/actions/onboarding";
 import { MILESTONE_STATUSES } from "@/lib/onboarding/types";
 
 export default function PortalContentEditor({
   clientId,
+  onboardingId,
   updates,
   milestones,
 }: {
   clientId: string;
+  onboardingId: string;
   updates: {
     id: string;
     title: string;
@@ -35,6 +38,9 @@ export default function PortalContentEditor({
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateBody, setUpdateBody] = useState("");
   const [milestoneTitle, setMilestoneTitle] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
 
   return (
     <div className="mt-4 grid gap-6 lg:grid-cols-2">
@@ -58,7 +64,12 @@ export default function PortalContentEditor({
             type="button"
             onClick={async () => {
               if (!updateTitle.trim()) return;
-              await createUpdateAction(clientId, updateTitle.trim(), updateBody);
+              await createUpdateAction(
+                clientId,
+                onboardingId,
+                updateTitle.trim(),
+                updateBody,
+              );
               setUpdateTitle("");
               setUpdateBody("");
               router.refresh();
@@ -71,25 +82,80 @@ export default function PortalContentEditor({
         <ul className="mt-4 space-y-3">
           {updates.map((u) => (
             <li key={u.id} className="border-t border-white/10 pt-3">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-medium">{u.title}</p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-white/60">{u.body}</p>
-                  <p className="mt-1 text-[10px] text-white/30">
-                    {new Date(u.createdAt).toLocaleString()}
-                  </p>
+              {editingId === u.id ? (
+                <div className="space-y-2">
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full border border-white/15 bg-black/40 px-2 py-1 text-sm"
+                  />
+                  <textarea
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    rows={3}
+                    className="w-full border border-white/15 bg-black/40 px-2 py-1 text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await updateUpdateAction(
+                          u.id,
+                          clientId,
+                          onboardingId,
+                          editTitle,
+                          editBody,
+                        );
+                        setEditingId(null);
+                        router.refresh();
+                      }}
+                      className="bg-[#e6c47a] px-2 py-1 text-xs font-semibold text-black"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="text-xs text-white/50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await deleteUpdateAction(u.id, clientId);
-                    router.refresh();
-                  }}
-                  className="text-xs text-red-300"
-                >
-                  Delete
-                </button>
-              </div>
+              ) : (
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-medium">{u.title}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-white/60">{u.body}</p>
+                    <p className="mt-1 text-[10px] text-white/30">
+                      {new Date(u.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(u.id);
+                        setEditTitle(u.title);
+                        setEditBody(u.body);
+                      }}
+                      className="text-xs text-[#e6c47a]"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await deleteUpdateAction(u.id, clientId, onboardingId);
+                        router.refresh();
+                      }}
+                      className="text-xs text-red-300"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
           {updates.length === 0 && (
@@ -111,7 +177,9 @@ export default function PortalContentEditor({
             type="button"
             onClick={async () => {
               if (!milestoneTitle.trim()) return;
-              await createMilestoneAction(clientId, { title: milestoneTitle.trim() });
+              await createMilestoneAction(clientId, onboardingId, {
+                title: milestoneTitle.trim(),
+              });
               setMilestoneTitle("");
               router.refresh();
             }}
@@ -122,12 +190,17 @@ export default function PortalContentEditor({
         </div>
         <ul className="mt-4 space-y-3">
           {milestones.map((m) => (
-            <li key={m.id} className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+            <li
+              key={m.id}
+              className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3"
+            >
               <input
                 defaultValue={m.title}
                 onBlur={async (e) => {
                   if (e.target.value !== m.title) {
-                    await updateMilestoneAction(m.id, clientId, { title: e.target.value });
+                    await updateMilestoneAction(m.id, clientId, onboardingId, {
+                      title: e.target.value,
+                    });
                     router.refresh();
                   }
                 }}
@@ -136,7 +209,9 @@ export default function PortalContentEditor({
               <select
                 defaultValue={m.status}
                 onChange={async (e) => {
-                  await updateMilestoneAction(m.id, clientId, { status: e.target.value });
+                  await updateMilestoneAction(m.id, clientId, onboardingId, {
+                    status: e.target.value,
+                  });
                   router.refresh();
                 }}
                 className="border border-white/15 bg-black/40 px-2 py-1 text-xs"
@@ -150,7 +225,7 @@ export default function PortalContentEditor({
               <button
                 type="button"
                 onClick={async () => {
-                  await deleteMilestoneAction(m.id, clientId);
+                  await deleteMilestoneAction(m.id, clientId, onboardingId);
                   router.refresh();
                 }}
                 className="text-xs text-red-300"

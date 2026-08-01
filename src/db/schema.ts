@@ -272,24 +272,6 @@ export const clientAccounts = pgTable(
   (t) => [index("client_accounts_email_idx").on(t.email)],
 );
 
-export const portalInvites = pgTable(
-  "portal_invites",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    clientId: uuid("client_id")
-      .notNull()
-      .references(() => clients.id, { onDelete: "cascade" }),
-    token: text("token").notNull().unique(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    usedAt: timestamp("used_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (t) => [
-    index("portal_invites_client_idx").on(t.clientId),
-    uniqueIndex("portal_invites_token_uidx").on(t.token),
-  ],
-);
-
 export const onboardings = pgTable(
   "onboardings",
   {
@@ -319,6 +301,28 @@ export const onboardings = pgTable(
   (t) => [
     index("onboardings_client_idx").on(t.clientId),
     index("onboardings_status_idx").on(t.status),
+  ],
+);
+
+export const portalInvites = pgTable(
+  "portal_invites",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id").references(() => onboardings.id, {
+      onDelete: "set null",
+    }),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("portal_invites_client_idx").on(t.clientId),
+    index("portal_invites_onboarding_idx").on(t.onboardingId),
+    uniqueIndex("portal_invites_token_uidx").on(t.token),
   ],
 );
 
@@ -392,6 +396,9 @@ export const portalUpdates = pgTable(
     clientId: uuid("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id")
+      .notNull()
+      .references(() => onboardings.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     body: text("body").notNull().default(""),
     createdByAdminId: uuid("created_by_admin_id").references(() => admins.id, {
@@ -400,7 +407,10 @@ export const portalUpdates = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [index("portal_updates_client_idx").on(t.clientId)],
+  (t) => [
+    index("portal_updates_client_idx").on(t.clientId),
+    index("portal_updates_onboarding_idx").on(t.onboardingId),
+  ],
 );
 
 export const portalMilestones = pgTable(
@@ -410,6 +420,9 @@ export const portalMilestones = pgTable(
     clientId: uuid("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id")
+      .notNull()
+      .references(() => onboardings.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description"),
     status: text("status").notNull().default("upcoming"), // upcoming | in_progress | done
@@ -418,5 +431,8 @@ export const portalMilestones = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [index("portal_milestones_client_idx").on(t.clientId)],
+  (t) => [
+    index("portal_milestones_client_idx").on(t.clientId),
+    index("portal_milestones_onboarding_idx").on(t.onboardingId),
+  ],
 );

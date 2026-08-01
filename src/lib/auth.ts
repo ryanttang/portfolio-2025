@@ -3,8 +3,9 @@ import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { admins } from "@/db/schema";
+import { admins, clients } from "@/db/schema";
 import { verifyClientPassword } from "@/lib/portal/auth";
+import { getViewAsPayload } from "@/lib/portal/view-as";
 import { z } from "zod";
 
 const credentialsSchema = z.object({
@@ -94,10 +95,61 @@ export async function requireAdmin() {
   return session;
 }
 
-export async function requireClient() {
+export type PortalActor = {
+  clientId: string;
+  email: string;
+  impersonating: boolean;
+  impersonatorAdminId: string | null;
+  sessionUserId: string;
+};
+
+/** Real client session, or admin viewing as client via cookie. */
+export async function requirePortalActor(): Promise<PortalActor> {
   const session = await auth();
-  if (!session?.user || session.user.role !== "client" || !session.user.clientId) {
-    throw new Error("Unauthorized");
+  if (!session?.user) throw new Error("Unauthorized");
+
+  if (session.user.role === "client" && session.user.clientId) {
+    return {
+      clientId: session.user.clientId,
+      email: session.user.email,
+      impersonating: false,
+      impersonatorAdminId: null,
+      sessionUserId: session.user.id,
+    };
   }
-  return session;
+
+  if (session.user.role === "admin") {
+    const viewAs = await getViewAsPayload();
+    if (viewAs) {
+      const [client] = await db
+        .select()
+        .from(clients)
+        .where(eq(clients.id, viewAs.clientId))
+        .limit(1);
+      if (!client) throw new Error("Unauthorized");
+      return {
+        clientId: viewAs.clientId,
+        email: client.email,
+        impersonating: true,
+        impersonatorAdminId: viewAs.adminId,
+        sessionUserId: session.user.id,
+      };
+    }
+  }
+
+  throw new Error("Unauthorized");
+}
+
+export async function requireClient() {
+  const actor = await requirePortalActor();
+  return {
+    user: {
+      id: actor.sessionUserId,
+      email: actor.email,
+      role: "client" as const,
+      clientId: actor.clientId,
+    },
+    impersonating: actor.impersonating,
+    impersonatorAdminId: actor.impersonatorAdminId,
+  };
 }

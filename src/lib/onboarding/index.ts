@@ -25,48 +25,53 @@ export async function listOnboardings() {
   return db.select().from(onboardings).orderBy(desc(onboardings.updatedAt));
 }
 
+export async function listOnboardingsForClient(clientId: string) {
+  return db
+    .select()
+    .from(onboardings)
+    .where(and(eq(onboardings.clientId, clientId), ne(onboardings.status, "cancelled")))
+    .orderBy(desc(onboardings.updatedAt));
+}
+
 export async function getOnboarding(id: string) {
   const [row] = await db.select().from(onboardings).where(eq(onboardings.id, id)).limit(1);
   return row || null;
 }
 
-export async function getActiveOnboardingForClient(clientId: string) {
+export async function getOnboardingForClient(clientId: string, id: string) {
   const [row] = await db
+    .select()
+    .from(onboardings)
+    .where(and(eq(onboardings.id, id), eq(onboardings.clientId, clientId)))
+    .limit(1);
+  return row || null;
+}
+
+/** @deprecated Prefer listOnboardingsForClient / getOnboardingForClient for multi-project. */
+export async function getActiveOnboardingForClient(clientId: string) {
+  const [incomplete] = await db
     .select()
     .from(onboardings)
     .where(
       and(
         eq(onboardings.clientId, clientId),
-        inArray(onboardings.status, ["draft", "sent", "in_progress", "completed"]),
+        inArray(onboardings.status, ["draft", "sent", "in_progress"]),
       ),
     )
     .orderBy(desc(onboardings.updatedAt))
     .limit(1);
-  if (!row || row.status === "cancelled") return null;
-  // Prefer non-cancelled; if completed exists alongside newer cancelled we already filtered
-  if (row.status === "completed") {
-    const [active] = await db
-      .select()
-      .from(onboardings)
-      .where(
-        and(
-          eq(onboardings.clientId, clientId),
-          inArray(onboardings.status, ["draft", "sent", "in_progress"]),
-        ),
-      )
-      .orderBy(desc(onboardings.updatedAt))
-      .limit(1);
-    return active || row;
-  }
-  return row;
+  if (incomplete) return incomplete;
+
+  const [completed] = await db
+    .select()
+    .from(onboardings)
+    .where(and(eq(onboardings.clientId, clientId), eq(onboardings.status, "completed")))
+    .orderBy(desc(onboardings.updatedAt))
+    .limit(1);
+  return completed || null;
 }
 
 export async function createOnboarding(clientId: string, projectName = "") {
-  const existing = await getActiveOnboardingForClient(clientId);
-  if (existing && existing.status !== "completed") {
-    throw new Error("Client already has an active onboarding");
-  }
-
   const [row] = await db
     .insert(onboardings)
     .values({
@@ -77,7 +82,7 @@ export async function createOnboarding(clientId: string, projectName = "") {
     })
     .returning();
 
-  await addActivity(clientId, "onboarding", `Onboarding created: ${row.projectName}`, row.id);
+  await addActivity(clientId, "onboarding", `Project created: ${row.projectName}`, row.id);
   await logAudit("create", "onboarding", row.id, { clientId });
   return row;
 }
@@ -481,16 +486,17 @@ export async function getOnboardingBundle(id: string) {
   return { onboarding, questions, answers, contract, invoice };
 }
 
-export async function listPortalUpdates(clientId: string) {
+export async function listPortalUpdates(onboardingId: string) {
   return db
     .select()
     .from(portalUpdates)
-    .where(eq(portalUpdates.clientId, clientId))
+    .where(eq(portalUpdates.onboardingId, onboardingId))
     .orderBy(desc(portalUpdates.createdAt));
 }
 
 export async function createPortalUpdate(data: {
   clientId: string;
+  onboardingId: string;
   title: string;
   body: string;
   createdByAdminId?: string | null;
@@ -499,6 +505,7 @@ export async function createPortalUpdate(data: {
     .insert(portalUpdates)
     .values({
       clientId: data.clientId,
+      onboardingId: data.onboardingId,
       title: data.title,
       body: data.body,
       createdByAdminId: data.createdByAdminId ?? null,
@@ -524,16 +531,17 @@ export async function deletePortalUpdate(id: string) {
   await db.delete(portalUpdates).where(eq(portalUpdates.id, id));
 }
 
-export async function listPortalMilestones(clientId: string) {
+export async function listPortalMilestones(onboardingId: string) {
   return db
     .select()
     .from(portalMilestones)
-    .where(eq(portalMilestones.clientId, clientId))
+    .where(eq(portalMilestones.onboardingId, onboardingId))
     .orderBy(asc(portalMilestones.sortOrder), asc(portalMilestones.createdAt));
 }
 
 export async function createPortalMilestone(data: {
   clientId: string;
+  onboardingId: string;
   title: string;
   description?: string | null;
   status?: string;
@@ -542,7 +550,7 @@ export async function createPortalMilestone(data: {
   const [last] = await db
     .select({ sortOrder: portalMilestones.sortOrder })
     .from(portalMilestones)
-    .where(eq(portalMilestones.clientId, data.clientId))
+    .where(eq(portalMilestones.onboardingId, data.onboardingId))
     .orderBy(desc(portalMilestones.sortOrder))
     .limit(1);
 
@@ -550,6 +558,7 @@ export async function createPortalMilestone(data: {
     .insert(portalMilestones)
     .values({
       clientId: data.clientId,
+      onboardingId: data.onboardingId,
       title: data.title,
       description: data.description ?? null,
       status: data.status || "upcoming",

@@ -8,6 +8,7 @@ import {
   completeHandoffAction,
   saveClientInfoAction,
   saveQuestionnaireAction,
+  uploadQuestionnaireFileAction,
 } from "@/app/portal/actions/onboarding";
 import {
   CORE_ANSWER_KEYS,
@@ -26,6 +27,7 @@ type Question = {
 };
 
 export default function OnboardingWizard({
+  onboardingId,
   onboarding,
   client,
   questions,
@@ -34,6 +36,7 @@ export default function OnboardingWizard({
   contract,
   invoice,
 }: {
+  onboardingId: string;
   onboarding: {
     id: string;
     projectName: string;
@@ -111,7 +114,7 @@ export default function OnboardingWizard({
             message={onboarding.welcomeMessage}
             services={onboarding.services || []}
             onContinue={async () => {
-              await advanceOnboardingAction("welcome");
+              await advanceOnboardingAction(onboardingId, "welcome");
               router.refresh();
             }}
           />
@@ -120,13 +123,14 @@ export default function OnboardingWizard({
           <InfoStep
             client={client}
             onSave={async (data) => {
-              await saveClientInfoAction(data);
+              await saveClientInfoAction(onboardingId, data);
               router.refresh();
             }}
           />
         )}
         {step === "questionnaire" && (
           <QuestionnaireStep
+            onboardingId={onboardingId}
             questions={questions}
             coreDefaults={coreDefaults}
             answerMap={Object.fromEntries(
@@ -135,7 +139,7 @@ export default function OnboardingWizard({
                 .map((a) => [a.questionId!, a.value]),
             )}
             onSave={async (data) => {
-              await saveQuestionnaireAction(data);
+              await saveQuestionnaireAction(onboardingId, data);
               router.refresh();
             }}
           />
@@ -145,7 +149,7 @@ export default function OnboardingWizard({
             contract={contract}
             onContinue={async () => {
               if (contract?.status !== "signed") return;
-              await advanceOnboardingAction("contract");
+              await advanceOnboardingAction(onboardingId, "contract");
               router.refresh();
             }}
             onRefresh={() => router.refresh()}
@@ -156,7 +160,7 @@ export default function OnboardingWizard({
             invoice={invoice}
             onContinue={async () => {
               if (invoice?.status !== "paid") return;
-              await advanceOnboardingAction("deposit");
+              await advanceOnboardingAction(onboardingId, "deposit");
               router.refresh();
             }}
             onRefresh={() => router.refresh()}
@@ -166,8 +170,8 @@ export default function OnboardingWizard({
           <HandoffStep
             projectName={onboarding.projectName}
             onComplete={async () => {
-              await completeHandoffAction();
-              router.push("/portal");
+              await completeHandoffAction(onboardingId);
+              router.push(`/portal/projects/${onboardingId}`);
               router.refresh();
             }}
           />
@@ -294,11 +298,13 @@ function InfoStep({
 }
 
 function QuestionnaireStep({
+  onboardingId,
   questions,
   coreDefaults,
   answerMap,
   onSave,
 }: {
+  onboardingId: string;
   questions: Question[];
   coreDefaults: Record<CoreAnswerKey, string>;
   answerMap: Record<string, unknown>;
@@ -312,11 +318,27 @@ function QuestionnaireStep({
   const [custom, setCustom] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     for (const q of questions) {
-      const v = answerMap[q.id] as { text?: string; bool?: boolean; selected?: string[] };
+      const v = answerMap[q.id] as {
+        text?: string;
+        bool?: boolean;
+        selected?: string[];
+        url?: string;
+        filename?: string;
+      };
       if (q.type === "boolean") init[q.id] = v?.bool ? "true" : "false";
       else if (q.type === "multi_select") init[q.id] = (v?.selected || []).join(", ");
       else if (q.type === "single_select") init[q.id] = (v?.selected || [])[0] || "";
+      else if (q.type === "file") init[q.id] = v?.url || "";
       else init[q.id] = v?.text || "";
+    }
+    return init;
+  });
+  const [fileNames, setFileNames] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const q of questions) {
+      if (q.type !== "file") continue;
+      const v = answerMap[q.id] as { filename?: string };
+      if (v?.filename) init[q.id] = v.filename;
     }
     return init;
   });
@@ -328,18 +350,26 @@ function QuestionnaireStep({
         setLoading(true);
         await onSave({
           core,
-          answers: questions.map((q) => {
-            const raw = custom[q.id] || "";
-            if (q.type === "boolean") return { questionId: q.id, value: { bool: raw === "true" } };
-            if (q.type === "multi_select")
-              return {
-                questionId: q.id,
-                value: { selected: raw.split(",").map((s) => s.trim()).filter(Boolean) },
-              };
-            if (q.type === "single_select")
-              return { questionId: q.id, value: { selected: raw ? [raw] : [] } };
-            return { questionId: q.id, value: { text: raw } };
-          }),
+          answers: questions
+            .filter((q) => q.type !== "file")
+            .map((q) => {
+              const raw = custom[q.id] || "";
+              if (q.type === "boolean")
+                return { questionId: q.id, value: { bool: raw === "true" } };
+              if (q.type === "multi_select")
+                return {
+                  questionId: q.id,
+                  value: {
+                    selected: raw
+                      .split(",")
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  },
+                };
+              if (q.type === "single_select")
+                return { questionId: q.id, value: { selected: raw ? [raw] : [] } };
+              return { questionId: q.id, value: { text: raw } };
+            }),
         });
       }}
       className="space-y-4"
@@ -362,8 +392,37 @@ function QuestionnaireStep({
       {questions.map((q) => (
         <label key={q.id} className="block text-xs uppercase tracking-wider text-white/40">
           {q.label}
-          {q.helpText && <span className="mt-0.5 block normal-case text-white/30">{q.helpText}</span>}
-          {q.type === "boolean" ? (
+          {q.helpText && (
+            <span className="mt-0.5 block normal-case text-white/30">{q.helpText}</span>
+          )}
+          {q.type === "file" ? (
+            <div className="mt-1">
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                required={q.required && !custom[q.id]}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const fd = new FormData();
+                  fd.set("file", file);
+                  const result = await uploadQuestionnaireFileAction(
+                    onboardingId,
+                    q.id,
+                    fd,
+                  );
+                  setCustom({ ...custom, [q.id]: result.url });
+                  setFileNames({ ...fileNames, [q.id]: result.filename });
+                }}
+                className="w-full text-sm normal-case"
+              />
+              {fileNames[q.id] && (
+                <p className="mt-1 text-xs normal-case text-white/50">
+                  Uploaded: {fileNames[q.id]}
+                </p>
+              )}
+            </div>
+          ) : q.type === "boolean" ? (
             <select
               required={q.required}
               value={custom[q.id] || "false"}

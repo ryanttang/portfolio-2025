@@ -1,12 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/admin";
   const [email, setEmail] = useState("");
@@ -28,8 +26,9 @@ function LoginForm() {
       setError("Invalid email or password.");
       return;
     }
-    router.push(callbackUrl);
-    router.refresh();
+    // Full navigation so the session cookie is included on the next request
+    // (client soft-nav can race middleware and look like a failed login).
+    window.location.assign(callbackUrl);
   }
 
   return (

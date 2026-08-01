@@ -5,8 +5,8 @@ import {
   listActivities,
   listNotes,
 } from "@/lib/crm/clients";
-import { getActiveOnboardingForClient } from "@/lib/onboarding";
-import { createOnboardingAction } from "@/app/admin/actions/onboarding";
+import { listOnboardingsForClient } from "@/lib/onboarding";
+import { createOnboardingAction, startViewAsClientAction } from "@/app/admin/actions/onboarding";
 import ClientDetail from "@/components/admin/ClientDetail";
 
 export default async function ClientDetailPage({
@@ -18,16 +18,22 @@ export default async function ClientDetailPage({
   const client = await getClient(clientId);
   if (!client) notFound();
 
-  const [notes, activities, onboarding] = await Promise.all([
+  const [notes, activities, projects] = await Promise.all([
     listNotes(clientId),
     listActivities(clientId),
-    getActiveOnboardingForClient(clientId),
+    listOnboardingsForClient(clientId),
   ]);
 
-  async function startOnboarding() {
+  async function startProject(formData: FormData) {
     "use server";
-    const result = await createOnboardingAction(clientId);
+    const name = String(formData.get("projectName") || "").trim();
+    const result = await createOnboardingAction(clientId, name || undefined);
     redirect(`/admin/onboarding/${result.id}`);
+  }
+
+  async function viewAsClient() {
+    "use server";
+    await startViewAsClientAction(clientId);
   }
 
   return (
@@ -57,31 +63,64 @@ export default async function ClientDetailPage({
         >
           New invoice
         </Link>
-        {onboarding && onboarding.status !== "cancelled" && onboarding.status !== "completed" ? (
-          <Link
-            href={`/admin/onboarding/${onboarding.id}`}
-            className="border border-[#e6c47a]/50 px-3 py-1.5 text-xs text-[#e6c47a]"
-          >
-            Onboarding ({onboarding.status.replace("_", " ")})
-          </Link>
-        ) : (
-          <>
-            {onboarding?.status === "completed" && (
-              <Link
-                href={`/admin/onboarding/${onboarding.id}`}
-                className="border border-white/20 px-3 py-1.5 text-xs"
-              >
-                View last onboarding
-              </Link>
-            )}
-            <form action={startOnboarding}>
-              <button type="submit" className="border border-white/20 px-3 py-1.5 text-xs">
-                Start onboarding
-              </button>
-            </form>
-          </>
-        )}
+        <form action={viewAsClient}>
+          <button type="submit" className="border border-[#e6c47a]/50 px-3 py-1.5 text-xs text-[#e6c47a]">
+            View as client
+          </button>
+        </form>
       </div>
+
+      <section className="mt-8 border border-white/10 bg-[#141414] p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Projects</h2>
+            <p className="mt-1 text-xs text-white/40">
+              Each project has its own onboarding, services, and portal updates.
+            </p>
+          </div>
+          <form action={startProject} className="flex flex-wrap gap-2">
+            <input
+              name="projectName"
+              placeholder="Project name"
+              className="border border-white/15 bg-black/40 px-3 py-1.5 text-sm"
+            />
+            <button
+              type="submit"
+              className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+            >
+              New project
+            </button>
+          </form>
+        </div>
+        <ul className="mt-4 space-y-2">
+          {projects.map((p) => (
+            <li
+              key={p.id}
+              className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2 text-sm"
+            >
+              <div>
+                <Link
+                  href={`/admin/onboarding/${p.id}`}
+                  className="text-[#e6c47a] hover:underline"
+                >
+                  {p.projectName || "Untitled project"}
+                </Link>
+                <p className="text-[10px] uppercase tracking-wider text-white/35">
+                  {p.status.replace("_", " ")} · step {p.currentStep}
+                </p>
+              </div>
+              {(p.services || []).length > 0 && (
+                <p className="text-xs text-white/45">
+                  {(p.services || []).map((s) => s.label).join(", ")}
+                </p>
+              )}
+            </li>
+          ))}
+          {projects.length === 0 && (
+            <li className="text-sm text-white/40">No projects yet.</li>
+          )}
+        </ul>
+      </section>
 
       <ClientDetail client={client} notes={notes} activities={activities} />
     </div>

@@ -61,7 +61,7 @@ export async function getClientAccountByClientId(clientId: string) {
   return row || null;
 }
 
-export async function createPortalInvite(clientId: string) {
+export async function createPortalInvite(clientId: string, onboardingId?: string | null) {
   await ensureClientAccount(clientId);
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date();
@@ -69,7 +69,12 @@ export async function createPortalInvite(clientId: string) {
 
   const [invite] = await db
     .insert(portalInvites)
-    .values({ clientId, token, expiresAt })
+    .values({
+      clientId,
+      onboardingId: onboardingId || null,
+      token,
+      expiresAt,
+    })
     .returning();
 
   return invite;
@@ -137,12 +142,16 @@ export async function verifyClientPassword(email: string, password: string) {
 
 export async function sendPortalInviteEmail(
   clientId: string,
-  context?: { projectName?: string; services?: string[] },
+  context?: {
+    projectName?: string;
+    services?: string[];
+    onboardingId?: string | null;
+  },
 ) {
   const client = await getClient(clientId);
   if (!client?.email) throw new Error("Client has no email");
 
-  const invite = await createPortalInvite(clientId);
+  const invite = await createPortalInvite(clientId, context?.onboardingId);
   const url = `${getAppUrl()}/portal/invite/${invite.token}`;
 
   const projectLine = context?.projectName
@@ -171,9 +180,36 @@ export async function sendPortalInviteEmail(
   });
 
   await addActivity(clientId, "portal", "Portal invite sent", invite.id);
-  await logAudit("invite_sent", "portal_invite", invite.id, { clientId });
+  await logAudit("invite_sent", "portal_invite", invite.id, {
+    clientId,
+    onboardingId: context?.onboardingId,
+  });
 
   return { invite, url, result };
+}
+
+export async function changeClientPassword(
+  clientId: string,
+  currentPassword: string,
+  newPassword: string,
+) {
+  const account = await getClientAccountByClientId(clientId);
+  if (!account?.passwordHash) throw new Error("No password set");
+  if (newPassword.length < 8) throw new Error("Password must be at least 8 characters");
+  const valid = await compare(currentPassword, account.passwordHash);
+  if (!valid) throw new Error("Current password is incorrect");
+  const passwordHash = await hash(newPassword, 12);
+  const [updated] = await db
+    .update(clientAccounts)
+    .set({
+      passwordHash,
+      passwordSetAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(clientAccounts.id, account.id))
+    .returning();
+  await logAudit("password_change", "client_account", updated.id, { clientId });
+  return updated;
 }
 
 export async function listRecentInvites(clientId: string) {
@@ -185,13 +221,18 @@ export async function listRecentInvites(clientId: string) {
     .limit(5);
 }
 
-export async function getLatestUnusedInvite(clientId: string) {
+export async function getLatestUnusedInvite(clientId: string, onboardingId?: string | null) {
+  const conditions = [
+    eq(portalInvites.clientId, clientId),
+    isNull(portalInvites.usedAt),
+  ];
+  if (onboardingId) {
+    conditions.push(eq(portalInvites.onboardingId, onboardingId));
+  }
   const [invite] = await db
     .select()
     .from(portalInvites)
-    .where(
-      and(eq(portalInvites.clientId, clientId), isNull(portalInvites.usedAt)),
-    )
+    .where(and(...conditions))
     .orderBy(desc(portalInvites.createdAt))
     .limit(1);
   if (!invite || !isInviteValid(invite)) return null;

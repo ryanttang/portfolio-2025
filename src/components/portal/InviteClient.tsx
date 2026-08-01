@@ -63,7 +63,10 @@ export default function InviteClient({
         setLoading(false);
         return;
       }
-      router.push("/portal/onboarding");
+      const dest = result.onboardingId
+        ? `/portal/projects/${result.onboardingId}/onboarding`
+        : "/portal";
+      router.push(dest);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");

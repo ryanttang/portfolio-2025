@@ -25,6 +25,7 @@ export const QUESTION_TYPES = [
   "single_select",
   "multi_select",
   "boolean",
+  "file",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];

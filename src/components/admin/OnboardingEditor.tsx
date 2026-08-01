@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   addQuestionAction,
+  adminUpsertAnswerAction,
   applyTemplateAction,
   cancelOnboardingAction,
   deleteQuestionAction,
@@ -69,8 +70,8 @@ export default function OnboardingEditor({
   const router = useRouter();
   const [projectName, setProjectName] = useState(onboarding.projectName);
   const [welcomeMessage, setWelcomeMessage] = useState(onboarding.welcomeMessage);
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>(
-    () => (onboarding.services || []).map((s) => s.id),
+  const [selectedServices, setSelectedServices] = useState<ServiceOption[]>(
+    () => onboarding.services || [],
   );
   const [contractEnabled, setContractEnabled] = useState(onboarding.contractEnabled);
   const [contractId, setContractId] = useState(onboarding.contractId || "");
@@ -83,6 +84,8 @@ export default function OnboardingEditor({
   const [templateId, setTemplateId] = useState("");
   const [templateName, setTemplateName] = useState("");
 
+  const selectedIds = new Set(selectedServices.map((s) => s.id));
+
   const serviceGroups = (() => {
     const map = new Map<string, ServiceOption[]>();
     for (const opt of serviceCatalog) {
@@ -93,20 +96,47 @@ export default function OnboardingEditor({
     return Array.from(map.entries());
   })();
 
-  function toggleService(id: string) {
-    setSelectedServiceIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+  function toggleService(item: ServiceOption) {
+    setSelectedServices((prev) => {
+      if (prev.some((s) => s.id === item.id)) {
+        return prev.filter((s) => s.id !== item.id);
+      }
+      // Prefer any previously saved price for this onboarding, else catalog default
+      const saved = (onboarding.services || []).find((s) => s.id === item.id);
+      return [
+        ...prev,
+        {
+          id: item.id,
+          label: item.label,
+          group: item.group,
+          price: saved?.price ?? item.price ?? "",
+        },
+      ];
+    });
+  }
+
+  function setServicePrice(id: string, price: string) {
+    setSelectedServices((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, price } : s)),
     );
+  }
+
+  function buildServicesPayload() {
+    return selectedServices.map((s) => ({
+      id: s.id,
+      label: s.label,
+      group: s.group,
+      ...(s.price?.trim() ? { price: s.price.trim() } : {}),
+    }));
   }
 
   async function saveConfig() {
     setSaving(true);
     setMessage("");
-    const services = serviceCatalog.filter((s) => selectedServiceIds.includes(s.id));
     await updateOnboardingAction(onboarding.id, {
       projectName,
       welcomeMessage,
-      services,
+      services: buildServicesPayload(),
       contractEnabled,
       contractId: contractEnabled && contractId ? contractId : null,
       depositEnabled,
@@ -120,11 +150,10 @@ export default function OnboardingEditor({
   async function sendInvite() {
     setSaving(true);
     setMessage("");
-    const services = serviceCatalog.filter((s) => selectedServiceIds.includes(s.id));
     await updateOnboardingAction(onboarding.id, {
       projectName,
       welcomeMessage,
-      services,
+      services: buildServicesPayload(),
       contractEnabled,
       contractId: contractEnabled && contractId ? contractId : null,
       depositEnabled,
@@ -154,8 +183,18 @@ export default function OnboardingEditor({
 
   async function applyTemplate() {
     if (!templateId) return;
-    await applyTemplateAction(onboarding.id, templateId);
-    router.refresh();
+    if (
+      answers.some((a) => a.questionId) &&
+      !confirm("Custom answers exist. Applying a template may fail if answers are present. Continue?")
+    ) {
+      return;
+    }
+    try {
+      await applyTemplateAction(onboarding.id, templateId);
+      router.refresh();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Could not apply template.");
+    }
   }
 
   async function saveTemplate() {
@@ -205,8 +244,8 @@ export default function OnboardingEditor({
         <div className="border border-white/10 p-3">
           <p className="text-xs uppercase tracking-wider text-white/40">Services</p>
           <p className="mt-1 text-xs text-white/35">
-            Select what this onboarding / invite is for. Shown to the client and included in the
-            invite email.
+            Select what this onboarding is for, then edit pricing for this engagement if needed.
+            Catalog prices are defaults only.
           </p>
           {serviceGroups.length === 0 ? (
             <p className="mt-3 text-sm text-white/40">
@@ -219,25 +258,41 @@ export default function OnboardingEditor({
                   <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#e6c47a]/80">
                     {group}
                   </p>
-                  <ul className="grid gap-2 sm:grid-cols-2">
+                  <ul className="space-y-2">
                     {items.map((item) => {
-                      const checked = selectedServiceIds.includes(item.id);
+                      const checked = selectedIds.has(item.id);
+                      const selected = selectedServices.find((s) => s.id === item.id);
                       return (
-                        <li key={item.id}>
-                          <label className="flex cursor-pointer items-start gap-2 text-sm text-white/80">
+                        <li
+                          key={item.id}
+                          className="flex flex-wrap items-center gap-2 border border-white/5 px-2 py-2"
+                        >
+                          <label className="flex min-w-[180px] flex-1 cursor-pointer items-start gap-2 text-sm text-white/80">
                             <input
                               type="checkbox"
                               checked={checked}
-                              onChange={() => toggleService(item.id)}
+                              onChange={() => toggleService(item)}
                               className="mt-1"
                             />
                             <span>
                               {item.label}
                               {item.price ? (
-                                <span className="ml-1 text-white/35">{item.price}</span>
+                                <span className="ml-1 text-white/30">list {item.price}</span>
                               ) : null}
                             </span>
                           </label>
+                          {checked && (
+                            <label className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/40">
+                              Price
+                              <input
+                                type="text"
+                                value={selected?.price || ""}
+                                onChange={(e) => setServicePrice(item.id, e.target.value)}
+                                placeholder={item.price || "$0"}
+                                className="w-28 border border-white/15 bg-black/40 px-2 py-1 text-sm normal-case tracking-normal text-white"
+                              />
+                            </label>
+                          )}
                         </li>
                       );
                     })}
@@ -246,10 +301,20 @@ export default function OnboardingEditor({
               ))}
             </div>
           )}
-          {selectedServiceIds.length > 0 && (
-            <p className="mt-3 text-xs text-white/40">
-              {selectedServiceIds.length} selected
-            </p>
+          {selectedServices.length > 0 && (
+            <div className="mt-4 border-t border-white/10 pt-3">
+              <p className="text-[11px] uppercase tracking-wider text-white/40">
+                This onboarding ({selectedServices.length})
+              </p>
+              <ul className="mt-2 space-y-1 text-sm text-white/70">
+                {selectedServices.map((s) => (
+                  <li key={s.id} className="flex justify-between gap-3">
+                    <span>{s.label}</span>
+                    <span className="text-white/45">{s.price || "—"}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
 
@@ -404,8 +469,13 @@ export default function OnboardingEditor({
               <button
                 type="button"
                 onClick={async () => {
-                  await deleteQuestionAction(q.id, onboarding.id);
-                  router.refresh();
+                  if (!confirm("Remove this question?")) return;
+                  try {
+                    await deleteQuestionAction(q.id, onboarding.id);
+                    router.refresh();
+                  } catch (err) {
+                    setMessage(err instanceof Error ? err.message : "Could not delete.");
+                  }
                 }}
                 className="text-xs text-red-300"
               >
@@ -449,19 +519,61 @@ export default function OnboardingEditor({
       {answers.length > 0 && (
         <section className="border border-white/10 bg-[#141414] p-4">
           <h2 className="text-sm font-semibold">Answers</h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {answers.map((a) => (
-              <li key={a.id} className="border-t border-white/5 pt-2">
-                <span className="text-[10px] uppercase tracking-wider text-[#e6c47a]/80">
-                  {a.key || a.questionId}
-                </span>
-                <pre className="mt-1 whitespace-pre-wrap text-white/70">
-                  {typeof a.value === "object"
-                    ? JSON.stringify(a.value, null, 2)
-                    : String(a.value)}
-                </pre>
-              </li>
-            ))}
+          <p className="mt-1 text-xs text-white/40">Edit text answers if you need to correct them.</p>
+          <ul className="mt-3 space-y-3 text-sm">
+            {answers.map((a) => {
+              const value = a.value as {
+                text?: string;
+                url?: string;
+                filename?: string;
+                bool?: boolean;
+                selected?: string[];
+              };
+              const label =
+                a.key ||
+                questions.find((q) => q.id === a.questionId)?.label ||
+                a.questionId ||
+                "Answer";
+              return (
+                <li key={a.id} className="border-t border-white/5 pt-3">
+                  <span className="text-[10px] uppercase tracking-wider text-[#e6c47a]/80">
+                    {label}
+                  </span>
+                  {value?.url ? (
+                    <p className="mt-1">
+                      <a
+                        href={value.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#e6c47a] hover:underline"
+                      >
+                        {value.filename || "Download file"}
+                      </a>
+                    </p>
+                  ) : typeof value?.text === "string" ? (
+                    <textarea
+                      defaultValue={value.text}
+                      rows={2}
+                      onBlur={async (e) => {
+                        if (e.target.value === value.text) return;
+                        await adminUpsertAnswerAction({
+                          onboardingId: onboarding.id,
+                          questionId: a.questionId,
+                          key: a.key,
+                          value: { text: e.target.value },
+                        });
+                        router.refresh();
+                      }}
+                      className="mt-1 w-full border border-white/15 bg-black/40 px-2 py-1 text-sm"
+                    />
+                  ) : (
+                    <pre className="mt-1 whitespace-pre-wrap text-white/70">
+                      {JSON.stringify(a.value, null, 2)}
+                    </pre>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

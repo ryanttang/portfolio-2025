@@ -19,6 +19,7 @@ import {
   deletePortalUpdate,
   deleteTemplate,
   getOnboarding,
+  listAnswers,
   listOnboardingQuestions,
   replaceTemplateItems,
   saveOnboardingQuestionsAsTemplate,
@@ -29,13 +30,17 @@ import {
   updateTemplate,
   upsertAnswer,
 } from "@/lib/onboarding";
-import { sendPortalInviteEmail } from "@/lib/portal/auth";
+import { ensureClientAccount, sendPortalInviteEmail } from "@/lib/portal/auth";
+import { setViewAsCookie, clearViewAsCookie } from "@/lib/portal/view-as";
+import { logAudit } from "@/lib/audit";
 import { QUESTION_TYPES, type QuestionInput } from "@/lib/onboarding/types";
+import { redirect } from "next/navigation";
 
 function revalidateOnboarding(id: string, clientId?: string) {
   revalidatePath("/admin/onboarding");
   revalidatePath(`/admin/onboarding/${id}`);
   revalidatePath("/admin/onboarding/templates");
+  revalidatePath(`/portal/projects/${id}`);
   if (clientId) revalidatePath(`/admin/crm/${clientId}`);
 }
 
@@ -89,10 +94,13 @@ export async function sendOnboardingInviteAction(id: string) {
   const onboarding = await getOnboarding(id);
   if (!onboarding) throw new Error("Not found");
 
-  const serviceLabels = (onboarding.services || []).map((s) => s.label);
+  const serviceLabels = (onboarding.services || []).map((s) =>
+    s.price ? `${s.label} (${s.price})` : s.label,
+  );
   const { url, result } = await sendPortalInviteEmail(onboarding.clientId, {
     projectName: onboarding.projectName,
     services: serviceLabels,
+    onboardingId: onboarding.id,
   });
 
   if (onboarding.status === "draft") {
@@ -133,6 +141,10 @@ export async function updateQuestionAction(
 
 export async function deleteQuestionAction(id: string, onboardingId: string) {
   await requireAdmin();
+  const answers = await listAnswers(onboardingId);
+  if (answers.some((a) => a.questionId === id)) {
+    throw new Error("Cannot delete a question that already has answers");
+  }
   await deleteOnboardingQuestion(id);
   const onboarding = await getOnboarding(onboardingId);
   revalidateOnboarding(onboardingId, onboarding?.clientId);
@@ -141,6 +153,10 @@ export async function deleteQuestionAction(id: string, onboardingId: string) {
 
 export async function applyTemplateAction(onboardingId: string, templateId: string) {
   await requireAdmin();
+  const answers = await listAnswers(onboardingId);
+  if (answers.some((a) => a.questionId)) {
+    throw new Error("Cannot apply template after custom answers exist — clear answers first");
+  }
   await applyTemplateToOnboarding(onboardingId, templateId);
   const onboarding = await getOnboarding(onboardingId);
   revalidateOnboarding(onboardingId, onboarding?.clientId);
@@ -205,64 +221,97 @@ export async function saveTemplateItemsAction(templateId: string, questions: Que
   return { ok: true };
 }
 
-export async function createUpdateAction(clientId: string, title: string, body: string) {
+export async function createUpdateAction(
+  clientId: string,
+  onboardingId: string,
+  title: string,
+  body: string,
+) {
   const session = await requireAdmin();
   await createPortalUpdate({
     clientId,
+    onboardingId,
     title,
     body,
     createdByAdminId: session.user.id,
   });
-  revalidatePath(`/admin/crm/${clientId}`);
-  revalidatePath(`/admin/onboarding`);
+  revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
-export async function updateUpdateAction(id: string, clientId: string, title: string, body: string) {
+export async function updateUpdateAction(
+  id: string,
+  clientId: string,
+  onboardingId: string,
+  title: string,
+  body: string,
+) {
   await requireAdmin();
   await updatePortalUpdate(id, { title, body });
-  revalidatePath(`/admin/crm/${clientId}`);
+  revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
-export async function deleteUpdateAction(id: string, clientId: string) {
+export async function deleteUpdateAction(id: string, clientId: string, onboardingId: string) {
   await requireAdmin();
   await deletePortalUpdate(id);
-  revalidatePath(`/admin/crm/${clientId}`);
+  revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
 export async function createMilestoneAction(
   clientId: string,
+  onboardingId: string,
   data: { title: string; description?: string; status?: string },
 ) {
   await requireAdmin();
   await createPortalMilestone({
     clientId,
+    onboardingId,
     title: data.title,
     description: data.description,
     status: data.status,
   });
-  revalidatePath(`/admin/crm/${clientId}`);
+  revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
 export async function updateMilestoneAction(
   id: string,
   clientId: string,
+  onboardingId: string,
   data: Partial<{ title: string; description: string | null; status: string }>,
 ) {
   await requireAdmin();
   await updatePortalMilestone(id, data);
-  revalidatePath(`/admin/crm/${clientId}`);
+  revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
-export async function deleteMilestoneAction(id: string, clientId: string) {
+export async function deleteMilestoneAction(
+  id: string,
+  clientId: string,
+  onboardingId: string,
+) {
   await requireAdmin();
   await deletePortalMilestone(id);
-  revalidatePath(`/admin/crm/${clientId}`);
+  revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
+}
+
+export async function startViewAsClientAction(clientId: string) {
+  const session = await requireAdmin();
+  await ensureClientAccount(clientId);
+  await setViewAsCookie(clientId, session.user.id);
+  await logAudit("view_as_start", "client", clientId, { adminId: session.user.id });
+  redirect("/portal");
+}
+
+export async function stopViewAsClientAction(clientId?: string) {
+  const session = await requireAdmin();
+  await clearViewAsCookie();
+  await logAudit("view_as_stop", "client", clientId || null, { adminId: session.user.id });
+  redirect(clientId ? `/admin/crm/${clientId}` : "/admin/crm");
 }
 
 export async function listClientContractsAction(clientId: string) {

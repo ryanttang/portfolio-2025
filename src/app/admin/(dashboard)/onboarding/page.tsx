@@ -32,9 +32,9 @@ export default async function OnboardingListPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold">Onboarding</h1>
+          <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold">Projects</h1>
           <p className="mt-1 text-sm text-white/50">
-            Configure client intake, contracts, deposits, and portal invites.
+            Configure client intake, services, contracts, deposits, and portal invites per project.
           </p>
         </div>
         <Link
@@ -73,7 +73,7 @@ export default async function OnboardingListPage() {
           />
         </label>
         <button type="submit" className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black">
-          Start onboarding
+          New project
         </button>
       </form>
 
