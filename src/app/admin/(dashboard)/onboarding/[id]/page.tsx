@@ -47,27 +47,6 @@ export default async function OnboardingDetailPage({
     await restartOnboardingWizardAction(id);
   }
 
-  const steps = [
-    { key: "welcome", label: "Welcome", on: true },
-    { key: "info", label: "Client info", on: true },
-    { key: "questionnaire", label: "Questionnaire", on: true },
-    {
-      key: "contract",
-      label: "Contract",
-      on: onboarding.contractEnabled,
-      detail: contract ? `${contract.title} (${contract.status})` : "not linked",
-    },
-    {
-      key: "deposit",
-      label: "Deposit",
-      on: onboarding.depositEnabled,
-      detail: invoice
-        ? `${invoice.invoiceNumber} (${invoice.status})`
-        : "not linked",
-    },
-    { key: "handoff", label: "Handoff", on: true },
-  ];
-
   const previewLabel =
     onboarding.status === "completed" ? "Preview portal hub" : "Preview onboarding";
 
@@ -106,35 +85,18 @@ export default async function OnboardingDetailPage({
         </div>
       </div>
 
-      <div className="mt-4 border border-white/10 bg-[#141414] p-3">
-        <p className="text-[11px] uppercase tracking-wider text-white/40">Wizard steps</p>
-        <ol className="mt-2 flex flex-wrap gap-2">
-          {steps.map((s) => (
-            <li
-              key={s.key}
-              className={`rounded px-2 py-1 text-[11px] ${
-                s.on
-                  ? onboarding.currentStep === s.key
-                    ? "bg-[#e6c47a] text-black"
-                    : "bg-white/10 text-white/80"
-                  : "bg-white/5 text-white/30 line-through"
-              }`}
-              title={"detail" in s ? s.detail : undefined}
-            >
-              {s.label}
-              {"detail" in s && s.on ? ` · ${s.detail}` : ""}
-            </li>
-          ))}
-        </ol>
-        <p className="mt-2 text-[11px] text-white/35">
-          Edit questions and settings below. Preview opens the live client portal (changes save).
-        </p>
-      </div>
-
       <OnboardingEditor
         onboarding={{
           ...onboarding,
           services: onboarding.services || [],
+        }}
+        client={{
+          id: client.id,
+          name: client.name,
+          email: client.email,
+          company: client.company,
+          phone: client.phone,
+          address: client.address,
         }}
         questions={questions}
         contracts={clientContracts.map((c) => ({
@@ -149,6 +111,14 @@ export default async function OnboardingDetailPage({
         answers={answers}
         inviteUrl={invite ? `${getAppUrl()}/portal/invite/${invite.token}` : null}
         serviceCatalog={serviceCatalog}
+        contractDetail={
+          contract ? `${contract.title} (${contract.status})` : "not linked"
+        }
+        invoiceDetail={
+          invoice
+            ? `${invoice.invoiceNumber} (${invoice.status})`
+            : "not linked"
+        }
       />
 
       <div className="mt-8">

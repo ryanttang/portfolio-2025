@@ -89,6 +89,45 @@ export async function updateOnboardingAction(
   return { ok: true };
 }
 
+/** Prefill / update CRM contact fields shown on the client info wizard step. */
+export async function updateOnboardingClientInfoAction(
+  onboardingId: string,
+  data: {
+    name: string;
+    email: string;
+    company?: string;
+    phone?: string;
+    address?: string;
+  },
+) {
+  await requireAdmin();
+  const onboarding = await getOnboarding(onboardingId);
+  if (!onboarding) throw new Error("Not found");
+
+  const parsed = z
+    .object({
+      name: z.string().min(1),
+      email: z.string().email(),
+      company: z.string().optional(),
+      phone: z.string().optional(),
+      address: z.string().optional(),
+    })
+    .parse(data);
+
+  const { updateClient } = await import("@/lib/crm/clients");
+  await updateClient(onboarding.clientId, {
+    name: parsed.name,
+    email: parsed.email,
+    company: parsed.company?.trim() ? parsed.company.trim() : null,
+    phone: parsed.phone?.trim() ? parsed.phone.trim() : null,
+    address: parsed.address?.trim() ? parsed.address.trim() : null,
+  });
+
+  revalidateOnboarding(onboardingId, onboarding.clientId);
+  revalidatePath(`/portal/projects/${onboardingId}/onboarding`);
+  return { ok: true };
+}
+
 export async function sendOnboardingInviteAction(id: string) {
   await requireAdmin();
   const onboarding = await getOnboarding(id);

@@ -266,6 +266,9 @@ function InfoStep({
       <h2 className="font-[family-name:var(--font-syne)] text-xl font-bold">
         Confirm your info
       </h2>
+      <p className="text-sm text-white/50">
+        Review the details below — update anything that looks off, then continue.
+      </p>
       {(
         [
           ["name", "Name"],
@@ -291,7 +294,7 @@ function InfoStep({
         disabled={loading}
         className="mt-2 bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
       >
-        {loading ? "Saving…" : "Continue"}
+        {loading ? "Saving…" : "Looks good — continue"}
       </button>
     </form>
   );
