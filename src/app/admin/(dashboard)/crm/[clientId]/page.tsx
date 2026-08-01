@@ -7,8 +7,9 @@ import {
 } from "@/lib/crm/clients";
 import { listThreadsForClient } from "@/lib/email/threads";
 import { listOnboardingsForClient } from "@/lib/onboarding";
-import { createOnboardingAction, startViewAsClientAction } from "@/app/admin/actions/onboarding";
+import { createOnboardingAction } from "@/app/admin/actions/onboarding";
 import ClientDetail from "@/components/admin/ClientDetail";
+import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
 
 export default async function ClientDetailPage({
   params,
@@ -33,15 +34,10 @@ export default async function ClientDetailPage({
     redirect(`/admin/onboarding/${result.id}`);
   }
 
-  async function viewAsClient() {
-    "use server";
-    await startViewAsClientAction(clientId);
-  }
-
   return (
     <div>
       <Link href="/admin/crm" className="text-xs text-white/40 hover:text-white/70">
-        ← CRM
+        ← Clients
       </Link>
       <h1 className="mt-2 font-[family-name:var(--font-syne)] text-2xl font-bold">{client.name}</h1>
       <p className="text-sm text-white/50">{client.email}</p>
@@ -65,11 +61,7 @@ export default async function ClientDetailPage({
         >
           New invoice
         </Link>
-        <form action={viewAsClient}>
-          <button type="submit" className="border border-[#e6c47a]/50 px-3 py-1.5 text-xs text-[#e6c47a]">
-            View as client
-          </button>
-        </form>
+        <PreviewPortalButton clientId={clientId} label="Preview portal" />
       </div>
 
       <section className="mt-8 border border-white/10 bg-[#141414] p-4">
@@ -113,7 +105,7 @@ export default async function ClientDetailPage({
           <div>
             <h2 className="text-sm font-semibold">Projects</h2>
             <p className="mt-1 text-xs text-white/40">
-              Each project has its own onboarding, services, and portal updates.
+              Edit intake config, or preview the client onboarding wizard.
             </p>
           </div>
           <form action={startProject} className="flex flex-wrap gap-2">
@@ -147,11 +139,25 @@ export default async function ClientDetailPage({
                   {p.status.replace("_", " ")} · step {p.currentStep}
                 </p>
               </div>
-              {(p.services || []).length > 0 && (
-                <p className="text-xs text-white/45">
-                  {(p.services || []).map((s) => s.label).join(", ")}
-                </p>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {(p.services || []).length > 0 && (
+                  <p className="text-xs text-white/45">
+                    {(p.services || []).map((s) => s.label).join(", ")}
+                  </p>
+                )}
+                <Link
+                  href={`/admin/onboarding/${p.id}`}
+                  className="border border-white/20 px-2.5 py-1 text-[11px] text-white/70 hover:border-white/40"
+                >
+                  Edit
+                </Link>
+                <PreviewPortalButton
+                  clientId={clientId}
+                  onboardingId={p.id}
+                  label={p.status === "completed" ? "Preview hub" : "Preview onboarding"}
+                  className="border border-[#e6c47a]/50 px-2.5 py-1 text-[11px] text-[#e6c47a]"
+                />
+              </div>
             </li>
           ))}
           {projects.length === 0 && (

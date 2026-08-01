@@ -24,7 +24,7 @@ export default function PortalShell({
     <div className="min-h-screen bg-[#0c0c0c] text-[#f2efe8]">
       {impersonating && (
         <div className="border-b border-[#e6c47a]/40 bg-[#e6c47a]/15 px-4 py-2 text-center text-sm text-[#e6c47a]">
-          Viewing as {email || "client"}{" "}
+          Previewing as {email || "client"} · edits save to this client{" "}
           <button
             type="button"
             disabled={pending}
@@ -35,7 +35,7 @@ export default function PortalShell({
             }
             className="ml-2 underline disabled:opacity-50"
           >
-            Exit
+            Exit to admin
           </button>
         </div>
       )}
@@ -75,3 +75,4 @@ export default function PortalShell({
     </div>
   );
 }
+

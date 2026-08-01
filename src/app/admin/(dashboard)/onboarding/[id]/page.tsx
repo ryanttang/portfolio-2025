@@ -15,7 +15,8 @@ import { getLatestUnusedInvite } from "@/lib/portal/auth";
 import { getAppUrl } from "@/lib/env";
 import OnboardingEditor from "@/components/admin/OnboardingEditor";
 import PortalContentEditor from "@/components/admin/PortalContentEditor";
-import { startViewAsClientAction } from "@/app/admin/actions/onboarding";
+import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
+import { restartOnboardingWizardAction } from "@/app/admin/actions/onboarding";
 
 export default async function OnboardingDetailPage({
   params,
@@ -41,9 +42,9 @@ export default async function OnboardingDetailPage({
       listAvailableServices(),
     ]);
 
-  async function viewAsClient() {
+  async function restartWizard() {
     "use server";
-    await startViewAsClientAction(client.id);
+    await restartOnboardingWizardAction(id);
   }
 
   const steps = [
@@ -67,6 +68,9 @@ export default async function OnboardingDetailPage({
     { key: "handoff", label: "Handoff", on: true },
   ];
 
+  const previewLabel =
+    onboarding.status === "completed" ? "Preview portal hub" : "Preview onboarding";
+
   return (
     <div>
       <Link href="/admin/onboarding" className="text-xs text-white/40 hover:text-white/70">
@@ -84,14 +88,22 @@ export default async function OnboardingDetailPage({
             · {client.email}
           </p>
         </div>
-        <form action={viewAsClient}>
-          <button
-            type="submit"
-            className="border border-[#e6c47a]/50 px-3 py-1.5 text-xs text-[#e6c47a]"
-          >
-            View as client
-          </button>
-        </form>
+        <div className="flex flex-wrap gap-2">
+          <form action={restartWizard}>
+            <button
+              type="submit"
+              className="border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:border-white/40"
+              title="Reset wizard to welcome so you can walk through intake again"
+            >
+              Restart wizard
+            </button>
+          </form>
+          <PreviewPortalButton
+            clientId={client.id}
+            onboardingId={onboarding.id}
+            label={previewLabel}
+          />
+        </div>
       </div>
 
       <div className="mt-4 border border-white/10 bg-[#141414] p-3">
@@ -114,6 +126,9 @@ export default async function OnboardingDetailPage({
             </li>
           ))}
         </ol>
+        <p className="mt-2 text-[11px] text-white/35">
+          Edit questions and settings below. Preview opens the live client portal (changes save).
+        </p>
       </div>
 
       <OnboardingEditor

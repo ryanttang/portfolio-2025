@@ -7,6 +7,8 @@ export type ViewAsPayload = {
   clientId: string;
   adminId: string;
   exp: number;
+  /** When set, Exit returns to this project editor instead of CRM. */
+  returnOnboardingId?: string;
 };
 
 function secret() {
@@ -55,11 +57,16 @@ function timingSafeEqual(a: string, b: string) {
   return out === 0;
 }
 
-export async function encodeViewAsCookie(clientId: string, adminId: string) {
+export async function encodeViewAsCookie(
+  clientId: string,
+  adminId: string,
+  opts?: { returnOnboardingId?: string },
+) {
   const payload: ViewAsPayload = {
     clientId,
     adminId,
     exp: Date.now() + TTL_MS,
+    ...(opts?.returnOnboardingId ? { returnOnboardingId: opts.returnOnboardingId } : {}),
   };
   const body = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const sig = await sign(body);
@@ -90,9 +97,13 @@ export async function getViewAsPayload() {
   return decodeViewAsCookie(jar.get(VIEW_AS_COOKIE)?.value);
 }
 
-export async function setViewAsCookie(clientId: string, adminId: string) {
+export async function setViewAsCookie(
+  clientId: string,
+  adminId: string,
+  opts?: { returnOnboardingId?: string },
+) {
   const jar = await cookies();
-  jar.set(VIEW_AS_COOKIE, await encodeViewAsCookie(clientId, adminId), {
+  jar.set(VIEW_AS_COOKIE, await encodeViewAsCookie(clientId, adminId, opts), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

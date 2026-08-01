@@ -31,7 +31,7 @@ import {
   upsertAnswer,
 } from "@/lib/onboarding";
 import { ensureClientAccount, sendPortalInviteEmail } from "@/lib/portal/auth";
-import { setViewAsCookie, clearViewAsCookie } from "@/lib/portal/view-as";
+import { setViewAsCookie, clearViewAsCookie, getViewAsPayload } from "@/lib/portal/view-as";
 import { logAudit } from "@/lib/audit";
 import { QUESTION_TYPES, type QuestionInput } from "@/lib/onboarding/types";
 import { redirect } from "next/navigation";
@@ -299,19 +299,61 @@ export async function deleteMilestoneAction(
   return { ok: true };
 }
 
-export async function startViewAsClientAction(clientId: string) {
+export async function startViewAsClientAction(
+  clientId: string,
+  opts?: { onboardingId?: string },
+) {
   const session = await requireAdmin();
   await ensureClientAccount(clientId);
-  await setViewAsCookie(clientId, session.user.id);
-  await logAudit("view_as_start", "client", clientId, { adminId: session.user.id });
-  redirect("/portal");
+
+  let redirectTo = "/portal";
+  let returnOnboardingId: string | undefined;
+
+  if (opts?.onboardingId) {
+    const onboarding = await getOnboarding(opts.onboardingId);
+    if (!onboarding || onboarding.clientId !== clientId) {
+      throw new Error("Project not found for this client");
+    }
+    returnOnboardingId = onboarding.id;
+    if (onboarding.status === "completed") {
+      redirectTo = `/portal/projects/${onboarding.id}`;
+    } else if (onboarding.status !== "cancelled") {
+      redirectTo = `/portal/projects/${onboarding.id}/onboarding`;
+    }
+  }
+
+  await setViewAsCookie(clientId, session.user.id, { returnOnboardingId });
+  await logAudit("view_as_start", "client", clientId, {
+    adminId: session.user.id,
+    onboardingId: returnOnboardingId || null,
+  });
+  redirect(redirectTo);
 }
 
 export async function stopViewAsClientAction(clientId?: string) {
   const session = await requireAdmin();
+  const payload = await getViewAsPayload();
   await clearViewAsCookie();
-  await logAudit("view_as_stop", "client", clientId || null, { adminId: session.user.id });
-  redirect(clientId ? `/admin/crm/${clientId}` : "/admin/crm");
+  const cid = clientId || payload?.clientId || null;
+  await logAudit("view_as_stop", "client", cid, { adminId: session.user.id });
+  if (payload?.returnOnboardingId) {
+    redirect(`/admin/onboarding/${payload.returnOnboardingId}`);
+  }
+  redirect(cid ? `/admin/crm/${cid}` : "/admin/crm");
+}
+
+/** Reopen the portal wizard at welcome so you can demo intake again. */
+export async function restartOnboardingWizardAction(onboardingId: string) {
+  await requireAdmin();
+  const onboarding = await getOnboarding(onboardingId);
+  if (!onboarding) throw new Error("Project not found");
+  await updateOnboarding(onboardingId, {
+    currentStep: "welcome",
+    status: onboarding.status === "cancelled" ? "draft" : "in_progress",
+    completedAt: null,
+  });
+  revalidateOnboarding(onboardingId, onboarding.clientId);
+  return { ok: true };
 }
 
 export async function listClientContractsAction(clientId: string) {

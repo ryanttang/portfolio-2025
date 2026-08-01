@@ -79,8 +79,14 @@ export default async function AdminOverviewPage() {
 
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
-          href="/admin/inbox?compose=1"
+          href="/admin/crm"
           className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f0d49a]"
+        >
+          Open clients
+        </Link>
+        <Link
+          href="/admin/inbox?compose=1"
+          className="border border-white/20 px-4 py-2 text-sm text-white/80 hover:border-white/40"
         >
           Compose email
         </Link>

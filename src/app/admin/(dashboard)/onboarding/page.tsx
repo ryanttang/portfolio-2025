@@ -5,6 +5,7 @@ import { clients, onboardings } from "@/db/schema";
 import { listClients } from "@/lib/crm/clients";
 import { createOnboardingAction } from "@/app/admin/actions/onboarding";
 import { redirect } from "next/navigation";
+import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
 
 export default async function OnboardingListPage() {
   const rows = await db
@@ -12,6 +13,7 @@ export default async function OnboardingListPage() {
       onboarding: onboardings,
       clientName: clients.name,
       clientEmail: clients.email,
+      clientId: clients.id,
     })
     .from(onboardings)
     .innerJoin(clients, eq(clients.id, onboardings.clientId))
@@ -34,7 +36,7 @@ export default async function OnboardingListPage() {
         <div>
           <h1 className="font-[family-name:var(--font-syne)] text-2xl font-bold">Projects</h1>
           <p className="mt-1 text-sm text-white/50">
-            Configure client intake, services, contracts, deposits, and portal invites per project.
+            Configure client intake, then preview the onboarding wizard as the client.
           </p>
         </div>
         <Link
@@ -85,18 +87,19 @@ export default async function OnboardingListPage() {
               <th className="py-2 pr-4">Client</th>
               <th className="py-2 pr-4">Status</th>
               <th className="py-2 pr-4">Step</th>
-              <th className="py-2">Updated</th>
+              <th className="py-2 pr-4">Updated</th>
+              <th className="py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-8 text-white/40">
+                <td colSpan={6} className="py-8 text-white/40">
                   No onboardings yet.
                 </td>
               </tr>
             )}
-            {rows.map(({ onboarding, clientName, clientEmail }) => (
+            {rows.map(({ onboarding, clientName, clientEmail, clientId }) => (
               <tr key={onboarding.id} className="border-b border-white/5">
                 <td className="py-3 pr-4">
                   <Link
@@ -112,8 +115,24 @@ export default async function OnboardingListPage() {
                 </td>
                 <td className="py-3 pr-4 capitalize">{onboarding.status.replace("_", " ")}</td>
                 <td className="py-3 pr-4 capitalize">{onboarding.currentStep}</td>
-                <td className="py-3 text-white/40">
+                <td className="py-3 pr-4 text-white/40">
                   {new Date(onboarding.updatedAt).toLocaleString()}
+                </td>
+                <td className="py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/admin/onboarding/${onboarding.id}`}
+                      className="border border-white/20 px-2.5 py-1 text-[11px] text-white/70 hover:border-white/40"
+                    >
+                      Edit
+                    </Link>
+                    <PreviewPortalButton
+                      clientId={clientId}
+                      onboardingId={onboarding.id}
+                      label="Preview"
+                      className="border border-[#e6c47a]/50 px-2.5 py-1 text-[11px] text-[#e6c47a]"
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
