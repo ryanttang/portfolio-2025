@@ -51,9 +51,11 @@ export default function HtmlMessageBody({
     let clearTimers: (() => void) | undefined;
 
     function onLoad() {
+      const el = iframeRef.current;
+      if (!el) return;
       fitHeight();
       try {
-        const doc = iframe.contentDocument;
+        const doc = el.contentDocument;
         if (!doc) return;
         const imgs = Array.from(doc.images || []);
         for (const img of imgs) {
