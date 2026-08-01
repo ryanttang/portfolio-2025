@@ -174,7 +174,7 @@ export const defaultContent: Record<string, unknown> = {
         "Let me help you build your ideal business tool and marketing funnels, customized to how you work.",
       availability: "Available for projects, retainers, and consulting.",
       pillars:
-        "Strategy • Branding • Websites • Marketing • Automation • AI • Analytics",
+        "Websites • Marketing • Strategy • Automation • AI • Analytics • Branding",
     },
     links: {
       linkedin: "https://linkedin.com/in/rttang",

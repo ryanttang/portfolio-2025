@@ -293,7 +293,7 @@ export default function ServicesPageClient({
                 Digital &amp; Marketing Strategist
               </h1>
               <p className="text-[#fdf0d5] text-sm sm:text-base font-semibold tracking-wide mb-3">
-                Strategy • Branding • Websites • Marketing • Automation • AI • Analytics
+                Websites • Marketing • Strategy • Automation • AI • Analytics • Branding
               </p>
               <p className="text-[#c4c4c8] text-base sm:text-lg font-bold leading-relaxed max-w-xl">
                 I design and build digital systems that help businesses grow.
@@ -670,13 +670,7 @@ export default function ServicesPageClient({
                     hidden={activeProjectSection !== section.id}
                   >
                     <h2 className="sr-only">{section.label}</h2>
-                    <div
-                      className={`grid gap-2 sm:gap-3 mb-4 ${
-                        section.items.length === 1
-                          ? "grid-cols-1 sm:grid-cols-2"
-                          : "grid-cols-2 lg:grid-cols-3"
-                      }`}
-                    >
+                    <div className="grid gap-2 sm:gap-3 mb-4 grid-cols-2 lg:grid-cols-3">
                       {section.items.map((row) => (
                         <div key={row.project} className={cardClass}>
                           <h3 className="text-[#c4c4c8] text-sm sm:text-base mb-2 leading-snug font-normal">
