@@ -19,6 +19,7 @@ export const defaultSettings: Record<string, unknown> = {
   email: {
     fromName: "Ryan Tang",
     fromEmail: process.env.RESEND_FROM_EMAIL || "hello@ryantang.site",
+    signatureHtml: "",
   },
   features: {
     contractSigning: true,

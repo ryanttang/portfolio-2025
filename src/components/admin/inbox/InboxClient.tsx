@@ -1,11 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
+  linkThreadClientAction,
   markThreadReadAction,
   sendInboxEmailAction,
+  uploadEmailAttachmentAction,
 } from "@/app/admin/actions/content";
+import RichTextEditor from "@/components/admin/email/RichTextEditor";
+import EmailPreview from "@/components/admin/email/EmailPreview";
+import TemplatePicker, {
+  type TemplateOption,
+} from "@/components/admin/email/TemplatePicker";
+import HtmlMessageBody from "@/components/admin/email/HtmlMessageBody";
+import { MERGE_FIELD_OPTIONS } from "@/lib/email/merge";
 
 type Thread = {
   id: string;
@@ -13,6 +23,15 @@ type Thread = {
   clientId: string | null;
   lastMessageAt: string;
   participants: string[];
+};
+
+type Attachment = {
+  id: string;
+  messageId: string;
+  filename: string;
+  contentType: string | null;
+  size: number | null;
+  storageUrl: string;
 };
 
 type Message = {
@@ -29,70 +48,166 @@ type Message = {
   createdAt: string;
 };
 
+type PendingAttachment = {
+  filename: string;
+  contentBase64: string;
+  contentType?: string;
+  storageUrl?: string;
+  size: number;
+};
+
 export default function InboxClient({
   threads,
   initialThreadId,
   initialMessages,
+  attachments,
+  templates,
   composeOpen,
   defaultTo,
+  clientNameById,
 }: {
   threads: Thread[];
   initialThreadId: string | null;
   initialMessages: Message[];
+  attachments: Attachment[];
+  templates: TemplateOption[];
   composeOpen: boolean;
   defaultTo: string;
+  clientNameById: Record<string, string>;
 }) {
   const router = useRouter();
   const [showCompose, setShowCompose] = useState(composeOpen);
+  const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [to, setTo] = useState(defaultTo);
   const [cc, setCc] = useState("");
   const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState("<p></p>");
+  const [replyBody, setReplyBody] = useState("<p></p>");
+  const [replyMode, setReplyMode] = useState<"edit" | "preview">("edit");
   const [status, setStatus] = useState("");
-  const [replyBody, setReplyBody] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<PendingAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const attachmentsByMessage = useMemo(() => {
+    const map = new Map<string, Attachment[]>();
+    for (const a of attachments) {
+      const list = map.get(a.messageId) || [];
+      list.push(a);
+      map.set(a.messageId, list);
+    }
+    return map;
+  }, [attachments]);
+
+  const activeThread = threads.find((t) => t.id === initialThreadId) || null;
+
+  async function uploadFiles(files: FileList | null) {
+    if (!files?.length) return;
+    setUploading(true);
+    try {
+      const next: PendingAttachment[] = [];
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.set("file", file);
+        const result = await uploadEmailAttachmentAction(fd);
+        if (!result.ok) {
+          setStatus(result.error || "Upload failed");
+          continue;
+        }
+        next.push({
+          filename: result.filename,
+          contentBase64: result.contentBase64,
+          contentType: result.contentType,
+          storageUrl: result.storageUrl,
+          size: result.size,
+        });
+      }
+      setPendingFiles((prev) => [...prev, ...next]);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function send() {
     setStatus("Sending…");
-    const result = await sendInboxEmailAction({ to, cc, subject, body });
+    const result = await sendInboxEmailAction({
+      to,
+      cc,
+      subject,
+      html: body,
+      attachments: pendingFiles,
+    });
     if (!result.ok) {
       setStatus(result.error || "Failed");
       return;
     }
     setStatus("Sent");
     setShowCompose(false);
-    setBody("");
+    setBody("<p></p>");
     setSubject("");
+    setPendingFiles([]);
     router.push(`/admin/inbox?thread=${result.threadId}`);
     router.refresh();
   }
 
   async function openThread(id: string) {
     await markThreadReadAction(id);
+    setShowCompose(false);
     router.push(`/admin/inbox?thread=${id}`);
     router.refresh();
   }
 
   async function reply() {
-    if (!initialThreadId || !replyBody.trim()) return;
+    if (!initialThreadId || !replyBody.replace(/<[^>]+>/g, "").trim()) return;
     const lastInbound = [...initialMessages].reverse().find((m) => m.direction === "inbound");
     const last = initialMessages[initialMessages.length - 1];
     const replyTo =
-      lastInbound?.fromEmail ||
-      last?.toEmails?.[0] ||
-      "";
+      lastInbound?.fromEmail || last?.toEmails?.[0] || "";
+    setStatus("Sending…");
     const result = await sendInboxEmailAction({
       to: replyTo,
       subject: last?.subject?.startsWith("Re:") ? last.subject : `Re: ${last?.subject || ""}`,
-      body: replyBody,
+      html: replyBody,
       threadId: initialThreadId,
       inReplyTo: last?.messageId || undefined,
+      clientId: activeThread?.clientId,
+      attachments: pendingFiles,
     });
     if (!result.ok) {
       setStatus(result.error || "Failed");
       return;
     }
-    setReplyBody("");
+    setReplyBody("<p></p>");
+    setPendingFiles([]);
+    setStatus("Sent");
     router.refresh();
+  }
+
+  function applyTemplate(t: TemplateOption) {
+    setSubject(t.subject);
+    setBody(t.bodyHtml);
+    setMode("edit");
+  }
+
+  function insertMergeToken(token: string) {
+    setBody((prev) => {
+      if (!prev || prev === "<p></p>") return `<p>${token}</p>`;
+      return prev.replace(/<\/p>\s*$/i, ` ${token}</p>`);
+    });
+  }
+
+  async function linkClient() {
+    if (!activeThread) return;
+    const email =
+      [...initialMessages].reverse().find((m) => m.direction === "inbound")?.fromEmail ||
+      activeThread.participants.find((p) => !p.includes("ryantang")) ||
+      activeThread.participants[0];
+    if (!email) return;
+    setStatus("Linking…");
+    const result = await linkThreadClientAction(activeThread.id, email);
+    if (result.ok) {
+      setStatus("Client linked");
+      router.refresh();
+    }
   }
 
   return (
@@ -100,13 +215,21 @@ export default function InboxClient({
       <div className="border border-white/10 bg-[#141414]">
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
           <span className="text-xs uppercase tracking-wider text-white/40">Threads</span>
-          <button
-            type="button"
-            onClick={() => setShowCompose(true)}
-            className="text-xs text-[#e6c47a]"
-          >
-            Compose
-          </button>
+          <div className="flex items-center gap-3">
+            <Link href="/admin/inbox/templates" className="text-xs text-white/40 hover:text-white/70">
+              Templates
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setShowCompose(true);
+                setMode("edit");
+              }}
+              className="text-xs text-[#e6c47a]"
+            >
+              Compose
+            </button>
+          </div>
         </div>
         <ul className="max-h-[70vh] overflow-y-auto divide-y divide-white/5">
           {threads.length === 0 && (
@@ -123,7 +246,9 @@ export default function InboxClient({
               >
                 <p className="truncate font-medium text-white/90">{t.subject}</p>
                 <p className="truncate text-xs text-white/40">
-                  {t.participants?.join(", ")}
+                  {t.clientId && clientNameById[t.clientId]
+                    ? clientNameById[t.clientId]
+                    : t.participants?.join(", ")}
                 </p>
               </button>
             </li>
@@ -134,7 +259,26 @@ export default function InboxClient({
       <div className="border border-white/10 bg-[#141414] p-4 min-h-[400px]">
         {showCompose ? (
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold">Compose</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">Compose</h2>
+              <div className="flex gap-1 border border-white/10 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setMode("edit")}
+                  className={`px-2 py-1 text-xs ${mode === "edit" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("preview")}
+                  className={`px-2 py-1 text-xs ${mode === "preview" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+                >
+                  Preview
+                </button>
+              </div>
+            </div>
+            <TemplatePicker templates={templates} onSelect={applyTemplate} />
             <input
               value={to}
               onChange={(e) => setTo(e.target.value)}
@@ -153,13 +297,54 @@ export default function InboxClient({
               placeholder="Subject"
               className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
             />
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={10}
-              placeholder="Message"
-              className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
-            />
+            {mode === "edit" ? (
+              <>
+                <div className="flex flex-wrap gap-1">
+                  {MERGE_FIELD_OPTIONS.map((f) => (
+                    <button
+                      key={f.token}
+                      type="button"
+                      onClick={() => insertMergeToken(f.token)}
+                      className="border border-white/15 px-2 py-0.5 text-[10px] text-white/50 hover:text-[#e6c47a]"
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                <RichTextEditor value={body} onChange={setBody} />
+              </>
+            ) : (
+              <EmailPreview bodyHtml={body} subject={subject} />
+            )}
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="cursor-pointer border border-white/20 px-3 py-1.5 text-xs text-white/70">
+                {uploading ? "Uploading…" : "Attach files"}
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    void uploadFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {pendingFiles.map((f) => (
+                <span key={f.filename + f.size} className="text-xs text-white/50">
+                  {f.filename}
+                  <button
+                    type="button"
+                    className="ml-1 text-white/30 hover:text-white"
+                    onClick={() =>
+                      setPendingFiles((prev) => prev.filter((x) => x !== f))
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -182,6 +367,27 @@ export default function InboxClient({
           <p className="text-sm text-white/40">Select a thread or compose a message.</p>
         ) : (
           <div>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <div>
+                <h2 className="text-sm font-semibold">{activeThread?.subject}</h2>
+                {activeThread?.clientId ? (
+                  <Link
+                    href={`/admin/crm/${activeThread.clientId}`}
+                    className="text-xs text-[#e6c47a] hover:underline"
+                  >
+                    {clientNameById[activeThread.clientId] || "View client"}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={linkClient}
+                    className="text-xs text-white/40 hover:text-[#e6c47a]"
+                  >
+                    Create / link client
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="space-y-4 max-h-[50vh] overflow-y-auto">
               {initialMessages.map((m) => (
                 <div
@@ -198,28 +404,84 @@ export default function InboxClient({
                     <span>{new Date(m.createdAt).toLocaleString()}</span>
                   </div>
                   <p className="mt-1 text-sm font-medium">{m.subject}</p>
-                  <pre className="mt-2 whitespace-pre-wrap font-sans text-sm text-white/80">
-                    {m.textBody || "(no text body)"}
-                  </pre>
+                  <HtmlMessageBody htmlBody={m.htmlBody} textBody={m.textBody} />
+                  {(attachmentsByMessage.get(m.id) || []).length > 0 && (
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {(attachmentsByMessage.get(m.id) || []).map((a) => (
+                        <li key={a.id}>
+                          <a
+                            href={a.storageUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="border border-white/15 px-2 py-1 text-xs text-[#e6c47a] hover:bg-white/5"
+                          >
+                            {a.filename}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               ))}
             </div>
-            <div className="mt-4 border-t border-white/10 pt-4">
-              <textarea
-                value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value)}
-                rows={4}
-                placeholder="Reply…"
-                className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
-              />
+            <div className="mt-4 border-t border-white/10 pt-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs uppercase tracking-wider text-white/40">Reply</span>
+                <div className="flex gap-1 border border-white/10 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setReplyMode("edit")}
+                    className={`px-2 py-1 text-xs ${replyMode === "edit" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReplyMode("preview")}
+                    className={`px-2 py-1 text-xs ${replyMode === "preview" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+                  >
+                    Preview
+                  </button>
+                </div>
+              </div>
+              {replyMode === "edit" ? (
+                <RichTextEditor
+                  value={replyBody}
+                  onChange={setReplyBody}
+                  placeholder="Reply…"
+                  minHeight="120px"
+                />
+              ) : (
+                <EmailPreview bodyHtml={replyBody} subject={activeThread?.subject} />
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="cursor-pointer border border-white/20 px-3 py-1.5 text-xs text-white/70">
+                  {uploading ? "Uploading…" : "Attach"}
+                  <input
+                    type="file"
+                    multiple
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => {
+                      void uploadFiles(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {pendingFiles.map((f) => (
+                  <span key={f.filename + f.size} className="text-xs text-white/50">
+                    {f.filename}
+                  </span>
+                ))}
+              </div>
               <button
                 type="button"
                 onClick={reply}
-                className="mt-2 bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+                className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
               >
                 Reply
               </button>
-              {status && <p className="mt-2 text-sm text-white/50">{status}</p>}
+              {status && <p className="text-sm text-white/50">{status}</p>}
             </div>
           </div>
         )}

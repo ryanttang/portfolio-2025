@@ -5,6 +5,7 @@ import {
   listActivities,
   listNotes,
 } from "@/lib/crm/clients";
+import { listThreadsForClient } from "@/lib/email/threads";
 import { listOnboardingsForClient } from "@/lib/onboarding";
 import { createOnboardingAction, startViewAsClientAction } from "@/app/admin/actions/onboarding";
 import ClientDetail from "@/components/admin/ClientDetail";
@@ -18,10 +19,11 @@ export default async function ClientDetailPage({
   const client = await getClient(clientId);
   if (!client) notFound();
 
-  const [notes, activities, projects] = await Promise.all([
+  const [notes, activities, projects, threads] = await Promise.all([
     listNotes(clientId),
     listActivities(clientId),
     listOnboardingsForClient(clientId),
+    listThreadsForClient(clientId, 8),
   ]);
 
   async function startProject(formData: FormData) {
@@ -69,6 +71,42 @@ export default async function ClientDetailPage({
           </button>
         </form>
       </div>
+
+      <section className="mt-8 border border-white/10 bg-[#141414] p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Recent email</h2>
+            <p className="mt-1 text-xs text-white/40">Threads linked to this client.</p>
+          </div>
+          <Link
+            href={`/admin/inbox?compose=1&to=${encodeURIComponent(client.email)}`}
+            className="text-xs text-[#e6c47a] hover:underline"
+          >
+            Email client
+          </Link>
+        </div>
+        <ul className="mt-4 space-y-2">
+          {threads.map((t) => (
+            <li
+              key={t.id}
+              className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2 text-sm"
+            >
+              <Link
+                href={`/admin/inbox?thread=${t.id}`}
+                className="text-[#e6c47a] hover:underline"
+              >
+                {t.subject}
+              </Link>
+              <span className="text-[10px] text-white/35">
+                {t.lastMessageAt.toLocaleString()}
+              </span>
+            </li>
+          ))}
+          {threads.length === 0 && (
+            <li className="text-sm text-white/40">No email threads yet.</li>
+          )}
+        </ul>
+      </section>
 
       <section className="mt-8 border border-white/10 bg-[#141414] p-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -122,7 +160,14 @@ export default async function ClientDetailPage({
         </ul>
       </section>
 
-      <ClientDetail client={client} notes={notes} activities={activities} />
+      <ClientDetail
+        client={{
+          ...client,
+          tags: Array.isArray(client.tags) ? client.tags : [],
+        }}
+        notes={notes}
+        activities={activities}
+      />
     </div>
   );
 }

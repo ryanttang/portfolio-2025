@@ -172,11 +172,21 @@ export async function sendInvoiceAction(id: string) {
 
   await storeFile(`invoices/${inv.id}.pdf`, pdf, "application/pdf");
 
+  const amountLabel = `$${(inv.totalCents / 100).toFixed(2)}`;
+  const invoicePayUrl = payUrl || `${getAppUrl()}/pay/${inv.payToken}`;
+  const { renderInvoiceEmail } = await import("@/lib/email/templates/transactional");
+  const branded = await renderInvoiceEmail({
+    clientName: inv.clientName || "there",
+    invoiceNumber: inv.invoiceNumber,
+    amountLabel,
+    payUrl: invoicePayUrl,
+  });
+
   const result = await sendEmail({
     to: [inv.clientEmail],
     subject: `Invoice ${inv.invoiceNumber}`,
-    text: `Hi ${inv.clientName},\n\nPlease find your invoice ${inv.invoiceNumber} for $${(inv.totalCents / 100).toFixed(2)}.\n\nPay online: ${payUrl}\n\nThank you,\nRyan Tang`,
-    html: `<p>Hi ${inv.clientName},</p><p>Please find your invoice <strong>${inv.invoiceNumber}</strong> for <strong>$${(inv.totalCents / 100).toFixed(2)}</strong>.</p><p><a href="${payUrl}">Pay online</a></p><p>Thank you,<br/>Ryan Tang</p>`,
+    text: branded.text,
+    html: branded.html,
     attachments: [{ filename: `${inv.invoiceNumber}.pdf`, content: pdf, contentType: "application/pdf" }],
     clientId: inv.clientId,
   });

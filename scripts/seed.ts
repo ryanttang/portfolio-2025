@@ -1,11 +1,15 @@
-import "dotenv/config";
-import { hash } from "bcryptjs";
-import { eq } from "drizzle-orm";
-import { db, client } from "../src/db";
-import { admins, siteContent, siteSettings } from "../src/db/schema";
-import { defaultContent, defaultSettings } from "../src/lib/content/defaults";
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config();
 
 async function main() {
+  const { hash } = await import("bcryptjs");
+  const { eq } = await import("drizzle-orm");
+  const { db, client } = await import("../src/db");
+  const { admins, siteContent, siteSettings } = await import("../src/db/schema");
+  const { defaultContent, defaultSettings } = await import("../src/lib/content/defaults");
+  const { seedEmailPresets } = await import("../src/lib/email/templates");
+
   const email = (process.env.ADMIN_EMAIL || "admin@ryantang.site").toLowerCase();
   const password = process.env.ADMIN_PASSWORD || "changeme";
   const passwordHash =
@@ -38,11 +42,19 @@ async function main() {
   }
   console.log("Seeded site content (skipped existing keys)");
 
+  await seedEmailPresets();
+  console.log("Seeded email templates");
+
   await client.end({ timeout: 5 });
 }
 
 main().catch(async (err) => {
   console.error(err);
-  await client.end({ timeout: 5 });
+  try {
+    const { client } = await import("../src/db");
+    await client.end({ timeout: 5 });
+  } catch {
+    /* ignore */
+  }
   process.exit(1);
 });

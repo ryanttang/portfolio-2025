@@ -227,11 +227,19 @@ export async function sendPortalMessageAction(
     process.env.ADMIN_EMAIL;
   if (!to) throw new Error("No admin inbox email configured");
 
+  const { renderPortalMessageEmail } = await import("@/lib/email/templates/transactional");
+  const branded = await renderPortalMessageEmail({
+    clientName: client.name,
+    clientEmail: client.email,
+    projectName: onboarding.projectName || "Project",
+    body: parsed.body,
+  });
+
   await sendEmail({
     to: [to],
     subject: `[Portal] ${onboarding.projectName || "Project"}: ${parsed.subject}`,
-    text: `From: ${client.name} <${client.email}>\nProject: ${onboarding.projectName}\n\n${parsed.body}`,
-    html: `<p><strong>From:</strong> ${client.name} &lt;${client.email}&gt;</p><p><strong>Project:</strong> ${onboarding.projectName}</p><p>${parsed.body.replace(/\n/g, "<br/>")}</p>`,
+    text: branded.text,
+    html: branded.html,
     clientId: actor.clientId,
   });
 

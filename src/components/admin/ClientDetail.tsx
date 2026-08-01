@@ -13,6 +13,7 @@ type Client = {
   address: string | null;
   status: string;
   notes: string | null;
+  tags: string[];
 };
 
 export default function ClientDetail({
@@ -26,8 +27,10 @@ export default function ClientDetail({
 }) {
   const router = useRouter();
   const [note, setNote] = useState("");
+  const [tags, setTags] = useState((client.tags || []).join(", "));
 
   async function save(formData: FormData) {
+    formData.set("tags", tags);
     await updateClientAction(client.id, formData);
     router.refresh();
   }
@@ -61,6 +64,27 @@ export default function ClientDetail({
             <option value="archived">Archived</option>
           </select>
         </label>
+        <label className="block text-xs uppercase tracking-wider text-white/40">
+          Tags
+          <input
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="comma, separated, tags"
+            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#e6c47a]"
+          />
+        </label>
+        {(client.tags || []).length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {client.tags.map((tag) => (
+              <span
+                key={tag}
+                className="border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/50"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
         <label className="block text-xs uppercase tracking-wider text-white/40">
           Notes
           <textarea

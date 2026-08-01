@@ -51,6 +51,14 @@ export default function CrmCreateForm() {
             </select>
           </label>
           <label className="block text-xs uppercase tracking-wider text-white/40">
+            Tags
+            <input
+              name="tags"
+              placeholder="comma, separated"
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs uppercase tracking-wider text-white/40">
             Notes
             <textarea name="notes" rows={2} className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm" />
           </label>

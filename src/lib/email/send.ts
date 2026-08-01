@@ -1,10 +1,11 @@
 import { Resend } from "resend";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { emailMessages, emailThreads } from "@/db/schema";
+import { emailAttachments, emailMessages, emailThreads } from "@/db/schema";
 import { getSetting } from "@/lib/content";
 import { findClientByEmail, addActivity } from "@/lib/crm/clients";
 import { isResendConfigured } from "@/lib/env";
+import { htmlToPlainText } from "@/lib/email/templates/render";
 
 function getResend() {
   if (!process.env.RESEND_API_KEY) return null;
@@ -19,7 +20,12 @@ export async function sendEmail(opts: {
   html?: string;
   threadId?: string;
   inReplyTo?: string;
-  attachments?: { filename: string; content: Buffer; contentType?: string }[];
+  attachments?: {
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+    storageUrl?: string;
+  }[];
   clientId?: string | null;
 }) {
   const emailSettings = await getSetting<{ fromName?: string; fromEmail?: string }>("email");
@@ -29,6 +35,13 @@ export async function sendEmail(opts: {
     "onboarding@resend.dev";
   const fromName = emailSettings?.fromName || "Ryan Tang";
   const from = `${fromName} <${fromEmail}>`;
+
+  const html =
+    opts.html ||
+    (opts.text ? opts.text.replace(/\n/g, "<br/>") : undefined);
+  const text =
+    opts.text ||
+    (opts.html ? htmlToPlainText(opts.html) : undefined);
 
   let threadId = opts.threadId;
   if (!threadId) {
@@ -55,6 +68,13 @@ export async function sendEmail(opts: {
       .update(emailThreads)
       .set({ lastMessageAt: new Date() })
       .where(eq(emailThreads.id, threadId));
+
+    if (opts.clientId) {
+      await db
+        .update(emailThreads)
+        .set({ clientId: opts.clientId })
+        .where(eq(emailThreads.id, threadId));
+    }
   }
 
   const [message] = await db
@@ -66,13 +86,26 @@ export async function sendEmail(opts: {
       toEmails: opts.to,
       ccEmails: opts.cc || [],
       subject: opts.subject,
-      textBody: opts.text || null,
-      htmlBody: opts.html || null,
+      textBody: text || null,
+      htmlBody: html || null,
       inReplyTo: opts.inReplyTo || null,
       status: "queued",
       readAt: new Date(),
     })
     .returning();
+
+  if (opts.attachments?.length) {
+    for (const a of opts.attachments) {
+      if (!a.storageUrl) continue;
+      await db.insert(emailAttachments).values({
+        messageId: message.id,
+        filename: a.filename,
+        contentType: a.contentType || null,
+        size: a.content.length,
+        storageUrl: a.storageUrl,
+      });
+    }
+  }
 
   if (!isResendConfigured()) {
     await db
@@ -84,13 +117,12 @@ export async function sendEmail(opts: {
 
   const resend = getResend()!;
   try {
-    const html = opts.html || opts.text?.replace(/\n/g, "<br/>") || undefined;
     const result = await resend.emails.send({
       from,
       to: opts.to,
       cc: opts.cc,
       subject: opts.subject,
-      ...(html ? { html } : { text: opts.text || "" }),
+      ...(html ? { html, text: text || undefined } : { text: text || "" }),
       headers: opts.inReplyTo
         ? { "In-Reply-To": opts.inReplyTo, References: opts.inReplyTo }
         : undefined,

@@ -73,11 +73,17 @@ export async function sendContractAction(id: string) {
   if (!client?.email) throw new Error("Client has no email");
 
   const url = `${getAppUrl()}/sign/${contract.token}`;
+  const { renderContractEmail } = await import("@/lib/email/templates/transactional");
+  const branded = await renderContractEmail({
+    clientName: client.name,
+    title: contract.title,
+    signUrl: url,
+  });
   const result = await sendEmail({
     to: [client.email],
     subject: `Please sign: ${contract.title}`,
-    text: `Hi ${client.name},\n\nPlease review and sign the agreement "${contract.title}" using this link:\n\n${url}\n\nThank you,\nRyan Tang`,
-    html: `<p>Hi ${client.name},</p><p>Please review and sign the agreement <strong>${contract.title}</strong>:</p><p><a href="${url}">${url}</a></p><p>Thank you,<br/>Ryan Tang</p>`,
+    text: branded.text,
+    html: branded.html,
     clientId: client.id,
   });
 

@@ -34,6 +34,24 @@ export async function getMessageAttachments(messageId: string) {
     .where(eq(emailAttachments.messageId, messageId));
 }
 
+export async function getAttachmentsForMessages(messageIds: string[]) {
+  if (messageIds.length === 0) return [] as (typeof emailAttachments.$inferSelect)[];
+  const { inArray } = await import("drizzle-orm");
+  return db
+    .select()
+    .from(emailAttachments)
+    .where(inArray(emailAttachments.messageId, messageIds));
+}
+
+export async function listThreadsForClient(clientId: string, limit = 10) {
+  return db
+    .select()
+    .from(emailThreads)
+    .where(eq(emailThreads.clientId, clientId))
+    .orderBy(desc(emailThreads.lastMessageAt))
+    .limit(limit);
+}
+
 export async function markThreadRead(threadId: string) {
   await db
     .update(emailMessages)

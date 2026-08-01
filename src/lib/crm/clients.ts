@@ -5,7 +5,7 @@ import { logAudit } from "@/lib/audit";
 
 export type ClientStatus = "lead" | "active" | "past" | "archived";
 
-export async function listClients(opts?: { status?: string; q?: string }) {
+export async function listClients(opts?: { status?: string; q?: string; tag?: string }) {
   const conditions = [];
   if (opts?.status) conditions.push(eq(clients.status, opts.status));
   if (opts?.q) {
@@ -13,6 +13,9 @@ export async function listClients(opts?: { status?: string; q?: string }) {
     conditions.push(
       or(ilike(clients.name, q), ilike(clients.email, q), ilike(clients.company, q)),
     );
+  }
+  if (opts?.tag) {
+    conditions.push(sql`${clients.tags} @> ${JSON.stringify([opts.tag])}::jsonb`);
   }
   const where = conditions.length ? and(...conditions) : undefined;
   return db

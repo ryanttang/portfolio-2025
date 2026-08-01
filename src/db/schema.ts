@@ -127,6 +127,22 @@ export const emailAttachments = pgTable("email_attachments", {
   storageUrl: text("storage_url").notNull(),
 });
 
+export const emailTemplates = pgTable(
+  "email_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull(),
+    category: text("category").notNull().default("general"),
+    subject: text("subject").notNull().default(""),
+    bodyHtml: text("body_html").notNull().default(""),
+    isPreset: boolean("is_preset").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("email_templates_slug_idx").on(t.slug)],
+);
+
 export const contracts = pgTable(
   "contracts",
   {
