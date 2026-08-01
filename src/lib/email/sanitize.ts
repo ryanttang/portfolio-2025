@@ -1,4 +1,4 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 const ALLOWED_TAGS = [
   "a",
@@ -33,9 +33,12 @@ const ALLOWED_ATTR = ["href", "target", "rel", "src", "alt", "width", "height", 
 
 export function sanitizeEmailHtml(html: string): string {
   if (!html) return "";
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS,
-    ALLOWED_ATTR,
-    ALLOW_DATA_ATTR: false,
+  return sanitizeHtml(html, {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: {
+      "*": ALLOWED_ATTR,
+    },
+    allowedSchemes: ["http", "https", "mailto", "cid"],
+    allowProtocolRelative: false,
   });
 }
