@@ -170,7 +170,7 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
             >
               What I Can Help With
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 min-[321px]:grid-cols-2 gap-3">
               {content.serviceSections.map((section, i) => {
                 const headerTone =
                   [
@@ -183,7 +183,7 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
                 return (
                   <div key={section.id} className={cardClass}>
                     <h3
-                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] sm:text-sm font-semibold tracking-wide mb-3 ${headerTone}`}
+                      className={`inline-flex max-w-full items-center rounded-full border px-2.5 sm:px-3 py-1 text-xs sm:text-base font-semibold tracking-normal mb-3 whitespace-nowrap ${headerTone}`}
                     >
                       {section.label}
                     </h3>
@@ -203,7 +203,7 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
             </div>
           </section>
 
-          <div className="grid grid-cols-2 gap-3 items-stretch">
+          <div className="grid grid-cols-1 min-[321px]:grid-cols-2 gap-3 items-stretch">
             <section
               aria-labelledby="lifecycle-heading"
               className="flex flex-col min-h-0"
@@ -280,47 +280,54 @@ export default function HelloPageClient({ content }: { content: HelloContent }) 
             </section>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 min-[321px]:grid-cols-3 gap-3 items-stretch">
+            <section
+              aria-labelledby="retainers-heading"
+              className="min-[321px]:col-span-2 flex flex-col min-h-0"
+            >
               <h2
                 id="retainers-heading"
                 className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
               >
                 Retainers Services
               </h2>
-            </div>
-            <div>
+              <div className="grid grid-cols-1 min-[321px]:grid-cols-2 gap-3 flex-1">
+                {content.retainers.map((tier) => (
+                  <div key={tier.name} className={`${cardClass} h-full`}>
+                    <h3 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-3">
+                      {tier.name}
+                    </h3>
+                    <p className="text-[#c4c4c8] text-[10px] sm:text-sm leading-relaxed whitespace-pre-line">
+                      {tier.summary.includes("\n")
+                        ? tier.summary.replace(/\n+/g, "\n\n")
+                        : tier.summary.replace(/\.\s+/, ".\n\n")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section
+              aria-labelledby="consulting-heading"
+              className="flex flex-col min-h-0"
+            >
               <h2
                 id="consulting-heading"
                 className="text-[#fdf0d5] text-xs sm:text-sm tracking-wide mb-4 font-semibold"
               >
                 Consulting Services
               </h2>
-            </div>
-
-            {content.retainers.map((tier) => (
-              <div key={tier.name} className={cardClass}>
+              <div className={`${cardClass} border-[#fdf0d5]/45 flex-1`}>
                 <h3 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                  {tier.name}
+                  {consulting.title}
                 </h3>
-                <p className="text-[#c4c4c8] text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                  {tier.summary.includes("\n")
-                    ? tier.summary.replace(/\n+/g, "\n\n")
-                    : tier.summary.replace(/\.\s+/, ".\n\n")}
+                <p className="text-[#c4c4c8] text-[10px] sm:text-sm leading-relaxed whitespace-pre-line">
+                  {consulting.summary.includes("\n")
+                    ? consulting.summary.replace(/\n+/g, "\n\n")
+                    : consulting.summary.replace(/\.\s+/, ".\n\n")}
                 </p>
               </div>
-            ))}
-
-            <div className={`${cardClass} border-[#fdf0d5]/45`}>
-              <h3 className="text-base sm:text-xl font-bold text-white mb-2 sm:mb-3">
-                {consulting.title}
-              </h3>
-              <p className="text-[#c4c4c8] text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                {consulting.summary.includes("\n")
-                  ? consulting.summary.replace(/\n+/g, "\n\n")
-                  : consulting.summary.replace(/\.\s+/, ".\n\n")}
-              </p>
-            </div>
+            </section>
           </div>
 
           <section className={`${cardClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
