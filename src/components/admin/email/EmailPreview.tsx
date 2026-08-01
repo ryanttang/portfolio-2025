@@ -2,17 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { previewBrandedEmailAction } from "@/app/admin/actions/content";
+import type { EmailSettings } from "@/lib/email/templates/render";
 
 export default function EmailPreview({
   bodyHtml,
   subject,
+  brandOverrides,
 }: {
   bodyHtml: string;
   subject?: string;
+  brandOverrides?: Partial<EmailSettings>;
 }) {
   const [html, setHtml] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const overridesKey = JSON.stringify(brandOverrides || {});
 
   useEffect(() => {
     let cancelled = false;
@@ -24,7 +28,11 @@ export default function EmailPreview({
       setLoading(true);
       setError("");
       try {
-        const result = await previewBrandedEmailAction(bodyHtml, subject);
+        const result = await previewBrandedEmailAction(
+          bodyHtml,
+          subject,
+          brandOverrides,
+        );
         if (!cancelled) {
           if (result.ok) setHtml(result.html);
           else setError(result.error || "Preview failed");
@@ -42,7 +50,8 @@ export default function EmailPreview({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [bodyHtml, subject]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- overridesKey serializes brandOverrides
+  }, [bodyHtml, subject, overridesKey]);
 
   if (!bodyHtml.trim()) {
     return (

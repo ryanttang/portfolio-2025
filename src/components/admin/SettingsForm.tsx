@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { saveSettingAction } from "@/app/admin/actions/content";
+import EmailBrandSettings from "@/components/admin/email/EmailBrandSettings";
 
 export default function SettingsForm({
   brand,
@@ -16,7 +17,6 @@ export default function SettingsForm({
 }) {
   const [brandJson, setBrandJson] = useState(JSON.stringify(brand, null, 2));
   const [invoiceJson, setInvoiceJson] = useState(JSON.stringify(invoice, null, 2));
-  const [emailJson, setEmailJson] = useState(JSON.stringify(email, null, 2));
   const [featuresJson, setFeaturesJson] = useState(JSON.stringify(features, null, 2));
   const [msg, setMsg] = useState("");
 
@@ -25,9 +25,8 @@ export default function SettingsForm({
     try {
       await saveSettingAction("brand", brandJson);
       await saveSettingAction("invoice", invoiceJson);
-      await saveSettingAction("email", emailJson);
       await saveSettingAction("features", featuresJson);
-      setMsg("Settings saved.");
+      setMsg("Settings saved. Email brand is saved separately below.");
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Save failed");
     }
@@ -35,10 +34,11 @@ export default function SettingsForm({
 
   return (
     <div className="mt-8 space-y-4">
+      <EmailBrandSettings email={email} />
+
       {[
         { label: "Brand", value: brandJson, set: setBrandJson },
         { label: "Invoice seller defaults", value: invoiceJson, set: setInvoiceJson },
-        { label: "Email", value: emailJson, set: setEmailJson },
         { label: "Features", value: featuresJson, set: setFeaturesJson },
       ].map((block) => (
         <div key={block.label} className="border border-white/10 bg-[#141414] p-4">

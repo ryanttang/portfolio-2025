@@ -1,6 +1,6 @@
 import { Link, Section, Text } from "@react-email/components";
 import { CtaButton } from "./brand-shell";
-import { renderBrandedComponent } from "./render";
+import { getEmailBrandContext, renderBrandedComponent } from "./render";
 
 export async function renderInvoiceEmail(opts: {
   clientName: string;
@@ -8,6 +8,7 @@ export async function renderInvoiceEmail(opts: {
   amountLabel: string;
   payUrl: string;
 }) {
+  const brand = await getEmailBrandContext();
   return renderBrandedComponent(
     <>
       <Text style={{ margin: "0 0 12px" }}>Hi {opts.clientName},</Text>
@@ -15,7 +16,7 @@ export async function renderInvoiceEmail(opts: {
         Please find your invoice <strong>{opts.invoiceNumber}</strong> for{" "}
         <strong>{opts.amountLabel}</strong>. A PDF is attached for your records.
       </Text>
-      <CtaButton href={opts.payUrl} label="Pay online" />
+      <CtaButton href={opts.payUrl} label="Pay online" accentColor={brand.accentColor} />
       <Text style={{ color: "#6b6560", fontSize: "13px", margin: "16px 0 0" }}>
         Or open this link:{" "}
         <Link href={opts.payUrl} style={{ color: "#6b6560" }}>
@@ -32,13 +33,14 @@ export async function renderContractEmail(opts: {
   title: string;
   signUrl: string;
 }) {
+  const brand = await getEmailBrandContext();
   return renderBrandedComponent(
     <>
       <Text style={{ margin: "0 0 12px" }}>Hi {opts.clientName},</Text>
       <Text style={{ margin: "0 0 12px" }}>
         Please review and sign the agreement <strong>{opts.title}</strong>.
       </Text>
-      <CtaButton href={opts.signUrl} label="Review & sign" />
+      <CtaButton href={opts.signUrl} label="Review & sign" accentColor={brand.accentColor} />
       <Text style={{ color: "#6b6560", fontSize: "13px", margin: "16px 0 0" }}>
         Or open this link:{" "}
         <Link href={opts.signUrl} style={{ color: "#6b6560" }}>
@@ -57,6 +59,7 @@ export async function renderPortalInviteEmail(opts: {
   services?: string[];
   expiresDays: number;
 }) {
+  const brand = await getEmailBrandContext();
   return renderBrandedComponent(
     <>
       <Text style={{ margin: "0 0 12px" }}>Hi {opts.clientName},</Text>
@@ -79,7 +82,7 @@ export async function renderPortalInviteEmail(opts: {
         Use the button below to set your password and get started. This link expires in{" "}
         {opts.expiresDays} days.
       </Text>
-      <CtaButton href={opts.inviteUrl} label="Set up portal" />
+      <CtaButton href={opts.inviteUrl} label="Set up portal" accentColor={brand.accentColor} />
     </>,
     {
       preheader: opts.projectName

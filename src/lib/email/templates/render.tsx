@@ -4,22 +4,40 @@ import { Text } from "@react-email/components";
 import { getSetting } from "@/lib/content";
 import { getAppUrl } from "@/lib/env";
 import { BrandShell } from "./brand-shell";
+import { sanitizeEmailHtml } from "@/lib/email/sanitize";
 
 export type EmailSettings = {
   fromName?: string;
   fromEmail?: string;
+  headerTitle?: string;
+  headerTagline?: string;
+  headerBg?: string;
+  accentColor?: string;
+  logoUrl?: string;
   signatureHtml?: string;
+  footerHtml?: string;
+  showSiteInFooter?: boolean;
 };
 
-export async function getEmailBrandContext() {
+export async function getEmailBrandContext(overrides?: Partial<EmailSettings>) {
   const emailSettings = await getSetting<EmailSettings>("email");
+  const merged: EmailSettings = { ...emailSettings, ...overrides };
   return {
-    fromName: emailSettings?.fromName || "Ryan Tang",
+    fromName: merged.fromName || "Ryan Tang",
     fromEmail:
-      emailSettings?.fromEmail ||
+      merged.fromEmail ||
       process.env.RESEND_FROM_EMAIL ||
       "onboarding@resend.dev",
-    signatureHtml: emailSettings?.signatureHtml || null,
+    headerTitle: merged.headerTitle || merged.fromName || "Ryan Tang",
+    headerTagline: merged.headerTagline || "",
+    headerBg: merged.headerBg || "#0c0c0c",
+    accentColor: merged.accentColor || "#e6c47a",
+    logoUrl: merged.logoUrl || "",
+    signatureHtml: merged.signatureHtml
+      ? sanitizeEmailHtml(merged.signatureHtml)
+      : null,
+    footerHtml: merged.footerHtml ? sanitizeEmailHtml(merged.footerHtml) : null,
+    showSiteInFooter: merged.showSiteInFooter !== false,
     siteUrl: getAppUrl(),
   };
 }
@@ -28,21 +46,41 @@ function BodyHtml({ html }: { html: string }) {
   return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
+function shellFromBrand(
+  brand: Awaited<ReturnType<typeof getEmailBrandContext>>,
+  children: ReactNode,
+  opts?: { preheader?: string; includeSignature?: boolean },
+) {
+  return (
+    <BrandShell
+      previewText={opts?.preheader}
+      fromName={brand.fromName}
+      siteUrl={brand.siteUrl}
+      headerTitle={brand.headerTitle}
+      headerTagline={brand.headerTagline || null}
+      headerBg={brand.headerBg}
+      accentColor={brand.accentColor}
+      logoUrl={brand.logoUrl || null}
+      signatureHtml={opts?.includeSignature === false ? null : brand.signatureHtml}
+      footerHtml={brand.footerHtml}
+      showSiteInFooter={brand.showSiteInFooter}
+    >
+      {children}
+    </BrandShell>
+  );
+}
+
 export async function renderBrandedEmail(opts: {
   bodyHtml: string;
   preheader?: string;
   includeSignature?: boolean;
+  brandOverrides?: Partial<EmailSettings>;
 }): Promise<{ html: string; text: string }> {
-  const brand = await getEmailBrandContext();
-  const element = (
-    <BrandShell
-      previewText={opts.preheader}
-      fromName={brand.fromName}
-      siteUrl={brand.siteUrl}
-      signatureHtml={opts.includeSignature === false ? null : brand.signatureHtml}
-    >
-      <BodyHtml html={opts.bodyHtml} />
-    </BrandShell>
+  const brand = await getEmailBrandContext(opts.brandOverrides);
+  const element = shellFromBrand(
+    brand,
+    <BodyHtml html={opts.bodyHtml} />,
+    opts,
   );
 
   const [html, text] = await Promise.all([
@@ -54,19 +92,14 @@ export async function renderBrandedEmail(opts: {
 
 export async function renderBrandedComponent(
   children: ReactNode,
-  opts?: { preheader?: string; includeSignature?: boolean },
+  opts?: {
+    preheader?: string;
+    includeSignature?: boolean;
+    brandOverrides?: Partial<EmailSettings>;
+  },
 ): Promise<{ html: string; text: string }> {
-  const brand = await getEmailBrandContext();
-  const element = (
-    <BrandShell
-      previewText={opts?.preheader}
-      fromName={brand.fromName}
-      siteUrl={brand.siteUrl}
-      signatureHtml={opts?.includeSignature === false ? null : brand.signatureHtml}
-    >
-      {children}
-    </BrandShell>
-  );
+  const brand = await getEmailBrandContext(opts?.brandOverrides);
+  const element = shellFromBrand(brand, children, opts);
 
   const [html, text] = await Promise.all([
     render(element),

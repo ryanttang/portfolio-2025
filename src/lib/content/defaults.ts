@@ -19,7 +19,14 @@ export const defaultSettings: Record<string, unknown> = {
   email: {
     fromName: "Ryan Tang",
     fromEmail: process.env.RESEND_FROM_EMAIL || "hello@ryantang.site",
-    signatureHtml: "",
+    headerTitle: "Ryan Tang",
+    headerTagline: "Design · Development · Creative Direction",
+    headerBg: "#0c0c0c",
+    accentColor: "#e6c47a",
+    logoUrl: "",
+    signatureHtml: "<p>— Ryan Tang</p>",
+    footerHtml: "",
+    showSiteInFooter: true,
   },
   features: {
     contractSigning: true,

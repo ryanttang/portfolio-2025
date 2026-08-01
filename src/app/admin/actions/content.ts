@@ -165,7 +165,22 @@ export async function sendInboxEmailAction(data: {
   return { ok: true, threadId: result.threadId };
 }
 
-export async function previewBrandedEmailAction(bodyHtml: string, subject?: string) {
+export async function previewBrandedEmailAction(
+  bodyHtml: string,
+  subject?: string,
+  brandOverrides?: {
+    fromName?: string;
+    fromEmail?: string;
+    headerTitle?: string;
+    headerTagline?: string;
+    headerBg?: string;
+    accentColor?: string;
+    logoUrl?: string;
+    signatureHtml?: string;
+    footerHtml?: string;
+    showSiteInFooter?: boolean;
+  },
+) {
   await requireAdmin();
   const { renderBrandedEmail } = await import("@/lib/email/templates/render");
   const { sanitizeEmailHtml } = await import("@/lib/email/sanitize");
@@ -173,6 +188,7 @@ export async function previewBrandedEmailAction(bodyHtml: string, subject?: stri
     const branded = await renderBrandedEmail({
       bodyHtml: sanitizeEmailHtml(bodyHtml),
       preheader: subject || undefined,
+      brandOverrides,
     });
     return { ok: true as const, html: branded.html };
   } catch (err) {
