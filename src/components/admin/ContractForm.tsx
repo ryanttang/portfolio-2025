@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createContractAction } from "@/app/admin/actions/contracts";
+import TermsListEditor from "@/components/admin/TermsListEditor";
 import { buildContractDraft } from "@/lib/contracts/merge";
 
 type ClientOption = {
@@ -142,6 +143,7 @@ export default function ContractForm({
         title: title.trim(),
         bodyText: bodyText.trim(),
         amountCents: Number.isFinite(amountCents as number) ? amountCents : null,
+        paymentNotes: paymentNotes.trim() || null,
         notes: notes.trim() || null,
       });
       router.push(`/admin/contracts/${result.id}`);
@@ -204,7 +206,7 @@ export default function ContractForm({
         <button
           type="button"
           onClick={() => fillFromTemplate({ force: true })}
-          className="text-xs text-[#e6c47a] hover:underline"
+          className="text-xs text-[#fdf0d5] hover:underline"
         >
           Reset from template
         </button>
@@ -224,50 +226,16 @@ export default function ContractForm({
       </label>
 
       <div>
-        <p className="text-xs uppercase tracking-wider text-white/40">Terms for this contract</p>
-        <p className="mt-1 text-[10px] text-white/30">
-          Edit before send — does not change the template or public Services page.
-        </p>
-        <div className="mt-2 space-y-2">
-          {terms.map((t, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={t}
-                onChange={(e) => {
-                  dirtyRef.current = true;
-                  const next = [...terms];
-                  next[i] = e.target.value;
-                  setTerms(next);
-                  rebuildBodyFromTerms(next, paymentNotes);
-                }}
-                className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm text-white"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  dirtyRef.current = true;
-                  const next = terms.filter((_, idx) => idx !== i);
-                  setTerms(next);
-                  rebuildBodyFromTerms(next, paymentNotes);
-                }}
-                className="shrink-0 px-2 text-xs text-white/35 hover:text-red-400"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => {
+        <TermsListEditor
+          label="Terms for this contract"
+          values={terms}
+          hint="Edit before send — does not change the template or public Services page. Saved onto the contract for invoices."
+          onChange={(next) => {
             dirtyRef.current = true;
-            const next = [...terms, ""];
             setTerms(next);
+            rebuildBodyFromTerms(next, paymentNotes);
           }}
-          className="mt-2 text-xs text-[#e6c47a] hover:underline"
-        >
-          + Add term
-        </button>
+        />
         <label className="mt-3 block text-xs uppercase tracking-wider text-white/40">
           Payment notes
           <textarea
@@ -343,7 +311,7 @@ export default function ContractForm({
       <button
         type="submit"
         disabled={saving}
-        className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+        className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
       >
         {saving ? "Creating…" : "Create draft"}
       </button>

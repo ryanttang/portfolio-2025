@@ -22,6 +22,7 @@ const schema = z.object({
   title: z.string().min(1),
   bodyText: z.string().min(1),
   amountCents: z.number().int().optional().nullable(),
+  paymentNotes: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
 });
 
@@ -36,6 +37,7 @@ export async function createContractAction(data: z.infer<typeof schema>) {
       title: parsed.title,
       bodyText: parsed.bodyText,
       amountCents: parsed.amountCents ?? null,
+      paymentNotes: parsed.paymentNotes?.trim() || null,
       notes: parsed.notes ?? null,
       token,
       status: "draft",
@@ -148,4 +150,74 @@ export async function updateContractTemplateAction(
   revalidatePath("/admin/contracts/templates");
   revalidatePath("/admin/contracts/new");
   return { ok: true };
+}
+
+/** Push CMS services_terms onto Project & Retainer contract templates. */
+export async function syncServicesTermsToTemplatesAction() {
+  await requireAdmin();
+  const { getContent } = await import("@/lib/content");
+  const { servicesTermsSchema } = await import("@/lib/content/schemas");
+  const { listContractTemplates, updateContractTemplate } = await import(
+    "@/lib/contracts/templates"
+  );
+  const { applyServicesTermsToTemplate } = await import("@/lib/terms/shared");
+
+  const raw = await getContent("services_terms");
+  const content = servicesTermsSchema.parse(raw);
+  const templates = await listContractTemplates();
+  let updated = 0;
+
+  for (const t of templates) {
+    const kind = t.kind as "project" | "retainer" | "consulting";
+    const applied = applyServicesTermsToTemplate(kind, content);
+    if (!applied) continue;
+    await updateContractTemplate(t.id, {
+      terms: applied.terms,
+      paymentNotes: applied.paymentNotes,
+    });
+    updated += 1;
+  }
+
+  await logAudit("sync", "contract_templates", "services_terms", { updated });
+  revalidatePath("/admin/contracts/templates");
+  revalidatePath("/admin/contracts/terms");
+  revalidatePath("/admin/contracts/new");
+  revalidatePath("/admin/content");
+  return { ok: true, updated };
+}
+
+/** Load CMS services_terms onto a single template (project/retainer only). */
+export async function loadServicesTermsOntoTemplateAction(templateId: string) {
+  await requireAdmin();
+  const { getContent } = await import("@/lib/content");
+  const { servicesTermsSchema } = await import("@/lib/content/schemas");
+  const { getContractTemplate, updateContractTemplate } = await import(
+    "@/lib/contracts/templates"
+  );
+  const { applyServicesTermsToTemplate } = await import("@/lib/terms/shared");
+
+  const template = await getContractTemplate(templateId);
+  if (!template) throw new Error("Template not found");
+
+  const kind = template.kind as "project" | "retainer" | "consulting";
+  const content = servicesTermsSchema.parse(await getContent("services_terms"));
+  const applied = applyServicesTermsToTemplate(kind, content);
+  if (!applied) {
+    throw new Error("Consulting templates are not synced from Services terms.");
+  }
+
+  const row = await updateContractTemplate(templateId, {
+    terms: applied.terms,
+    paymentNotes: applied.paymentNotes,
+  });
+  if (!row) throw new Error("Template not found");
+
+  await logAudit("sync", "contract_template", templateId, { from: "services_terms" });
+  revalidatePath("/admin/contracts/templates");
+  revalidatePath("/admin/contracts/new");
+  return {
+    ok: true as const,
+    terms: applied.terms,
+    paymentNotes: applied.paymentNotes,
+  };
 }

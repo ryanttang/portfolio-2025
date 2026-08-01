@@ -57,6 +57,21 @@ type PendingAttachment = {
   size: number;
 };
 
+function formatThreadWhen(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const date = d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return `${date} · ${time}`;
+}
+
 export default function InboxClient({
   threads,
   initialThreadId,
@@ -223,7 +238,7 @@ export default function InboxClient({
               onClick={() => {
                 setShowCompose(true);
               }}
-              className="text-xs text-[#e6c47a]"
+              className="text-xs text-[#fdf0d5]"
             >
               Compose
             </button>
@@ -244,7 +259,7 @@ export default function InboxClient({
               >
                 <div className="flex items-start justify-between gap-2">
                   <p
-                    className={`truncate ${
+                    className={`min-w-0 truncate ${
                       (t.unreadCount ?? 0) > 0
                         ? "font-semibold text-white"
                         : "font-medium text-white/90"
@@ -252,11 +267,20 @@ export default function InboxClient({
                   >
                     {t.subject}
                   </p>
-                  {(t.unreadCount ?? 0) > 0 && (
-                    <span className="shrink-0 rounded-full bg-[#e6c47a] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-black">
-                      {t.unreadCount}
-                    </span>
-                  )}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {(t.unreadCount ?? 0) > 0 && (
+                      <span className="rounded-full bg-[#fdf0d5] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-black">
+                        {t.unreadCount}
+                      </span>
+                    )}
+                    <time
+                      dateTime={t.lastMessageAt}
+                      className="whitespace-nowrap text-[10px] tabular-nums text-white/35"
+                      title={new Date(t.lastMessageAt).toLocaleString()}
+                    >
+                      {formatThreadWhen(t.lastMessageAt)}
+                    </time>
+                  </div>
                 </div>
                 <p className="truncate text-xs text-white/40">
                   {t.clientId && clientNameById[t.clientId]
@@ -277,7 +301,7 @@ export default function InboxClient({
               <button
                 type="button"
                 onClick={() => setPreview("compose")}
-                className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+                className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#fdf0d5]"
               >
                 Preview
               </button>
@@ -307,7 +331,7 @@ export default function InboxClient({
                   key={f.token}
                   type="button"
                   onClick={() => insertMergeToken(f.token)}
-                  className="border border-white/15 px-2 py-0.5 text-[10px] text-white/50 hover:text-[#e6c47a]"
+                  className="border border-white/15 px-2 py-0.5 text-[10px] text-white/50 hover:text-[#fdf0d5]"
                 >
                   {f.label}
                 </button>
@@ -347,7 +371,7 @@ export default function InboxClient({
               <button
                 type="button"
                 onClick={send}
-                className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+                className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
               >
                 Send
               </button>
@@ -371,7 +395,7 @@ export default function InboxClient({
                 {activeThread?.clientId ? (
                   <Link
                     href={`/admin/crm/${activeThread.clientId}`}
-                    className="text-xs text-[#e6c47a] hover:underline"
+                    className="text-xs text-[#fdf0d5] hover:underline"
                   >
                     {clientNameById[activeThread.clientId] || "View client"}
                   </Link>
@@ -379,7 +403,7 @@ export default function InboxClient({
                   <button
                     type="button"
                     onClick={linkClient}
-                    className="text-xs text-white/40 hover:text-[#e6c47a]"
+                    className="text-xs text-white/40 hover:text-[#fdf0d5]"
                   >
                     Create / link client
                   </button>
@@ -412,7 +436,7 @@ export default function InboxClient({
                               href={a.storageUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="border border-white/15 px-2 py-1 text-xs text-[#e6c47a] hover:bg-white/5"
+                              className="border border-white/15 px-2 py-1 text-xs text-[#fdf0d5] hover:bg-white/5"
                             >
                               {a.filename}
                             </a>
@@ -429,7 +453,7 @@ export default function InboxClient({
                   <button
                     type="button"
                     onClick={() => setPreview("reply")}
-                    className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+                    className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#fdf0d5]"
                   >
                     Preview
                   </button>
@@ -463,7 +487,7 @@ export default function InboxClient({
                 <button
                   type="button"
                   onClick={reply}
-                  className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+                  className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
                 >
                   Reply
                 </button>

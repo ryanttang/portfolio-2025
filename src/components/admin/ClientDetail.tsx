@@ -70,7 +70,7 @@ export default function ClientDetail({
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="comma, separated, tags"
-            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#e6c47a]"
+            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#fdf0d5]"
           />
         </label>
         {(client.tags || []).length > 0 && (
@@ -94,7 +94,7 @@ export default function ClientDetail({
             className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
           />
         </label>
-        <button type="submit" className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black">
+        <button type="submit" className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black">
           Save
         </button>
       </form>
@@ -135,7 +135,7 @@ export default function ClientDetail({
             )}
             {activities.map((a) => (
               <li key={a.id} className="text-sm">
-                <span className="text-[10px] uppercase tracking-wider text-[#e6c47a]/80">
+                <span className="text-[10px] uppercase tracking-wider text-[#fdf0d5]/80">
                   {a.type}
                 </span>
                 <p className="text-white/70">{a.summary}</p>
@@ -166,7 +166,7 @@ function Field({
       <input
         name={name}
         defaultValue={defaultValue}
-        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#e6c47a]"
+        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#fdf0d5]"
       />
     </label>
   );

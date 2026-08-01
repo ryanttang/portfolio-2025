@@ -31,7 +31,7 @@ export async function getEmailBrandContext(overrides?: Partial<EmailSettings>) {
     headerTitle: merged.headerTitle || merged.fromName || "Ryan Tang",
     headerTagline: merged.headerTagline || "",
     headerBg: merged.headerBg || "#0c0c0c",
-    accentColor: merged.accentColor || "#e6c47a",
+    accentColor: merged.accentColor || "#fdf0d5",
     logoUrl: merged.logoUrl || "",
     signatureHtml: merged.signatureHtml
       ? sanitizeEmailHtml(merged.signatureHtml)

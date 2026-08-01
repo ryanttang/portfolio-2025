@@ -61,6 +61,7 @@ export default async function ContractDetailPage({
           initialTitle={contract.title}
           initialBody={contract.bodyText}
           initialAmountCents={contract.amountCents}
+          initialPaymentNotes={contract.paymentNotes}
         />
       ) : (
         <pre className="mt-6 max-h-[480px] overflow-y-auto whitespace-pre-wrap border border-white/10 bg-[#141414] p-4 text-sm text-white/80">

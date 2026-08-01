@@ -63,20 +63,20 @@ export default async function TrafficPage({
         <div className="flex gap-2 text-sm">
           <Link
             href="/admin/traffic?days=7"
-            className={`px-3 py-1.5 ${days === 7 ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+            className={`px-3 py-1.5 ${days === 7 ? "bg-white/10 text-[#fdf0d5]" : "text-white/50"}`}
           >
             7 days
           </Link>
           <Link
             href="/admin/traffic?days=30"
-            className={`px-3 py-1.5 ${days === 30 ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+            className={`px-3 py-1.5 ${days === 30 ? "bg-white/10 text-[#fdf0d5]" : "text-white/50"}`}
           >
             30 days
           </Link>
         </div>
       </div>
 
-      <p className="mt-6 font-[family-name:var(--font-syne)] text-4xl font-bold text-[#e6c47a]">
+      <p className="mt-6 font-[family-name:var(--font-syne)] text-4xl font-bold text-[#fdf0d5]">
         {data.total}
         <span className="ml-2 text-sm font-normal text-white/40">pageviews</span>
       </p>
@@ -100,7 +100,7 @@ function Table({ title, rows }: { title: string; rows: [string, number][] }) {
         {rows.map(([label, views]) => (
           <li key={label} className="flex justify-between gap-4 px-4 py-2.5 text-sm">
             <span className="truncate text-white/80">{label}</span>
-            <span className="shrink-0 text-[#e6c47a]">{views}</span>
+            <span className="shrink-0 text-[#fdf0d5]">{views}</span>
           </li>
         ))}
       </ul>

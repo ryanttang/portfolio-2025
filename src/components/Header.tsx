@@ -25,7 +25,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
             alt="Logo"
             width={108}
             height={108}
-            style={{ filter: 'invert(1) brightness(2) drop-shadow(0 0 16px #e6c47a)', objectFit: 'contain' }}
+            style={{ filter: 'invert(1) brightness(2) drop-shadow(0 0 16px #fdf0d5)', objectFit: 'contain' }}
             priority
             className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28"
           />
@@ -37,7 +37,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
           }
           .logo-animate:hover {
             transform: scale(1.08) rotate(-4deg);
-            filter: drop-shadow(0 0 32px #e6c47a88) brightness(2);
+            filter: drop-shadow(0 0 32px #fdf0d588) brightness(2);
           }
           @keyframes cloudRock {
             0% { transform: rotate(-10deg); }
@@ -83,7 +83,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
           }
           .hamburger-animate:hover,
           .hamburger-animate.open {
-            filter: drop-shadow(0 0 12px #e6c47a88) brightness(1.2);
+            filter: drop-shadow(0 0 12px #fdf0d588) brightness(1.2);
             animation: hamburgerPulse 0.7s cubic-bezier(.4,0,.2,1);
           }
           @keyframes hamburgerPulse {
@@ -99,7 +99,7 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
             margin: 2px 0;
             border-radius: 6px;
             background: #fff;
-            box-shadow: 0 1.5px 8px #e6c47a55, 0 0.5px 0 #e6c47a;
+            box-shadow: 0 1.5px 8px #fdf0d555, 0 0.5px 0 #fdf0d5;
             transition: all 0.36s cubic-bezier(.4,0,.2,1);
             position: relative;
             pointer-events: none;
@@ -113,18 +113,18 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
             }
           }
           .hamburger-bar.open-top {
-            background: #e6c47a;
+            background: #fdf0d5;
             transform: rotate(45deg) translateY(10px);
-            box-shadow: 0 2px 16px #e6c47a99;
+            box-shadow: 0 2px 16px #fdf0d599;
           }
           .hamburger-bar.open-middle {
             opacity: 0;
             transform: scaleX(0.6);
           }
           .hamburger-bar.open-bottom {
-            background: #e6c47a;
+            background: #fdf0d5;
             transform: rotate(-45deg) translateY(-10px);
-            box-shadow: 0 2px 16px #e6c47a99;
+            box-shadow: 0 2px 16px #fdf0d599;
           }
           .menu-link {
             color: #fff;
@@ -138,8 +138,8 @@ export default function Header({ menuHidden = false }: { menuHidden?: boolean })
             border-radius: 8px;
           }
           .menu-link:hover {
-            color: #e6c47a;
-            text-shadow: 0 0 20px #e6c47a;
+            color: #fdf0d5;
+            text-shadow: 0 0 20px #fdf0d5;
             transform: translateY(-2px);
           }
         `}</style>

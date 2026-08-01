@@ -67,10 +67,10 @@ export default async function AdminOverviewPage() {
           <Link
             key={s.label}
             href={s.href}
-            className="border border-white/10 bg-[#141414] p-5 transition hover:border-[#e6c47a]/40"
+            className="border border-white/10 bg-[#141414] p-5 transition hover:border-[#fdf0d5]/40"
           >
             <p className="text-xs uppercase tracking-wider text-white/40">{s.label}</p>
-            <p className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold text-[#e6c47a]">
+            <p className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold text-[#fdf0d5]">
               {s.value}
             </p>
           </Link>
@@ -80,7 +80,7 @@ export default async function AdminOverviewPage() {
       <div className="mt-10 flex flex-wrap gap-3">
         <Link
           href="/admin/portal"
-          className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f0d49a]"
+          className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f0d49a]"
         >
           Preview portal
         </Link>

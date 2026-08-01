@@ -77,7 +77,7 @@ export default async function ProjectHubPage({
         </h2>
         <ul className="mt-4 space-y-3">
           {milestones.map((m) => (
-            <li key={m.id} className="border-l-2 border-[#e6c47a]/60 pl-4">
+            <li key={m.id} className="border-l-2 border-[#fdf0d5]/60 pl-4">
               <div className="flex flex-wrap items-baseline gap-2">
                 <p className="font-medium">{m.title}</p>
                 <span className="text-[10px] uppercase tracking-wider text-white/40">
@@ -124,7 +124,7 @@ export default async function ProjectHubPage({
             {linkedContracts.map((c) => (
               <li key={c.id}>
                 {c.status === "signed" || c.status === "sent" ? (
-                  <Link href={`/sign/${c.token}`} className="text-[#e6c47a] hover:underline">
+                  <Link href={`/sign/${c.token}`} className="text-[#fdf0d5] hover:underline">
                     {c.title} ({c.status})
                   </Link>
                 ) : (
@@ -147,7 +147,7 @@ export default async function ProjectHubPage({
             {linkedInvoices.map((i) => (
               <li key={i.id}>
                 {i.status !== "void" && i.status !== "draft" ? (
-                  <Link href={`/pay/${i.payToken}`} className="text-[#e6c47a] hover:underline">
+                  <Link href={`/pay/${i.payToken}`} className="text-[#fdf0d5] hover:underline">
                     {i.invoiceNumber} — ${(i.totalCents / 100).toFixed(2)} ({i.status})
                   </Link>
                 ) : (

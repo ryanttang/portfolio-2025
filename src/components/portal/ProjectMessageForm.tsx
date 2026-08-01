@@ -45,7 +45,7 @@ export default function ProjectMessageForm({ onboardingId }: { onboardingId: str
       <button
         type="submit"
         disabled={loading}
-        className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+        className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
       >
         {loading ? "Sending…" : "Send message"}
       </button>

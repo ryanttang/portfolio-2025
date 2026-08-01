@@ -29,7 +29,7 @@ export default async function CrmPage({
             name="q"
             defaultValue={sp.q || ""}
             placeholder="Search…"
-            className="border border-white/15 bg-black/40 px-3 py-1.5 text-sm outline-none focus:border-[#e6c47a]"
+            className="border border-white/15 bg-black/40 px-3 py-1.5 text-sm outline-none focus:border-[#fdf0d5]"
           />
           <select
             name="status"
@@ -85,7 +85,7 @@ export default async function CrmPage({
             {clients.map((c) => (
               <tr key={c.id} className="hover:bg-white/[0.03]">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/crm/${c.id}`} className="text-[#e6c47a] hover:underline">
+                  <Link href={`/admin/crm/${c.id}`} className="text-[#fdf0d5] hover:underline">
                     {c.name}
                   </Link>
                 </td>
@@ -97,7 +97,7 @@ export default async function CrmPage({
                       <Link
                         key={tag}
                         href={`/admin/crm?tag=${encodeURIComponent(tag)}`}
-                        className="border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/50 hover:border-[#e6c47a]/40 hover:text-[#e6c47a]"
+                        className="border border-white/15 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/50 hover:border-[#fdf0d5]/40 hover:text-[#fdf0d5]"
                       >
                         {tag}
                       </Link>

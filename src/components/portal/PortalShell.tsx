@@ -23,7 +23,7 @@ export default function PortalShell({
   return (
     <div className="min-h-screen bg-[#0c0c0c] text-[#f2efe8]">
       {impersonating && (
-        <div className="border-b border-[#e6c47a]/40 bg-[#e6c47a]/15 px-4 py-2 text-center text-sm text-[#e6c47a]">
+        <div className="border-b border-[#fdf0d5]/40 bg-[#fdf0d5]/15 px-4 py-2 text-center text-sm text-[#fdf0d5]">
           Previewing as {email || "client"} · edits save to this client{" "}
           <button
             type="button"
@@ -43,7 +43,7 @@ export default function PortalShell({
         <header className="border-b border-white/10">
           <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
             <div>
-              <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#e6c47a]">
+              <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
                 Ryan Tang
               </p>
               <p className="text-sm text-white/50">Client portal</p>

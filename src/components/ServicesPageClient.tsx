@@ -228,9 +228,9 @@ const DEFAULT_RETAINER_TERMS = [
 ];
 
 const cardClass =
-  "rounded-xl border border-[#e6c47a]/25 bg-[#232323]/55 p-4 sm:p-5 transition";
+  "rounded-xl border border-[#fdf0d5]/25 bg-[#232323]/55 p-4 sm:p-5 transition";
 const cardActiveClass =
-  "rounded-xl border border-[#e6c47a] bg-[#e6c47a]/10 p-4 sm:p-5 transition shadow-[0_0_0_1px_#e6c47a44]";
+  "rounded-xl border border-[#fdf0d5] bg-[#fdf0d5]/10 p-4 sm:p-5 transition shadow-[0_0_0_1px_#fdf0d544]";
 
 export type ServicesTermsProps = {
   projectPaymentLines: string[];
@@ -280,7 +280,7 @@ export default function ServicesPageClient({
           {/* Compact hero */}
           <header className="mb-8 sm:mb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div className="max-w-3xl">
-              <p className="text-[#e6c47a] text-sm font-semibold mb-3 tracking-wide">
+              <p className="text-[#fdf0d5] text-sm font-semibold mb-3 tracking-wide">
                 Ryan Tang · Services
               </p>
               <h1
@@ -289,7 +289,7 @@ export default function ServicesPageClient({
               >
                 Digital &amp; Marketing Strategist
               </h1>
-              <p className="text-[#e6c47a] text-sm sm:text-base font-semibold tracking-wide mb-3">
+              <p className="text-[#fdf0d5] text-sm sm:text-base font-semibold tracking-wide mb-3">
                 Strategy • Branding • Websites • Marketing • Automation • AI • Analytics
               </p>
               <p className="text-[#c4c4c8] text-base sm:text-lg font-bold leading-relaxed max-w-xl">
@@ -297,11 +297,11 @@ export default function ServicesPageClient({
               </p>
             </div>
             <a
-              href="mailto:tangs.email@gmail.com?subject=Services%20Inquiry"
-              className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold border-2 border-[#e6c47a] text-[#f5f5f5] text-base transition hover:bg-[#e6c47a] hover:text-[#18181b] shrink-0 self-start lg:self-auto"
+              href="mailto:hello@ryantang.site?subject=Services%20Inquiry"
+              className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold border-2 border-[#fdf0d5] text-[#f5f5f5] text-base transition hover:bg-[#fdf0d5] hover:text-[#18181b] shrink-0 self-start lg:self-auto"
               style={{
-                background: "linear-gradient(90deg, #232323 60%, #e6c47a22 100%)",
-                boxShadow: "0 4px 18px #e6c47a33",
+                background: "linear-gradient(90deg, #232323 60%, #fdf0d522 100%)",
+                boxShadow: "0 4px 18px #fdf0d533",
               }}
             >
               <FaEnvelope className="text-xs" />
@@ -313,7 +313,7 @@ export default function ServicesPageClient({
           <div
             role="tablist"
             aria-label="Service categories"
-            className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 mb-6 border-b border-[#e6c47a]/20 scrollbar-none"
+            className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 mb-6 border-b border-[#fdf0d5]/20 scrollbar-none"
             style={{ scrollbarWidth: "none" }}
           >
             {tabs.map((tab) => {
@@ -329,7 +329,7 @@ export default function ServicesPageClient({
                   onClick={() => setActiveTab(tab.id)}
                   className={`shrink-0 px-3 sm:px-4 py-2.5 text-base font-semibold border-b-2 transition ${
                     selected
-                      ? "border-[#e6c47a] text-[#e6c47a]"
+                      ? "border-[#fdf0d5] text-[#fdf0d5]"
                       : "border-transparent text-[#a1a1aa] hover:text-white"
                   }`}
                   style={{ minWidth: "auto", minHeight: "auto" }}
@@ -351,18 +351,21 @@ export default function ServicesPageClient({
                 <div className="grid sm:grid-cols-2 gap-3 mb-6">
                   {overviewGroups.map((group) => (
                     <div key={group.title} className={cardClass}>
-                      <h2 className="text-[#e6c47a] text-sm tracking-wide mb-4 font-semibold">
+                      <h2 className="text-[#fdf0d5] text-sm tracking-wide mb-4 font-semibold">
                         {group.title}
                       </h2>
                       <ul className="space-y-3">
                         {group.items.map((item) => (
                           <li
                             key={item.label}
-                            className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-[#e6c47a]/15 pb-3 last:border-0 last:pb-0"
+                            className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 border-b border-[#fdf0d5]/15 pb-3 last:border-0 last:pb-0"
                           >
                             <span className="text-[#c4c4c8] text-base leading-snug">{item.label}</span>
-                            <span className="text-[#e6c47a] text-xl font-extrabold whitespace-nowrap">
-                              From {item.price}
+                            <span className="text-[#fdf0d5] text-xl font-extrabold whitespace-nowrap">
+                              <span className="mr-1 text-[10px] sm:text-xs font-semibold text-[#a1a1aa]">
+                                From
+                              </span>
+                              {item.price}
                             </span>
                           </li>
                         ))}
@@ -373,14 +376,14 @@ export default function ServicesPageClient({
                 <div className={`${cardClass} overflow-hidden`}>
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-8">
                     <div>
-                      <h2 className="text-[#e6c47a] text-sm tracking-wide mb-1 font-semibold">
+                      <h2 className="text-[#fdf0d5] text-sm tracking-wide mb-1 font-semibold">
                         Full Lifecycle
                       </h2>
                       <p className="text-[#a1a1aa] text-sm sm:text-base leading-relaxed">
                         What I Provide
                       </p>
                     </div>
-                    <p className="text-[#e6c47a]/70 text-xs font-semibold tracking-wide hidden sm:block">
+                    <p className="text-[#fdf0d5]/70 text-xs font-semibold tracking-wide hidden sm:block">
                       Strategy → Implementation → Growth
                     </p>
                   </div>
@@ -392,14 +395,14 @@ export default function ServicesPageClient({
                       className="absolute left-[23px] top-4 bottom-4 w-px"
                       style={{
                         background:
-                          "linear-gradient(180deg, #e6c47a22, #e6c47a, #e6c47a, #e6c47a22)",
+                          "linear-gradient(180deg, #fdf0d522, #fdf0d5, #fdf0d5, #fdf0d522)",
                       }}
                     />
                     {lifecycleSteps.map((step, i) => (
                       <li key={step} className="relative flex items-start gap-4 pb-6 last:pb-0">
                         <span
-                          className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#e6c47a] bg-[#18181b] text-[#e6c47a] text-xs font-bold"
-                          style={{ boxShadow: "0 0 14px #e6c47a55" }}
+                          className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#fdf0d5] bg-[#18181b] text-[#fdf0d5] text-xs font-bold"
+                          style={{ boxShadow: "0 0 14px #fdf0d555" }}
                         >
                           {String(i + 1).padStart(2, "0")}
                         </span>
@@ -415,7 +418,7 @@ export default function ServicesPageClient({
                       className="absolute left-[4%] right-[4%] top-[15px] h-[2px] rounded-full"
                       style={{
                         background:
-                          "linear-gradient(90deg, transparent, #e6c47a66 5%, #e6c47a 25%, #e6c47a 75%, #e6c47a66 95%, transparent)",
+                          "linear-gradient(90deg, transparent, #fdf0d566 5%, #fdf0d5 25%, #fdf0d5 75%, #fdf0d566 95%, transparent)",
                       }}
                     />
                     <div className="relative flex justify-between">
@@ -425,8 +428,8 @@ export default function ServicesPageClient({
                           className="flex flex-col items-center flex-1 min-w-0 px-1"
                         >
                           <span
-                            className="relative z-10 mb-4 flex h-[32px] w-[32px] items-center justify-center rounded-full border-2 border-[#e6c47a] bg-[#18181b] text-[#e6c47a] text-[11px] font-bold"
-                            style={{ boxShadow: "0 0 18px #e6c47a55" }}
+                            className="relative z-10 mb-4 flex h-[32px] w-[32px] items-center justify-center rounded-full border-2 border-[#fdf0d5] bg-[#18181b] text-[#fdf0d5] text-[11px] font-bold"
+                            style={{ boxShadow: "0 0 18px #fdf0d555" }}
                           >
                             {String(i + 1).padStart(2, "0")}
                           </span>
@@ -439,14 +442,14 @@ export default function ServicesPageClient({
                   </ol>
                 </div>
                 <div className={`${cardClass} mt-3`}>
-                  <h2 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                  <h2 className="text-[#fdf0d5] text-sm tracking-wide mb-3 font-semibold">
                     Combined Disciplines
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {combinedServices.map((item) => (
                       <span
                         key={item}
-                        className="text-sm sm:text-base text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2.5 py-1"
+                        className="text-sm sm:text-base text-[#c4c4c8] border border-[#fdf0d5]/20 rounded-lg px-2.5 py-1"
                       >
                         {item}
                       </span>
@@ -454,14 +457,14 @@ export default function ServicesPageClient({
                   </div>
                 </div>
                 <div className={`${cardClass} mt-3`}>
-                  <h2 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                  <h2 className="text-[#fdf0d5] text-sm tracking-wide mb-3 font-semibold">
                     Skills
                   </h2>
                   <div className="flex flex-wrap gap-2">
                     {skills.map((item) => (
                       <span
                         key={item}
-                        className="text-sm sm:text-base text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2.5 py-1"
+                        className="text-sm sm:text-base text-[#c4c4c8] border border-[#fdf0d5]/20 rounded-lg px-2.5 py-1"
                       >
                         {item}
                       </span>
@@ -477,18 +480,18 @@ export default function ServicesPageClient({
               hidden={activeTab !== "intensives"}
             >
                 <div className="grid lg:grid-cols-[1.2fr_1fr] gap-4">
-                  <div className={`${cardClass} border-[#e6c47a]/45`}>
+                  <div className={`${cardClass} border-[#fdf0d5]/45`}>
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5">
                       <h2 className="text-xl sm:text-2xl font-bold text-white">
                         Web & Digital Marketing Consulting
                       </h2>
-                      <p className="text-[#e6c47a] text-3xl font-extrabold shrink-0">
+                      <p className="text-[#fdf0d5] text-3xl font-extrabold shrink-0">
                         $1,250
                       </p>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Strategy</h3>
+                      <div className="rounded-lg border border-[#fdf0d5]/20 bg-[#18181b]/40 p-4">
+                        <h3 className="text-[#fdf0d5] text-sm font-semibold mb-1">Strategy</h3>
                         <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
                           Direction, priorities, and decision support
                         </p>
@@ -500,8 +503,8 @@ export default function ServicesPageClient({
                           ))}
                         </ul>
                       </div>
-                      <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Deliverables</h3>
+                      <div className="rounded-lg border border-[#fdf0d5]/20 bg-[#18181b]/40 p-4">
+                        <h3 className="text-[#fdf0d5] text-sm font-semibold mb-1">Deliverables</h3>
                         <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
                           Hands-on outputs and executed work
                         </p>
@@ -516,12 +519,12 @@ export default function ServicesPageClient({
                     </div>
                   </div>
                   <div className={cardClass}>
-                    <h3 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                    <h3 className="text-[#fdf0d5] text-sm tracking-wide mb-3 font-semibold">
                       Common Uses
                     </h3>
                     <ul className="space-y-2">
                       {dayRateExamples.map((item) => (
-                        <li key={item} className="text-[#c4c4c8] text-base border-b border-[#e6c47a]/10 pb-2 last:border-0 last:pb-0">
+                        <li key={item} className="text-[#c4c4c8] text-base border-b border-[#fdf0d5]/10 pb-2 last:border-0 last:pb-0">
                           {item}
                         </li>
                       ))}
@@ -544,7 +547,7 @@ export default function ServicesPageClient({
                         key={tier.name}
                         type="button"
                         onClick={() => setActiveRetainer(i)}
-                        className={`text-left cursor-pointer ${selected ? cardActiveClass : cardClass} hover:border-[#e6c47a]/50`}
+                        className={`text-left cursor-pointer ${selected ? cardActiveClass : cardClass} hover:border-[#fdf0d5]/50`}
                         style={{ minWidth: "auto", minHeight: "auto" }}
                       >
                         <p
@@ -553,7 +556,7 @@ export default function ServicesPageClient({
                           {tier.name}
                         </p>
                         <p
-                          className="text-[#e6c47a] text-lg sm:text-xl font-extrabold"
+                          className="text-[#fdf0d5] text-lg sm:text-xl font-extrabold"
                         >
                           {tier.price}
                           <span className="text-xs sm:text-sm font-semibold text-[#a1a1aa] ml-0.5">/mo</span>
@@ -577,16 +580,16 @@ export default function ServicesPageClient({
                         <p className="text-[#a1a1aa] text-base">{tier.bestFor}</p>
                       </div>
                       <div className="shrink-0 sm:text-right">
-                        <p className="text-[#e6c47a] text-3xl font-extrabold">
+                        <p className="text-[#fdf0d5] text-3xl font-extrabold">
                           {tier.price}
                           <span className="text-base font-semibold text-[#a1a1aa] ml-1">/mo</span>
                         </p>
-                        <p className="text-[#e6c47a]/80 text-sm font-semibold mt-1">{tier.capacity}</p>
+                        <p className="text-[#fdf0d5]/80 text-sm font-semibold mt-1">{tier.capacity}</p>
                       </div>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Strategy</h3>
+                      <div className="rounded-lg border border-[#fdf0d5]/20 bg-[#18181b]/40 p-4">
+                        <h3 className="text-[#fdf0d5] text-sm font-semibold mb-1">Strategy</h3>
                         <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
                           Direction, priorities, and decision support
                         </p>
@@ -598,8 +601,8 @@ export default function ServicesPageClient({
                           ))}
                         </ul>
                       </div>
-                      <div className="rounded-lg border border-[#e6c47a]/20 bg-[#18181b]/40 p-4">
-                        <h3 className="text-[#e6c47a] text-sm font-semibold mb-1">Deliverables</h3>
+                      <div className="rounded-lg border border-[#fdf0d5]/20 bg-[#18181b]/40 p-4">
+                        <h3 className="text-[#fdf0d5] text-sm font-semibold mb-1">Deliverables</h3>
                         <p className="text-[#a1a1aa] text-sm mb-3 leading-snug">
                           Hands-on outputs and executed work
                         </p>
@@ -640,8 +643,8 @@ export default function ServicesPageClient({
                         onClick={() => setActiveProjectSection(section.id)}
                         className={`rounded-full px-4 py-2 text-sm font-semibold border transition ${
                           selected
-                            ? "border-[#e6c47a] bg-[#e6c47a]/15 text-[#e6c47a]"
-                            : "border-[#e6c47a]/25 text-[#a1a1aa] hover:text-white hover:border-[#e6c47a]/50"
+                            ? "border-[#fdf0d5] bg-[#fdf0d5]/15 text-[#fdf0d5]"
+                            : "border-[#fdf0d5]/25 text-[#a1a1aa] hover:text-white hover:border-[#fdf0d5]/50"
                         }`}
                         style={{ minWidth: "auto", minHeight: "auto" }}
                       >
@@ -650,6 +653,10 @@ export default function ServicesPageClient({
                     );
                   })}
                 </div>
+
+                <p className="mb-5 text-[10px] sm:text-xs font-semibold text-[#a1a1aa]">
+                  Rates shown are starting points — final pricing depends on scope.
+                </p>
 
                 {projectSections.map((section) => (
                   <div
@@ -672,11 +679,8 @@ export default function ServicesPageClient({
                           <h3 className="text-[#c4c4c8] text-sm sm:text-base mb-2 leading-snug font-normal">
                             {row.project}
                           </h3>
-                          <p className="text-[#e6c47a] text-base sm:text-lg font-extrabold">
+                          <p className="text-[#fdf0d5] text-base sm:text-lg font-extrabold">
                             {row.range}
-                            <span className="ml-1 text-[10px] sm:text-xs font-semibold text-[#a1a1aa]">
-                              /Starting Rate
-                            </span>
                           </p>
                         </div>
                       ))}
@@ -689,26 +693,20 @@ export default function ServicesPageClient({
                           <h3 className="text-lg font-bold text-white mb-1">
                             Design & Development
                           </h3>
-                          <p className="text-[#e6c47a] text-3xl font-extrabold mb-2">
+                          <p className="text-[#fdf0d5] text-3xl font-extrabold mb-2">
                             $6,000
-                            <span className="ml-1 text-xs font-semibold text-[#a1a1aa]">
-                              /Starting Rate
-                            </span>
                           </p>
                           <p className="text-[#a1a1aa] text-sm leading-relaxed">
                             Website design and development as a standalone deliverable.
                           </p>
                         </div>
-                        <div className={`${cardClass} border-[#e6c47a]/50`}>
-                          <p className="text-[#e6c47a] text-xs tracking-wide mb-1">Growth-Focused</p>
+                        <div className={`${cardClass} border-[#fdf0d5]/50`}>
+                          <p className="text-[#fdf0d5] text-xs tracking-wide mb-1">Growth-Focused</p>
                           <h3 className="text-lg font-bold text-white mb-1">
                             Business Growth System
                           </h3>
-                          <p className="text-[#e6c47a] text-3xl font-extrabold mb-2">
+                          <p className="text-[#fdf0d5] text-3xl font-extrabold mb-2">
                             $10,000
-                            <span className="ml-1 text-xs font-semibold text-[#a1a1aa]">
-                              /Starting Rate
-                            </span>
                           </p>
                           <p className="text-[#a1a1aa] text-sm leading-relaxed">
                             Strategy, custom site, SEO, analytics, lead gen, and launch support.
@@ -719,14 +717,14 @@ export default function ServicesPageClient({
 
                     {(section.id === "websites" || section.id === "custom") && (
                       <div className={cardClass}>
-                        <h3 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                        <h3 className="text-[#fdf0d5] text-sm tracking-wide mb-3 font-semibold">
                           What Drives Pricing
                         </h3>
                         <div className="flex flex-wrap gap-1.5">
                           {complexityFactors.map((item) => (
                             <span
                               key={item}
-                              className="text-sm text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2 py-1"
+                              className="text-sm text-[#c4c4c8] border border-[#fdf0d5]/20 rounded-lg px-2 py-1"
                             >
                               {item}
                             </span>
@@ -737,14 +735,14 @@ export default function ServicesPageClient({
 
                     {section.id === "systems" && (
                       <div className={cardClass}>
-                        <h3 className="text-[#e6c47a] text-sm tracking-wide mb-3 font-semibold">
+                        <h3 className="text-[#fdf0d5] text-sm tracking-wide mb-3 font-semibold">
                           What Drives Pricing
                         </h3>
                         <div className="flex flex-wrap gap-1.5">
                           {systemsComplexityFactors.map((item) => (
                             <span
                               key={item}
-                              className="text-sm text-[#c4c4c8] border border-[#e6c47a]/20 rounded-lg px-2 py-1"
+                              className="text-sm text-[#c4c4c8] border border-[#fdf0d5]/20 rounded-lg px-2 py-1"
                             >
                               {item}
                             </span>
@@ -766,7 +764,33 @@ export default function ServicesPageClient({
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className={cardClass}>
                     <h3 className="text-base font-semibold text-white mb-3">
-                      Projects Under ~$10k
+                      Project Terms
+                    </h3>
+                    <ul className="space-y-2">
+                      {projectTerms.map((item) => (
+                        <li key={item} className="flex gap-2 text-[#c4c4c8] text-sm sm:text-base">
+                          <span className="text-[#fdf0d5] shrink-0">—</span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className={cardClass}>
+                    <h3 className="text-base font-semibold text-white mb-3">
+                      Retainer Terms
+                    </h3>
+                    <ul className="space-y-2">
+                      {retainerTerms.map((item) => (
+                        <li key={item} className="flex gap-2 text-[#c4c4c8] text-sm sm:text-base">
+                          <span className="text-[#fdf0d5] shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-[#fdf0d5]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className={`${cardClass} sm:col-span-2 lg:col-span-1`}>
+                    <h3 className="text-base font-semibold text-white mb-3">
+                      Payment Terms
                     </h3>
                     <ol className="space-y-2.5 text-[#c4c4c8] text-base">
                       {projectPaymentLines.map((line) => {
@@ -775,7 +799,7 @@ export default function ServicesPageClient({
                           <li key={line} className="flex gap-2">
                             {match ? (
                               <>
-                                <span className="text-[#e6c47a] font-bold">{match[1]}</span>
+                                <span className="text-[#fdf0d5] font-bold">{match[1]}</span>
                                 {match[2]}
                               </>
                             ) : (
@@ -789,42 +813,16 @@ export default function ServicesPageClient({
                       <p className="text-[#a1a1aa] text-sm mt-3">{projectPaymentNote}</p>
                     )}
                   </div>
-                  <div className={cardClass}>
-                    <h3 className="text-base font-semibold text-white mb-3">
-                      Project Terms
-                    </h3>
-                    <ul className="space-y-2">
-                      {projectTerms.map((item) => (
-                        <li key={item} className="flex gap-2 text-[#c4c4c8] text-sm sm:text-base">
-                          <span className="text-[#e6c47a] shrink-0">—</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className={`${cardClass} sm:col-span-2 lg:col-span-1`}>
-                    <h3 className="text-base font-semibold text-white mb-3">
-                      Retainer Terms
-                    </h3>
-                    <ul className="space-y-2">
-                      {retainerTerms.map((item) => (
-                        <li key={item} className="flex gap-2 text-[#c4c4c8] text-sm sm:text-base">
-                          <span className="text-[#e6c47a] shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-[#e6c47a]" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
             </div>
           </div>
 
-          <footer className="mt-10 pt-6 border-t border-[#e6c47a]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-base text-[#a1a1aa]">
-            <Link href="/" className="hover:text-[#e6c47a] transition tracking-wide uppercase text-sm font-semibold">
+          <footer className="mt-10 pt-6 border-t border-[#fdf0d5]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-base text-[#a1a1aa]">
+            <Link href="/" className="hover:text-[#fdf0d5] transition tracking-wide uppercase text-sm font-semibold">
               ← Back to portfolio
             </Link>
-            <a href="mailto:tangs.email@gmail.com" className="hover:text-[#e6c47a] transition">
-              tangs.email@gmail.com
+            <a href="mailto:hello@ryantang.site" className="hover:text-[#fdf0d5] transition">
+              hello@ryantang.site
             </a>
           </footer>
         </div>

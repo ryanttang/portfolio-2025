@@ -72,6 +72,52 @@ export const servicesTermsSchema = z.object({
   retainerTerms: z.array(z.string()),
 });
 
+export const helloSchema = z.object({
+  greeting: z.object({
+    eyebrow: z.string(),
+    headline: z.string(),
+    tagline: z.string(),
+    pillars: z.string(),
+  }),
+  links: z.object({
+    linkedin: z.string(),
+    github: z.string(),
+    email: z.string(),
+    resumeUrl: z.string(),
+  }),
+  whoICanHelp: z.object({
+    title: z.string(),
+    items: z.array(z.string()),
+  }),
+  lifecycle: z.array(z.string()),
+  skillGroups: z.array(
+    z.object({
+      skill: z.string(),
+      disciplines: z.array(z.string()),
+    }),
+  ),
+  serviceSections: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      items: z.array(z.string()),
+    }),
+  ),
+  retainers: z.array(
+    z.object({
+      name: z.string(),
+      summary: z.string(),
+    }),
+  ),
+  consulting: z.object({
+    title: z.string(),
+    summary: z.string(),
+  }),
+  cta: z.object({
+    emailLabel: z.string(),
+  }),
+});
+
 export const contentSchemas = {
   about: aboutSchema,
   projects: projectsSchema,
@@ -81,6 +127,7 @@ export const contentSchemas = {
   services_projects: servicesProjectsSchema,
   services_retainers: servicesRetainersSchema,
   services_terms: servicesTermsSchema,
+  hello: helloSchema,
 } as const;
 
 export type ContentKey = keyof typeof contentSchemas;
@@ -92,6 +139,7 @@ export type ServicesOverviewContent = z.infer<typeof servicesOverviewSchema>;
 export type ServicesProjectsContent = z.infer<typeof servicesProjectsSchema>;
 export type ServicesRetainersContent = z.infer<typeof servicesRetainersSchema>;
 export type ServicesTermsContent = z.infer<typeof servicesTermsSchema>;
+export type HelloContent = z.infer<typeof helloSchema>;
 
 export function isContentKey(key: string): key is ContentKey {
   return key in contentSchemas;

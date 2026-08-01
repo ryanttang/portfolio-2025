@@ -172,6 +172,8 @@ export const contracts = pgTable(
     status: text("status").notNull().default("draft"), // draft | sent | signed | void
     token: text("token").notNull().unique(),
     amountCents: integer("amount_cents"),
+    /** Payment schedule snapshot from template/terms at create time (for invoices). */
+    paymentNotes: text("payment_notes"),
     notes: text("notes"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
     signedAt: timestamp("signed_at", { withTimezone: true }),

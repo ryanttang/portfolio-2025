@@ -26,7 +26,7 @@ const DEFAULTS: Required<
   headerTitle: "Ryan Tang",
   headerTagline: "",
   headerBg: "#0c0c0c",
-  accentColor: "#e6c47a",
+  accentColor: "#fdf0d5",
   logoUrl: "",
   signatureHtml: "<p>— Ryan Tang</p>",
   footerHtml: "",
@@ -118,7 +118,7 @@ export default function EmailBrandSettings({ email }: { email: unknown }) {
         <button
           type="button"
           onClick={() => setShowPreview(true)}
-          className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+          className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#fdf0d5]"
         >
           Preview
         </button>
@@ -186,7 +186,7 @@ export default function EmailBrandSettings({ email }: { email: unknown }) {
             type="checkbox"
             checked={showSiteInFooter}
             onChange={(e) => setShowSiteInFooter(e.target.checked)}
-            className="accent-[#e6c47a]"
+            className="accent-[#fdf0d5]"
           />
           Show site URL in footer
         </label>
@@ -197,7 +197,7 @@ export default function EmailBrandSettings({ email }: { email: unknown }) {
           type="button"
           onClick={save}
           disabled={saving}
-          className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+          className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save email brand"}
         </button>
@@ -233,7 +233,7 @@ function Field({
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
       />
       {hint && <span className="mt-1 block text-[10px] normal-case tracking-normal text-white/30">{hint}</span>}
     </label>
@@ -262,7 +262,7 @@ function ColorField({
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+          className="flex-1 border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
         />
       </div>
     </label>

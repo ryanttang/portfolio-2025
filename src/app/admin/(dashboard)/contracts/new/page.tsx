@@ -33,7 +33,7 @@ export default async function NewContractPage({
         </div>
         <Link
           href="/admin/contracts/templates"
-          className="text-xs text-[#e6c47a] hover:underline"
+          className="text-xs text-[#fdf0d5] hover:underline"
         >
           Edit templates
         </Link>

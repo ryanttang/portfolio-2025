@@ -74,7 +74,7 @@ export default function PortalContentEditor({
               setUpdateBody("");
               router.refresh();
             }}
-            className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+            className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
           >
             Post update
           </button>
@@ -109,7 +109,7 @@ export default function PortalContentEditor({
                         setEditingId(null);
                         router.refresh();
                       }}
-                      className="bg-[#e6c47a] px-2 py-1 text-xs font-semibold text-black"
+                      className="bg-[#fdf0d5] px-2 py-1 text-xs font-semibold text-black"
                     >
                       Save
                     </button>
@@ -139,7 +139,7 @@ export default function PortalContentEditor({
                         setEditTitle(u.title);
                         setEditBody(u.body);
                       }}
-                      className="text-xs text-[#e6c47a]"
+                      className="text-xs text-[#fdf0d5]"
                     >
                       Edit
                     </button>
@@ -183,7 +183,7 @@ export default function PortalContentEditor({
               setMilestoneTitle("");
               router.refresh();
             }}
-            className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+            className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
           >
             Add
           </button>

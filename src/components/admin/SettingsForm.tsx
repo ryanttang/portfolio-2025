@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { saveSettingAction } from "@/app/admin/actions/content";
 import EmailBrandSettings from "@/components/admin/email/EmailBrandSettings";
@@ -188,6 +189,15 @@ function InvoiceSettingsSection({ initial }: { initial: InvoiceSettings }) {
         title="Invoice seller defaults"
         description="Letterhead copied onto new invoices at create time. Existing invoices keep their snapshot."
       />
+      <p className="text-xs text-white/40">
+        Payment <span className="text-white/60">instructions</span> below are how to pay
+        (PayPal, wire, etc.). Agreement payment{" "}
+        <span className="text-white/60">schedules</span> live under{" "}
+        <Link href="/admin/contracts/terms" className="text-[#fdf0d5] hover:underline">
+          Contracts → Terms
+        </Link>{" "}
+        and are pulled onto invoices when you link a contract.
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field
           label="Legal name"
@@ -211,11 +221,11 @@ function InvoiceSettingsSection({ initial }: { initial: InvoiceSettings }) {
         </div>
         <div className="sm:col-span-2">
           <TextArea
-            label="Payment instructions"
+            label="Payment instructions (how to pay)"
             value={sellerPaymentInstructions}
             onChange={setSellerPaymentInstructions}
             rows={3}
-            hint="Shown on the public pay page and invoice PDF"
+            hint="Shown on the public pay page and invoice PDF — not the milestone schedule"
           />
         </div>
         <div className="sm:col-span-2">
@@ -252,7 +262,7 @@ function FeaturesSettingsSection({ initial }: { initial: FeaturesSettings }) {
             type="checkbox"
             checked={contractSigning}
             onChange={(e) => setContractSigning(e.target.checked)}
-            className="mt-0.5 accent-[#e6c47a]"
+            className="mt-0.5 accent-[#fdf0d5]"
           />
           <span>
             <span className="block font-medium text-white/85">Contract signing</span>
@@ -267,7 +277,7 @@ function FeaturesSettingsSection({ initial }: { initial: FeaturesSettings }) {
           <select
             value={paypalMode}
             onChange={(e) => setPaypalMode(e.target.value === "live" ? "live" : "sandbox")}
-            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a] sm:max-w-xs"
+            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5] sm:max-w-xs"
           >
             <option value="sandbox">Sandbox</option>
             <option value="live">Live</option>
@@ -328,7 +338,7 @@ function SaveRow({
         type="button"
         onClick={onSave}
         disabled={saving}
-        className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+        className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
       >
         {saving ? "Saving…" : label}
       </button>
@@ -357,7 +367,7 @@ function Field({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
       />
       {hint && (
         <span className="mt-1 block text-[10px] normal-case tracking-normal text-white/30">
@@ -388,7 +398,7 @@ function TextArea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+        className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
       />
       {hint && (
         <span className="mt-1 block text-[10px] normal-case tracking-normal text-white/30">

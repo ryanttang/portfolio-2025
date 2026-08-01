@@ -292,7 +292,7 @@ export default function OnboardingEditor({
           <span className="capitalize text-white/70">{onboarding.currentStep}</span>
         </span>
         {inviteUrl && (
-          <a href={inviteUrl} className="text-xs text-[#e6c47a] hover:underline" target="_blank">
+          <a href={inviteUrl} className="text-xs text-[#fdf0d5] hover:underline" target="_blank">
             Latest invite link
           </a>
         )}
@@ -332,7 +332,7 @@ export default function OnboardingEditor({
                 onClick={() => setActiveStep(tab.key)}
                 className={`rounded-t px-3 py-2 text-[11px] uppercase tracking-wider transition ${
                   selected
-                    ? "bg-[#e6c47a] text-black"
+                    ? "bg-[#fdf0d5] text-black"
                     : enabled
                       ? "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
                       : "bg-transparent text-white/30 hover:bg-white/5 hover:text-white/50"
@@ -340,7 +340,7 @@ export default function OnboardingEditor({
               >
                 {tab.label}
                 {isClientHere && !selected ? (
-                  <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#e6c47a]" />
+                  <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#fdf0d5]" />
                 ) : null}
               </button>
             );
@@ -377,7 +377,7 @@ export default function OnboardingEditor({
                   <div className="mt-3 space-y-4">
                     {serviceGroups.map(([group, items]) => (
                       <div key={group}>
-                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#e6c47a]/80">
+                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#fdf0d5]/80">
                           {group}
                         </p>
                         <ul className="space-y-2">
@@ -483,13 +483,13 @@ export default function OnboardingEditor({
                   type="button"
                   onClick={saveClientInfo}
                   disabled={savingClient}
-                  className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+                  className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
                 >
                   {savingClient ? "Saving…" : "Save client info"}
                 </button>
                 <Link
                   href={`/admin/crm/${client.id}`}
-                  className="text-sm text-[#e6c47a] hover:underline"
+                  className="text-sm text-[#fdf0d5] hover:underline"
                 >
                   Open full CRM record →
                 </Link>
@@ -634,7 +634,7 @@ export default function OnboardingEditor({
                         "Answer";
                       return (
                         <li key={a.id} className="border-t border-white/5 pt-3">
-                          <span className="text-[10px] uppercase tracking-wider text-[#e6c47a]/80">
+                          <span className="text-[10px] uppercase tracking-wider text-[#fdf0d5]/80">
                             {label}
                           </span>
                           {value?.url ? (
@@ -643,7 +643,7 @@ export default function OnboardingEditor({
                                 href={value.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-[#e6c47a] hover:underline"
+                                className="text-[#fdf0d5] hover:underline"
                               >
                                 {value.filename || "Download file"}
                               </a>
@@ -711,7 +711,7 @@ export default function OnboardingEditor({
                   )}
                   <Link
                     href="/admin/contracts"
-                    className="inline-block text-sm text-[#e6c47a] hover:underline"
+                    className="inline-block text-sm text-[#fdf0d5] hover:underline"
                   >
                     Manage contracts →
                   </Link>
@@ -753,7 +753,7 @@ export default function OnboardingEditor({
                   )}
                   <Link
                     href="/admin/invoices"
-                    className="inline-block text-sm text-[#e6c47a] hover:underline"
+                    className="inline-block text-sm text-[#fdf0d5] hover:underline"
                   >
                     Manage invoices →
                   </Link>
@@ -784,7 +784,7 @@ export default function OnboardingEditor({
             type="button"
             onClick={saveConfig}
             disabled={saving}
-            className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+            className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save"}
           </button>

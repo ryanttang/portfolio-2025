@@ -15,7 +15,7 @@ export default async function PortalHomePage() {
 
   return (
     <div>
-      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#e6c47a]">
+      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
         Your projects
       </p>
       <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">Portal</h1>
@@ -33,7 +33,7 @@ export default async function PortalHomePage() {
             <li key={p.id}>
               <Link
                 href={href}
-                className="block border border-white/10 bg-[#141414] p-4 transition hover:border-[#e6c47a]/40"
+                className="block border border-white/10 bg-[#141414] p-4 transition hover:border-[#fdf0d5]/40"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h2 className="font-medium">{p.projectName || "Untitled project"}</h2>
@@ -48,7 +48,7 @@ export default async function PortalHomePage() {
                       .join(" · ")}
                   </p>
                 )}
-                <p className="mt-2 text-xs text-[#e6c47a]">
+                <p className="mt-2 text-xs text-[#fdf0d5]">
                   {incomplete ? "Continue onboarding →" : "Open project →"}
                 </p>
               </Link>

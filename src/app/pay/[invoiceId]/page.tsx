@@ -90,7 +90,7 @@ export default async function PayPage({
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0c0c0c] px-4 text-[#f2efe8]">
       <div className="w-full max-w-md border border-white/10 bg-[#141414] p-8">
-        <p className="text-xs uppercase tracking-[0.2em] text-[#e6c47a]">Ryan Tang</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[#fdf0d5]">Ryan Tang</p>
         <h1 className="mt-2 font-[family-name:var(--font-syne)] text-2xl font-bold">
           Invoice {inv.invoiceNumber}
         </h1>

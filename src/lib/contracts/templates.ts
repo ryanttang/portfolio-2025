@@ -2,12 +2,31 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { contractTemplates } from "@/db/schema";
 import { buildContractDraft } from "@/lib/contracts/merge";
+import { getDefaultContent } from "@/lib/content/defaults";
+import type { ServicesTermsContent } from "@/lib/content/schemas";
+import {
+  applyServicesTermsToTemplate,
+  type TermsTemplateKind,
+} from "@/lib/terms/shared";
 
 export { buildContractDraft };
 
-export type ContractTemplateKind = "project" | "retainer" | "consulting";
+export type ContractTemplateKind = TermsTemplateKind;
 
 export type ContractTemplateRow = typeof contractTemplates.$inferSelect;
+
+function defaultServicesTerms(): ServicesTermsContent {
+  return getDefaultContent("services_terms") as ServicesTermsContent;
+}
+
+function seededTerms(kind: ContractTemplateKind): {
+  terms: string[];
+  paymentNotes: string | null;
+} {
+  const applied = applyServicesTermsToTemplate(kind, defaultServicesTerms());
+  if (applied) return applied;
+  return { terms: [], paymentNotes: null };
+}
 
 const PROJECT_BODY = `SERVICE AGREEMENT
 
@@ -120,6 +139,9 @@ Provider: _______________________________    Date: ____________
 Client: _________________________________    Date: ____________
 {{name}}`;
 
+const PROJECT_SEEDED = seededTerms("project");
+const RETAINER_SEEDED = seededTerms("retainer");
+
 export const DEFAULT_CONTRACT_TEMPLATES: {
   name: string;
   slug: string;
@@ -135,14 +157,8 @@ export const DEFAULT_CONTRACT_TEMPLATES: {
     kind: "project",
     titleTemplate: "Service Agreement — {{company}}",
     bodyTemplate: PROJECT_BODY,
-    terms: [
-      "Two revision rounds included; additional revisions billed separately",
-      "Client delays may shift the delivery timeline",
-      "Out-of-scope requests require a change order",
-      "Rush projects carry a 25–50% premium",
-    ],
-    paymentNotes:
-      "Projects under ~$10k: 50% to begin, 25% after design approval, 25% before launch.\nSmaller projects: 50% / 50%.",
+    terms: PROJECT_SEEDED.terms,
+    paymentNotes: PROJECT_SEEDED.paymentNotes,
   },
   {
     name: "Retainer Agreement",
@@ -150,15 +166,8 @@ export const DEFAULT_CONTRACT_TEMPLATES: {
     kind: "retainer",
     titleTemplate: "Retainer Agreement — {{company}}",
     bodyTemplate: RETAINER_BODY,
-    terms: [
-      "Paid at the beginning of each month",
-      "Three-month initial commitment",
-      "Defined monthly capacity",
-      "Unused capacity expires",
-      "Additional work billed at $150/hour or quoted separately",
-      "30-day cancellation notice after the initial term",
-    ],
-    paymentNotes: null,
+    terms: RETAINER_SEEDED.terms,
+    paymentNotes: RETAINER_SEEDED.paymentNotes,
   },
   {
     name: "Consulting Agreement",
@@ -166,6 +175,7 @@ export const DEFAULT_CONTRACT_TEMPLATES: {
     kind: "consulting",
     titleTemplate: "Consulting Agreement — {{company}}",
     bodyTemplate: CONSULTING_BODY,
+    // Consulting has no CMS block; keep engagement-specific bullets here.
     terms: [
       "Up to six hours of consulting",
       "Marketing and digital ecosystem review",

@@ -16,7 +16,7 @@ export default async function InboxTemplatesPage() {
       <p className="mt-1 text-sm text-white/50">
         Presets ship ready to use. Duplicate a preset or create a custom template with merge
         fields like {"{{first_name}}"}. Edit the shared header and signature in{" "}
-        <Link href="/admin/settings" className="text-[#e6c47a] hover:underline">
+        <Link href="/admin/settings" className="text-[#fdf0d5] hover:underline">
           Settings
         </Link>
         .

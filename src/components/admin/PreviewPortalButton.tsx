@@ -5,7 +5,7 @@ export default function PreviewPortalButton({
   onboardingId,
   returnPath,
   label = "Preview",
-  className = "border border-[#e6c47a]/50 px-3 py-1.5 text-xs text-[#e6c47a]",
+  className = "border border-[#fdf0d5]/50 px-3 py-1.5 text-xs text-[#fdf0d5]",
 }: {
   clientId: string;
   onboardingId?: string;

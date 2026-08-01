@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { sendContractAction, voidContractAction } from "@/app/admin/actions/contracts";
@@ -37,10 +38,18 @@ export default function ContractActions({
         <button
           type="button"
           onClick={send}
-          className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+          className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
         >
           Send for signature
         </button>
+      )}
+      {status !== "void" && (
+        <Link
+          href={`/admin/invoices/new?contractId=${id}`}
+          className="border border-[#fdf0d5]/50 px-3 py-1.5 text-xs text-[#fdf0d5]"
+        >
+          Create invoice
+        </Link>
       )}
       {status !== "void" && status !== "signed" && (
         <button type="button" onClick={voidC} className="border border-white/20 px-3 py-1.5 text-xs">
@@ -60,7 +69,7 @@ export default function ContractActions({
           href={signedPdfUrl}
           target="_blank"
           rel="noreferrer"
-          className="border border-white/20 px-3 py-1.5 text-xs text-[#e6c47a]"
+          className="border border-white/20 px-3 py-1.5 text-xs text-[#fdf0d5]"
         >
           Download signed PDF
         </a>

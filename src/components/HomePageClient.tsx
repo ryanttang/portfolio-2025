@@ -32,6 +32,7 @@ const modalCloseBtn =
 const modalCloseBtnDark =
   "absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full text-xl sm:text-2xl text-white hover:text-gray-300 hover:bg-white/10 transition";
 import VantaRingsBackground from "@/components/VantaRingsBackground";
+import DevProjectsModal from "@/components/DevProjectsModal";
 import { useSpring, a } from '@react-spring/three';
 import { FaLinkedin, FaGithub, FaEnvelope, FaFileAlt } from "react-icons/fa";
 
@@ -41,7 +42,7 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
   const [shape, setShape] = React.useState<'sphere'|'box'|'torus'|'cone'|'octahedron'>('sphere');
   const [mouse, setMouse] = React.useState<{x: number, y: number} | null>(null);
   const [gradient] = useState([
-    '#e6c47a', '#00c3ff', '#f5f5f5', '#232323', '#ff6f61', '#6a82fb', '#fc5c7d', '#43cea2', '#185a9d', '#f7971e'
+    '#fdf0d5', '#00c3ff', '#f5f5f5', '#232323', '#ff6f61', '#6a82fb', '#fc5c7d', '#43cea2', '#185a9d', '#f7971e'
   ]);
   const [, setGradientIdx] = useState(0);
   const [color, setColor] = useState(gradient[0]);
@@ -141,11 +142,11 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
             fontSize: 'clamp(12px, 2.5vw, 14px)',
             letterSpacing: '0.12em',
             color: '#fff',
-            textShadow: '0 2px 8px #18181b, 0 0 2px #e6c47a',
+            textShadow: '0 2px 8px #18181b, 0 0 2px #fdf0d5',
             background: 'rgba(24,24,27,0.92)',
             padding: '4px 14px',
             borderRadius: 14,
-            border: '1.5px solid #e6c47a',
+            border: '1.5px solid #fdf0d5',
             fontFamily: 'Syne, Space Grotesk, sans-serif',
             textTransform: 'uppercase',
             transition: 'opacity 0.5s cubic-bezier(.4,0,.2,1)',
@@ -164,7 +165,7 @@ function FloatingSphere({ onClick }: { onClick?: () => void }) {
           zIndex: 2,
           cursor: 'pointer',
           transition: 'transform 0.2s cubic-bezier(.4,0,.2,1)',
-          filter: 'drop-shadow(0 0 32px #e6c47a88) drop-shadow(0 0 16px #00c3ff88)',
+          filter: 'drop-shadow(0 0 32px #fdf0d588) drop-shadow(0 0 16px #00c3ff88)',
         }}
         title="About Me"
         onClick={onClick}
@@ -450,7 +451,7 @@ export default function HomePageClient() {
         vantaEffect.current = window.VANTA.RINGS({
           el: vantaRef.current,
           backgroundColor: 0x18181b,
-          color: 0xe6c47a,
+          color: 0xfdf0d5,
           ringColor: 0xf5f5f5,
           shadowColor: 0x232323,
           speed: 0.8,
@@ -490,7 +491,7 @@ export default function HomePageClient() {
   // 1. RYANTANG heading: solid white, larger, 3D effect
   const headingStyle = {
     color: '#fff',
-    textShadow: '0 4px 32px #232323cc, 0 1.5px 0 #e6c47a, 0 0.5px 0 #00c3ff',
+    textShadow: '0 4px 32px #232323cc, 0 1.5px 0 #fdf0d5, 0 0.5px 0 #00c3ff',
     zIndex: 1,
     letterSpacing: '0.15em',
     lineHeight: 1.1,
@@ -501,7 +502,7 @@ export default function HomePageClient() {
   const headingVariants = {
     initial: { scale: 1, rotate: 0 },
     animate: { scale: 1, rotate: 0, transition: { type: 'spring' as const, stiffness: 200, damping: 20 } },
-    hover: { scale: 1.03, y: -4, textShadow: '0 8px 48px #e6c47a99, 0 2px 0 #00c3ff', transition: { duration: 0.3 } },
+    hover: { scale: 1.03, y: -4, textShadow: '0 8px 48px #fdf0d599, 0 2px 0 #00c3ff', transition: { duration: 0.3 } },
   };
 
   // 2. Button style: 3D look as default, glow and enlarge on hover
@@ -513,9 +514,9 @@ export default function HomePageClient() {
     }),
     hover: {
       scale: 1.09,
-      boxShadow: '0 0 0 8px #e6c47a44, 0 8px 32px #00c3ff33, 0 2px 8px #fff2, 0 4px 18px #e6c47a99',
-      borderColor: '#e6c47a',
-      background: 'linear-gradient(90deg, #232323 60%, #e6c47a22 100%)',
+      boxShadow: '0 0 0 8px #fdf0d544, 0 8px 32px #00c3ff33, 0 2px 8px #fff2, 0 4px 18px #fdf0d599',
+      borderColor: '#fdf0d5',
+      background: 'linear-gradient(90deg, #232323 60%, #fdf0d522 100%)',
       transition: { duration: 0.18 },
     },
     tap: { scale: 0.97, boxShadow: '0 2px 8px #0003' },
@@ -528,8 +529,8 @@ export default function HomePageClient() {
       {/* Play Tetris Button - fixed bottom right, circular and unique style */}
       <button
         onClick={handleTetrisOpen}
-        className="fixed bottom-20 right-2 sm:bottom-24 sm:right-8 z-[200] w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#18181b] border-4 border-[#e6c47a] flex items-center justify-center shadow-xl hover:bg-[#e6c47a] hover:text-black transition group"
-        style={{ boxShadow: '0 4px 24px #e6c47a55', fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', cursor: 'pointer' }}
+        className="fixed bottom-20 right-2 sm:bottom-24 sm:right-8 z-[200] w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#18181b] border-4 border-[#fdf0d5] flex items-center justify-center shadow-xl hover:bg-[#fdf0d5] hover:text-black transition group"
+        style={{ boxShadow: '0 4px 24px #fdf0d555', fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', cursor: 'pointer' }}
         title="Play Tetris!"
         onMouseEnter={() => { setHover(true); randomizeBlock(); }}
         onMouseLeave={() => setHover(false)}
@@ -548,11 +549,11 @@ export default function HomePageClient() {
               fontSize: 14,
               letterSpacing: '0.12em',
               color: '#fff',
-              textShadow: '0 2px 8px #18181b, 0 0 2px #e6c47a',
+              textShadow: '0 2px 8px #18181b, 0 0 2px #fdf0d5',
               background: 'rgba(24,24,27,0.92)',
               padding: '4px 14px',
               borderRadius: 14,
-              border: '1.5px solid #e6c47a',
+              border: '1.5px solid #fdf0d5',
               fontFamily: 'Syne, Space Grotesk, sans-serif',
               textTransform: 'uppercase',
               transition: 'opacity 0.5s cubic-bezier(.4,0,.2,1)',
@@ -609,16 +610,16 @@ export default function HomePageClient() {
         </motion.h1>
         {/* Social Icons Row */}
         <div className="w-full flex justify-center items-center gap-4 sm:gap-6 mt-4 mb-2 text-white">
-          <a href="https://linkedin.com/in/rttang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="https://linkedin.com/in/rttang" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#fdf0d5] transition text-2xl sm:text-3xl">
             <FaLinkedin />
           </a>
-          <a href="https://github.com/ryanttang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="https://github.com/ryanttang" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#fdf0d5] transition text-2xl sm:text-3xl">
             <FaGithub />
           </a>
-          <a href="mailto:tangs.email@gmail.com" aria-label="Email" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="mailto:tangs.email@gmail.com" aria-label="Email" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#fdf0d5] transition text-2xl sm:text-3xl">
             <FaEnvelope />
           </a>
-          <a href="/RyanTangResume2025.png" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#e6c47a] transition text-2xl sm:text-3xl">
+          <a href="/RyanTangResume2025.png" target="_blank" rel="noopener noreferrer" aria-label="Resume" className="inline-flex items-center justify-center size-11 shrink-0 hover:text-[#fdf0d5] transition text-2xl sm:text-3xl">
             <FaFileAlt />
           </a>
         </div>
@@ -632,11 +633,11 @@ export default function HomePageClient() {
             animate="animate"
             whileHover="hover"
             whileTap="tap"
-            className="rounded-full px-4 sm:px-7 py-2 sm:py-3 font-bold text-base sm:text-lg tracking-wide border-2 border-[#e6c47a]/70 bg-[#18181b]/70 backdrop-blur-md text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 relative overflow-hidden cursor-pointer"
+            className="rounded-full px-4 sm:px-7 py-2 sm:py-3 font-bold text-base sm:text-lg tracking-wide border-2 border-[#fdf0d5]/70 bg-[#18181b]/70 backdrop-blur-md text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-[#fdf0d5] focus:ring-offset-2 relative overflow-hidden cursor-pointer"
             style={{
-              boxShadow: '0 4px 18px #e6c47a33, 0 1.5px 0 #e6c47a, 0 0 0 2px #00c3ff22, 0 2px 8px #fff2',
-              border: '2px solid #e6c47a',
-              background: 'linear-gradient(90deg, #232323 60%, #e6c47a22 100%)',
+              boxShadow: '0 4px 18px #fdf0d533, 0 1.5px 0 #fdf0d5, 0 0 0 2px #00c3ff22, 0 2px 8px #fff2',
+              border: '2px solid #fdf0d5',
+              background: 'linear-gradient(90deg, #232323 60%, #fdf0d522 100%)',
               color: '#f5f5f5',
               transition: 'box-shadow 0.18s, border-color 0.18s, background 0.18s',
               borderRadius: 9999,
@@ -654,11 +655,11 @@ export default function HomePageClient() {
             animate="animate"
             whileHover="hover"
             whileTap="tap"
-            className="rounded-full px-4 sm:px-7 py-2 sm:py-3 font-bold text-base sm:text-lg tracking-wide border-2 border-[#e6c47a]/70 bg-[#18181b]/70 backdrop-blur-md text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 relative overflow-hidden cursor-pointer"
+            className="rounded-full px-4 sm:px-7 py-2 sm:py-3 font-bold text-base sm:text-lg tracking-wide border-2 border-[#fdf0d5]/70 bg-[#18181b]/70 backdrop-blur-md text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-[#fdf0d5] focus:ring-offset-2 relative overflow-hidden cursor-pointer"
             style={{
-              boxShadow: '0 4px 18px #e6c47a33, 0 1.5px 0 #e6c47a, 0 0 0 2px #00c3ff22, 0 2px 8px #fff2',
-              border: '2px solid #e6c47a',
-              background: 'linear-gradient(90deg, #232323 60%, #e6c47a22 100%)',
+              boxShadow: '0 4px 18px #fdf0d533, 0 1.5px 0 #fdf0d5, 0 0 0 2px #00c3ff22, 0 2px 8px #fff2',
+              border: '2px solid #fdf0d5',
+              background: 'linear-gradient(90deg, #232323 60%, #fdf0d522 100%)',
               color: '#f5f5f5',
               transition: 'box-shadow 0.18s, border-color 0.18s, background 0.18s',
               borderRadius: 9999,
@@ -676,11 +677,11 @@ export default function HomePageClient() {
             animate="animate"
             whileHover="hover"
             whileTap="tap"
-            className="rounded-full px-4 sm:px-7 py-2 sm:py-3 font-bold text-base sm:text-lg tracking-wide border-2 border-[#e6c47a]/70 bg-[#18181b]/70 backdrop-blur-md text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 relative overflow-hidden cursor-pointer"
+            className="rounded-full px-4 sm:px-7 py-2 sm:py-3 font-bold text-base sm:text-lg tracking-wide border-2 border-[#fdf0d5]/70 bg-[#18181b]/70 backdrop-blur-md text-[#f5f5f5] focus:outline-none focus:ring-2 focus:ring-[#fdf0d5] focus:ring-offset-2 relative overflow-hidden cursor-pointer"
             style={{
-              boxShadow: '0 4px 18px #e6c47a33, 0 1.5px 0 #e6c47a, 0 0 0 2px #00c3ff22, 0 2px 8px #fff2',
-              border: '2px solid #e6c47a',
-              background: 'linear-gradient(90deg, #232323 60%, #e6c47a22 100%)',
+              boxShadow: '0 4px 18px #fdf0d533, 0 1.5px 0 #fdf0d5, 0 0 0 2px #00c3ff22, 0 2px 8px #fff2',
+              border: '2px solid #fdf0d5',
+              background: 'linear-gradient(90deg, #232323 60%, #fdf0d522 100%)',
               color: '#f5f5f5',
               transition: 'box-shadow 0.18s, border-color 0.18s, background 0.18s',
               borderRadius: 9999,
@@ -723,63 +724,7 @@ export default function HomePageClient() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className={`fixed inset-0 ${MODAL_Z} flex items-center justify-center bg-black/70 p-4`} onClick={handleDevModalClose}>
-              <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-full sm:max-w-md w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
-                <button onClick={handleDevModalClose} className={modalCloseBtn}>✕</button>
-                <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Development Projects</h2>
-                <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" style={{ minHeight: '4px', height: '4px' }} />
-                <div className="flex flex-col gap-6 w-full">
-                  <div className="flex flex-col items-center w-full">
-                    {/* Screenshot for Cannagrab.App */}
-                    <img
-                      src="/cannagrab-screen.png"
-                      alt="Cannagrab.App Screenshot"
-                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
-                    />
-                    <a href="https://cannagrab.app" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">Cannagrab.App</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis Brands Logo Search & Bulk Downloader</span>
-                  </div>
-                  <div className="flex flex-col items-center w-full">
-                    {/* Screenshot for fivetwentyfour studios landing page */}
-                    <img
-                      src="/524-screen.png"
-                      alt="fivetwentyfour studios landing page Screenshot"
-                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
-                    />
-                    <a href="https://fivetwentyfour.studios" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">fivetwentyfour studios</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Creative studio showcase and business landing page</span>
-                  </div>
-                  <div className="flex flex-col items-center w-full">
-                    {/* Screenshot for DJ tangleton EPK */}
-                    <img
-                      src="/tangleton-screen.png"
-                      alt="DJ tangleton EPK Screenshot"
-                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
-                    />
-                    <a href="https://tangleton.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">DJ tangleton EPK</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Electronic Press Kit and music showcase</span>
-                  </div>
-                  <div className="flex flex-col items-center w-full">
-                    <img
-                      src="/catalystsocialclub-screen.png"
-                      alt="Catalyst Social Club Screenshot"
-                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
-                    />
-                    <a href="https://catalystsocialclub.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">Catalyst Social Club</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis lounge events and event space in Hawthorne, CA</span>
-                  </div>
-                  <div className="flex flex-col items-center w-full">
-                    <img
-                      src="/thcmembersonlyclub-screen.png"
-                      alt="THC Members Only Club Screenshot"
-                      className="w-full aspect-[16/9] rounded-lg mb-3 object-cover"
-                    />
-                    <a href="https://thcmembersonlyclub.com" target="_blank" rel="noopener noreferrer" className="w-full px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#18181b] text-[#e6c47a] font-bold text-base sm:text-lg shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">THC Members Only Club</a>
-                    <span className="text-xs sm:text-sm text-gray-700 mt-2 text-center">Cannabis events calendar and community platform</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <DevProjectsModal onClose={handleDevModalClose} />
           </motion.div>
         )}
         {showRetailModal && (
@@ -793,21 +738,21 @@ export default function HomePageClient() {
               <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 max-w-full sm:max-w-2xl w-full flex flex-col items-center overflow-y-auto" style={{ maxHeight: '90vh' }} onClick={e => e.stopPropagation()}>
                 <button onClick={handleRetailModalClose} className={modalCloseBtn}>✕</button>
                 <h2 className="text-xl sm:text-2xl font-extrabold mb-2 text-[#18181b] tracking-widest uppercase text-center">Retail & Ecommerce</h2>
-                <div className="w-12 h-1 bg-[#e6c47a] rounded-full mb-6 mx-auto" />
+                <div className="w-12 h-1 bg-[#fdf0d5] rounded-full mb-6 mx-auto" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 w-full">
                   {/* Clients & Professional */}
                   <div>
                     <h3 className="text-base sm:text-lg font-bold mb-4 text-[#18181b] text-center md:text-left">Clients & Professional</h3>
                     <div className="flex flex-col gap-3 sm:gap-4">
-                      <a href="https://culturecannabisclub.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                      <a href="https://culturecannabisclub.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#fdf0d5] font-semibold shadow hover:bg-[#fdf0d5] hover:text-black border-2 border-[#fdf0d5] transition text-center">
                         <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
                         <span className="flex-1 text-left text-sm sm:text-base">Culture Cannabis Club</span>
                       </a>
-                      <a href="https://catalyst-cannabis.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                      <a href="https://catalyst-cannabis.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#fdf0d5] font-semibold shadow hover:bg-[#fdf0d5] hover:text-black border-2 border-[#fdf0d5] transition text-center">
                         <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
                         <span className="flex-1 text-left text-sm sm:text-base">Catalyst Cannabis Co</span>
                       </a>
-                      <a href="https://traditonal.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                      <a href="https://traditonal.com" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#fdf0d5] font-semibold shadow hover:bg-[#fdf0d5] hover:text-black border-2 border-[#fdf0d5] transition text-center">
                         <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
                         <span className="flex-1 text-left text-sm sm:text-base">Traditional Cannabis Co</span>
                       </a>
@@ -817,11 +762,11 @@ export default function HomePageClient() {
                   <div>
                     <h3 className="text-base sm:text-lg font-bold mb-4 text-[#18181b] text-center md:text-left">Personal</h3>
                     <div className="flex flex-col gap-3 sm:gap-4">
-                      <a href="https://thegoodiesvault.store" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                      <a href="https://thegoodiesvault.store" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#fdf0d5] font-semibold shadow hover:bg-[#fdf0d5] hover:text-black border-2 border-[#fdf0d5] transition text-center">
                         <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
                         <span className="flex-1 text-left text-sm sm:text-base">The Goodies Vault</span>
                       </a>
-                      <a href="https://thebusinessvault.store" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#e6c47a] font-semibold shadow hover:bg-[#e6c47a] hover:text-black border-2 border-[#e6c47a] transition text-center">
+                      <a href="https://thebusinessvault.store" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-full bg-[#18181b] text-[#fdf0d5] font-semibold shadow hover:bg-[#fdf0d5] hover:text-black border-2 border-[#fdf0d5] transition text-center">
                         <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-500 font-bold text-sm sm:text-lg">🏷️</span>
                         <span className="flex-1 text-left text-sm sm:text-base">The Business Vault</span>
                       </a>
@@ -847,12 +792,12 @@ export default function HomePageClient() {
         transition={{ delay: 1, duration: 0.5 }}
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed bottom-20 left-4 z-[200] inline-flex items-center justify-center px-3 py-2 rounded-full font-semibold text-sm border border-[#e6c47a]/50 bg-[#18181b]/80 backdrop-blur-md text-[#e6c47a] hover:text-[#18181b] hover:bg-[#e6c47a]/90 focus:outline-none focus:ring-2 focus:ring-[#e6c47a] focus:ring-offset-2 transition-all duration-200 shadow-lg"
+        className="fixed bottom-20 left-4 z-[200] inline-flex items-center justify-center px-3 py-2 rounded-full font-semibold text-sm border border-[#fdf0d5]/50 bg-[#18181b]/80 backdrop-blur-md text-[#fdf0d5] hover:text-[#18181b] hover:bg-[#fdf0d5]/90 focus:outline-none focus:ring-2 focus:ring-[#fdf0d5] focus:ring-offset-2 transition-all duration-200 shadow-lg"
         style={{
-          boxShadow: '0 2px 12px #e6c47a22, 0 1px 0 #e6c47a33',
-          border: '1px solid #e6c47a',
-          background: 'linear-gradient(90deg, #232323 80%, #e6c47a11 100%)',
-          color: '#e6c47a',
+          boxShadow: '0 2px 12px #fdf0d522, 0 1px 0 #fdf0d533',
+          border: '1px solid #fdf0d5',
+          background: 'linear-gradient(90deg, #232323 80%, #fdf0d511 100%)',
+          color: '#fdf0d5',
           transition: 'box-shadow 0.2s, border-color 0.2s, background 0.2s',
           borderRadius: 9999,
           fontSize: '0.875rem',

@@ -126,7 +126,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
       <div className="border border-white/10 bg-[#141414]">
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
           <span className="text-xs uppercase tracking-wider text-white/40">Templates</span>
-          <button type="button" onClick={startNew} className="text-xs text-[#e6c47a]">
+          <button type="button" onClick={startNew} className="text-xs text-[#fdf0d5]">
             New
           </button>
         </div>
@@ -167,7 +167,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
               <button
                 type="button"
                 onClick={() => setShowPreview(true)}
-                className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#e6c47a]"
+                className="border border-white/15 px-2.5 py-1 text-xs text-white/60 hover:text-[#fdf0d5]"
               >
                 Preview
               </button>
@@ -227,7 +227,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
                 <button
                   type="button"
                   onClick={duplicate}
-                  className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+                  className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
                 >
                   Duplicate to customize
                 </button>
@@ -237,7 +237,7 @@ export default function TemplatesAdmin({ templates }: { templates: TemplateRow[]
                 <button
                   type="button"
                   onClick={save}
-                  className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+                  className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
                 >
                   Save
                 </button>

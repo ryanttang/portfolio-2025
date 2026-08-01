@@ -55,7 +55,7 @@ export default async function InboxPage({
           </p>
         </div>
         {totalUnread > 0 && (
-          <p className="rounded-full bg-[#e6c47a] px-3 py-1 text-xs font-semibold text-black">
+          <p className="rounded-full bg-[#fdf0d5] px-3 py-1 text-xs font-semibold text-black">
             {totalUnread} unread
           </p>
         )}

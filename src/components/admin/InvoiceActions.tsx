@@ -44,7 +44,7 @@ export default function InvoiceActions({
         <button
           type="button"
           onClick={send}
-          className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+          className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
         >
           Email invoice
         </button>

@@ -69,7 +69,7 @@ export default function AgreementSigningStep({ session }: { session: Session }) 
   if (status === "done") {
     return (
       <div className="py-16 text-center">
-        <p className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#e6c47a]">
+        <p className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#fdf0d5]">
           Agreement signed
         </p>
         <p className="mt-2 text-sm text-white/60">
@@ -82,7 +82,7 @@ export default function AgreementSigningStep({ session }: { session: Session }) 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-[#e6c47a]">Ryan Tang</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[#fdf0d5]">Ryan Tang</p>
         <h1 className="mt-2 font-[family-name:var(--font-syne)] text-2xl font-bold">
           {session.title}
         </h1>
@@ -121,14 +121,14 @@ export default function AgreementSigningStep({ session }: { session: Session }) 
           <button
             type="button"
             onClick={() => setSignatureTab("draw")}
-            className={`px-3 py-1 ${signatureTab === "draw" ? "bg-white/15 text-[#e6c47a]" : "text-white/50"}`}
+            className={`px-3 py-1 ${signatureTab === "draw" ? "bg-white/15 text-[#fdf0d5]" : "text-white/50"}`}
           >
             Draw
           </button>
           <button
             type="button"
             onClick={() => setSignatureTab("type")}
-            className={`px-3 py-1 ${signatureTab === "type" ? "bg-white/15 text-[#e6c47a]" : "text-white/50"}`}
+            className={`px-3 py-1 ${signatureTab === "type" ? "bg-white/15 text-[#fdf0d5]" : "text-white/50"}`}
           >
             Type
           </button>
@@ -171,7 +171,7 @@ export default function AgreementSigningStep({ session }: { session: Session }) 
         type="button"
         disabled={!canSubmit}
         onClick={handleSign}
-        className="w-full bg-[#e6c47a] px-4 py-3 text-sm font-semibold text-black disabled:opacity-40"
+        className="w-full bg-[#fdf0d5] px-4 py-3 text-sm font-semibold text-black disabled:opacity-40"
       >
         {status === "submitting" ? "Signing…" : "Sign agreement"}
       </button>

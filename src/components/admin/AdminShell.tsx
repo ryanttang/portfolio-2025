@@ -22,6 +22,7 @@ const SECTIONS: NavSection[] = [
     label: "Manage Site",
     items: [
       { href: "/admin/content", label: "Content" },
+      { href: "/admin/hello", label: "Hello" },
       { href: "/admin/traffic", label: "Traffic" },
     ],
   },
@@ -65,11 +66,11 @@ function NavLink({
       className={
         compact
           ? `inline-flex items-center gap-1.5 whitespace-nowrap rounded px-2.5 py-1.5 text-xs ${
-              active ? "bg-white/10 text-[#e6c47a]" : "text-white/60"
+              active ? "bg-white/10 text-[#fdf0d5]" : "text-white/60"
             }`
           : `flex items-center justify-between gap-2 rounded px-3 py-2 text-sm transition ${
               active
-                ? "bg-white/10 text-[#e6c47a]"
+                ? "bg-white/10 text-[#fdf0d5]"
                 : "text-white/70 hover:bg-white/5 hover:text-white"
             }`
       }
@@ -79,8 +80,8 @@ function NavLink({
         <span
           className={
             compact
-              ? "rounded-full bg-[#e6c47a] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-black"
-              : "min-w-[1.25rem] rounded-full bg-[#e6c47a] px-1.5 py-0.5 text-center text-[10px] font-semibold leading-none text-black"
+              ? "rounded-full bg-[#fdf0d5] px-1.5 py-0.5 text-[10px] font-semibold leading-none text-black"
+              : "min-w-[1.25rem] rounded-full bg-[#fdf0d5] px-1.5 py-0.5 text-center text-[10px] font-semibold leading-none text-black"
           }
           aria-label={`${unreadCount} unread emails`}
         >
@@ -109,7 +110,7 @@ export default function AdminShell({
       <div className="flex min-h-screen">
         <aside className="hidden w-56 shrink-0 border-r border-white/10 bg-[#111] p-5 md:flex md:flex-col">
           <div className="mb-8">
-            <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#e6c47a]">
+            <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
               Ryan Tang
             </p>
             <h1 className="mt-1 font-[family-name:var(--font-syne)] text-lg font-bold tracking-wide">

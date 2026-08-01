@@ -12,7 +12,7 @@ import {
   Text,
 } from "@react-email/components";
 
-const DEFAULT_GOLD = "#e6c47a";
+const DEFAULT_GOLD = "#fdf0d5";
 const INK = "#171717";
 const MUTED = "#6b6560";
 const BG = "#f4f2ed";

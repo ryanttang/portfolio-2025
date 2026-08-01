@@ -1,7 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { updateContractTemplateAction } from "@/app/admin/actions/contracts";
+import {
+  loadServicesTermsOntoTemplateAction,
+  updateContractTemplateAction,
+} from "@/app/admin/actions/contracts";
+import TermsListEditor from "@/components/admin/TermsListEditor";
 import { CONTRACT_MERGE_FIELD_OPTIONS } from "@/lib/contracts/merge";
 
 export type TemplateListItem = {
@@ -42,7 +47,7 @@ export default function ContractTemplatesAdmin({
                 onClick={() => setActiveId(t.id)}
                 className={`w-full px-2 py-2 text-left text-sm ${
                   t.id === active.id
-                    ? "bg-[#e6c47a]/15 text-[#e6c47a]"
+                    ? "bg-[#fdf0d5]/15 text-[#fdf0d5]"
                     : "text-white/70 hover:bg-white/[0.04]"
                 }`}
               >
@@ -83,7 +88,10 @@ function TemplateEditor({
   );
   const [paymentNotes, setPaymentNotes] = useState(template.paymentNotes || "");
   const [saving, setSaving] = useState(false);
+  const [loadingTerms, setLoadingTerms] = useState(false);
   const [msg, setMsg] = useState("");
+
+  const canLoadFromServices = kind === "project" || kind === "retainer";
 
   async function save() {
     setSaving(true);
@@ -114,13 +122,41 @@ function TemplateEditor({
     }
   }
 
+  async function loadFromServices() {
+    setLoadingTerms(true);
+    setMsg("");
+    try {
+      const result = await loadServicesTermsOntoTemplateAction(template.id);
+      setTerms(result.terms);
+      setPaymentNotes(result.paymentNotes || "");
+      onSaved({
+        ...template,
+        name,
+        kind,
+        titleTemplate,
+        bodyTemplate,
+        terms: result.terms,
+        paymentNotes: result.paymentNotes,
+      });
+      setMsg("Loaded terms from Services terms.");
+    } catch (err) {
+      setMsg(err instanceof Error ? err.message : "Could not load terms");
+    } finally {
+      setLoadingTerms(false);
+    }
+  }
+
   return (
     <div className="space-y-4 border border-white/10 bg-[#141414] p-4">
       <div>
         <h2 className="text-sm font-semibold">{template.name}</h2>
         <p className="mt-1 text-xs text-white/40">
           Edit the standard agreement. Use merge tokens — they fill from CRM when you create a
-          contract.
+          contract. Shared term bullets live under{" "}
+          <Link href="/admin/contracts/terms" className="text-[#fdf0d5] hover:underline">
+            Terms
+          </Link>
+          .
         </p>
       </div>
 
@@ -142,7 +178,7 @@ function TemplateEditor({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
           />
         </label>
         <label className="block text-xs uppercase tracking-wider text-white/40">
@@ -150,7 +186,7 @@ function TemplateEditor({
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value)}
-            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
           >
             <option value="project">Project</option>
             <option value="retainer">Retainer</option>
@@ -163,54 +199,49 @@ function TemplateEditor({
             <input
               value={titleTemplate}
               onChange={(e) => setTitleTemplate(e.target.value)}
-              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
             />
           </label>
         </div>
       </div>
 
       <div className="border-t border-white/10 pt-4">
-        <h3 className="text-xs uppercase tracking-wider text-white/40">Terms</h3>
-        <p className="mt-1 text-[10px] text-white/30">
-          Injected into the body wherever you place {"{{terms}}"}.
-        </p>
-        <div className="mt-3 space-y-2">
-          {terms.map((t, i) => (
-            <div key={i} className="flex gap-2">
-              <input
-                value={t}
-                onChange={(e) => {
-                  const next = [...terms];
-                  next[i] = e.target.value;
-                  setTerms(next);
-                }}
-                className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#e6c47a]"
-              />
-              <button
-                type="button"
-                onClick={() => setTerms(terms.filter((_, idx) => idx !== i))}
-                className="shrink-0 px-2 text-xs text-white/35 hover:text-red-400"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-xs uppercase tracking-wider text-white/40">Terms</h3>
+            <p className="mt-1 text-[10px] text-white/30">
+              Injected into the body wherever you place {"{{terms}}"}.
+            </p>
+          </div>
+          {canLoadFromServices && (
+            <button
+              type="button"
+              onClick={() => void loadFromServices()}
+              disabled={loadingTerms || saving}
+              className="border border-white/15 px-2.5 py-1 text-[11px] text-white/70 hover:text-[#fdf0d5] disabled:opacity-50"
+            >
+              {loadingTerms ? "Loading…" : "Load from Services terms"}
+            </button>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={() => setTerms([...terms, ""])}
-          className="mt-2 text-xs text-[#e6c47a] hover:underline"
-        >
-          + Add term
-        </button>
+        <div className="mt-3">
+          <TermsListEditor
+            label=""
+            values={terms}
+            onChange={setTerms}
+          />
+        </div>
         <label className="mt-4 block text-xs uppercase tracking-wider text-white/40">
           Payment notes (optional)
           <textarea
             value={paymentNotes}
             onChange={(e) => setPaymentNotes(e.target.value)}
             rows={3}
-            className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+            className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
           />
+          <span className="mt-1 block text-[10px] normal-case tracking-normal text-white/30">
+            Becomes the contract payment schedule snapshot used when creating invoices.
+          </span>
         </label>
       </div>
 
@@ -222,7 +253,7 @@ function TemplateEditor({
             onChange={(e) => setBodyTemplate(e.target.value)}
             rows={18}
             spellCheck={false}
-            className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 font-mono text-xs normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+            className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 font-mono text-xs normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
           />
         </label>
       </div>
@@ -231,8 +262,8 @@ function TemplateEditor({
         <button
           type="button"
           onClick={save}
-          disabled={saving}
-          className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+          disabled={saving || loadingTerms}
+          className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save template"}
         </button>

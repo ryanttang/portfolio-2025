@@ -23,7 +23,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     pathname?.startsWith("/portal") ||
     pathname?.startsWith("/sign") ||
     pathname?.startsWith("/pay");
-  const showMotionBg = !isBare && pathname !== "/services";
+  const showMotionBg =
+    !isBare && pathname !== "/services" && pathname !== "/hello";
   // Use a ref to persist loading state across navigations
   const hasLoadedRef = useRef(false);
   const [loading, setLoading] = useState(() => !isBare && !hasLoadedRef.current);

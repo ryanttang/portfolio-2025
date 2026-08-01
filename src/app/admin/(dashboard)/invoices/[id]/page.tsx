@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { invoiceLineItems, invoices } from "@/db/schema";
+import { contracts, invoiceLineItems, invoices } from "@/db/schema";
 import { getAppUrl } from "@/lib/env";
 import InvoiceActions from "@/components/admin/InvoiceActions";
 
@@ -14,10 +14,17 @@ export default async function InvoiceDetailPage({
   const { id } = await params;
   const [inv] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
   if (!inv) notFound();
-  const lines = await db
-    .select()
-    .from(invoiceLineItems)
-    .where(eq(invoiceLineItems.invoiceId, id));
+  const [lines, linkedContract] = await Promise.all([
+    db.select().from(invoiceLineItems).where(eq(invoiceLineItems.invoiceId, id)),
+    inv.contractId
+      ? db
+          .select({ id: contracts.id, title: contracts.title })
+          .from(contracts)
+          .where(eq(contracts.id, inv.contractId))
+          .limit(1)
+          .then((rows) => rows[0] || null)
+      : Promise.resolve(null),
+  ]);
 
   return (
     <div>
@@ -31,12 +38,30 @@ export default async function InvoiceDetailPage({
         {inv.clientName} · <span className="capitalize">{inv.status}</span> · $
         {(inv.totalCents / 100).toFixed(2)}
       </p>
+      {linkedContract && (
+        <p className="mt-1 text-sm text-white/45">
+          Linked contract:{" "}
+          <Link
+            href={`/admin/contracts/${linkedContract.id}`}
+            className="text-[#fdf0d5] hover:underline"
+          >
+            {linkedContract.title}
+          </Link>
+        </p>
+      )}
 
       <InvoiceActions
         id={inv.id}
         status={inv.status}
         payUrl={`${getAppUrl()}/pay/${inv.payToken}`}
       />
+
+      {inv.notesPublic && (
+        <div className="mt-6 border border-white/10 bg-[#141414] p-4">
+          <p className="text-[11px] uppercase tracking-wider text-white/40">Public notes</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm text-white/70">{inv.notesPublic}</p>
+        </div>
+      )}
 
       <div className="mt-6 border border-white/10">
         <table className="w-full text-sm">

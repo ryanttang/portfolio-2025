@@ -61,7 +61,7 @@ export default async function OnboardingDetailPage({
             {onboarding.projectName || "Project"}
           </h1>
           <p className="text-sm text-white/50">
-            <Link href={`/admin/crm/${client.id}`} className="hover:text-[#e6c47a]">
+            <Link href={`/admin/crm/${client.id}`} className="hover:text-[#fdf0d5]">
               {client.name}
             </Link>{" "}
             · {client.email}

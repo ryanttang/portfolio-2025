@@ -29,7 +29,7 @@ export default function CrmCreateForm() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+          className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
         >
           New client
         </button>
@@ -64,7 +64,7 @@ export default function CrmCreateForm() {
           </label>
           {error && <p className="text-sm text-red-400">{error}</p>}
           <div className="flex gap-2">
-            <button type="submit" className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black">
+            <button type="submit" className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black">
               Create
             </button>
             <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 text-sm text-white/50">
@@ -95,7 +95,7 @@ function Field({
         name={name}
         type={type}
         required={required}
-        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#e6c47a]"
+        className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#fdf0d5]"
       />
     </label>
   );

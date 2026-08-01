@@ -22,7 +22,7 @@ export const defaultSettings: Record<string, unknown> = {
     headerTitle: "Ryan Tang",
     headerTagline: "Design · Development · Creative Direction",
     headerBg: "#0c0c0c",
-    accentColor: "#e6c47a",
+    accentColor: "#fdf0d5",
     logoUrl: "",
     signatureHtml: "<p>— Ryan Tang</p>",
     footerHtml: "",
@@ -164,6 +164,123 @@ export const defaultContent: Record<string, unknown> = {
       "Additional work billed at $150/hour or quoted separately",
       "30-day cancellation notice after the initial term",
     ],
+  },
+  hello: {
+    greeting: {
+      eyebrow: "Ryan Tang · Hello",
+      headline: "Digital & Marketing Strategist",
+      tagline: "I design and build digital systems that help businesses grow.",
+      pillars:
+        "Strategy • Branding • Websites • Marketing • Automation • AI • Analytics",
+    },
+    links: {
+      linkedin: "https://linkedin.com/in/rttang",
+      github: "https://github.com/ryanttang",
+      email: "hello@ryantang.site",
+      resumeUrl: "/RyanTangResume2025.png",
+    },
+    whoICanHelp: {
+      title: "Who I Can Help",
+      items: [
+        "Independent shops, local storefronts, and restaurants",
+        "Independents who grow through bookings and appointments",
+        "Service businesses without an in-house marketing team",
+        "Creators and founders launching or refreshing their brand",
+        "Small teams that need strategy, web, and growth in one place",
+        "Owners who want clear systems instead of one-off fixes",
+      ],
+    },
+    lifecycle: [
+      "Identify opportunities",
+      "Develop the strategy",
+      "Design the solution",
+      "Build the technology",
+      "Launch the marketing",
+      "Measure performance",
+      "Optimize continuously",
+    ],
+    skillGroups: [
+      {
+        skill: "Full Stack Development",
+        disciplines: ["UX Strategy", "Web Design", "Development"],
+      },
+      {
+        skill: "Campaigns & Automations",
+        disciplines: [
+          "Campaigns",
+          "Email Capture",
+          "Email/SMS Marketing",
+          "Marketing Automation",
+          "Retention",
+          "Launch Strategy",
+        ],
+      },
+      {
+        skill: "Data & Analytics",
+        disciplines: ["SEO", "Analytics", "Conversion Optimization"],
+      },
+      {
+        skill: "Brand Development",
+        disciplines: ["Graphic Design", "Copywriting"],
+      },
+    ],
+    serviceSections: [
+      {
+        id: "strategy",
+        label: "Strategy & Brand",
+        items: [
+          "Digital Marketing Audit",
+          "Full Marketing Strategy",
+          "Brand Identity Package",
+        ],
+      },
+      {
+        id: "websites",
+        label: "Websites",
+        items: [
+          "Landing Page",
+          "Small Business Website",
+          "Custom Marketing Website",
+          "E-Commerce Website",
+          "Website Redesign",
+          "SEO Optimization",
+        ],
+      },
+      {
+        id: "systems",
+        label: "Systems & Growth",
+        items: [
+          "SEO Foundation Project",
+          "Email/SMS Automation Setup",
+          "Marketing Dashboard",
+        ],
+      },
+      {
+        id: "custom",
+        label: "Custom Build",
+        items: ["Custom Web Application"],
+      },
+    ],
+    retainers: [
+      {
+        name: "Digital Advisor",
+        summary:
+          "Strategy, consulting, analytics, and optimization for teams with internal staff who need senior guidance.",
+      },
+      {
+        name: "Monthly Support",
+        summary:
+          "Strategy plus ongoing marketing execution for businesses ready for consistent campaign and channel support.",
+      },
+    ],
+    consulting: {
+      title: "Strategy Intensive",
+      summary:
+        "Focused consulting to clarify priorities and next steps for your marketing and digital ecosystem.",
+    },
+    cta: {
+      emailLabel: "Start a Conversation",
+    },
   },
 };
 

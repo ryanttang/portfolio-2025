@@ -25,8 +25,11 @@ export async function saveContentAction(key: string, payloadJson: string) {
   await setContent(key, payload);
   await logAudit("update", "site_content", key);
   revalidatePath("/admin/content");
+  revalidatePath("/admin/contracts/terms");
+  revalidatePath("/admin/hello");
   revalidatePath("/");
   revalidatePath("/services");
+  revalidatePath("/hello");
   return { ok: true };
 }
 

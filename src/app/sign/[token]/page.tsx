@@ -29,7 +29,7 @@ export default async function SignPage({
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0c0c0c] px-4 text-center">
         <div>
-          <p className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#e6c47a]">
+          <p className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#fdf0d5]">
             Already signed
           </p>
           <p className="mt-2 text-sm text-white/60">This agreement has already been completed.</p>

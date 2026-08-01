@@ -29,7 +29,7 @@ export default function VantaRingsBackground({ className = "", style = {}, zInde
         el: vantaRef.current,
         THREE,
         backgroundColor: 0x18181b,
-        color: 0xe6c47a, // static gold
+        color: 0xfdf0d5, // primary accent
         ringColor: 0xf5f5f5, // static white
         shadowColor: 0x232323, // static dark
         speed: 0.8,

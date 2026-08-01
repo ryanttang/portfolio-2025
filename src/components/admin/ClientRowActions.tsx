@@ -21,7 +21,7 @@ export default function ClientRowActions({
       <div className="flex items-center gap-3">
         <Link
           href={`/admin/crm/${clientId}`}
-          className="text-xs text-[#e6c47a] hover:underline"
+          className="text-xs text-[#fdf0d5] hover:underline"
         >
           Edit
         </Link>

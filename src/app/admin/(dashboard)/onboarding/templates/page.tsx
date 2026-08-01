@@ -45,7 +45,7 @@ export default async function TemplatesPage() {
             className="mt-1 block min-w-[220px] border border-white/15 bg-black/40 px-3 py-2 text-sm"
           />
         </label>
-        <button type="submit" className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black">
+        <button type="submit" className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black">
           Create template
         </button>
       </form>
@@ -59,7 +59,7 @@ export default async function TemplatesPage() {
             <div>
               <Link
                 href={`/admin/onboarding/templates/${t.id}`}
-                className="text-[#e6c47a] hover:underline"
+                className="text-[#fdf0d5] hover:underline"
               >
                 {t.name}
               </Link>

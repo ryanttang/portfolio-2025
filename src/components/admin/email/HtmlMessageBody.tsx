@@ -87,7 +87,7 @@ export default function HtmlMessageBody({
   if (htmlBody) {
     const srcDoc = isBranded
       ? injectAdminThreadStyles(htmlBody)
-      : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0}body{padding:8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55;color:#e8e4dc;background:transparent}a{color:#e6c47a}img{max-width:100%;height:auto}</style></head><body>${htmlBody}</body></html>`;
+      : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0}body{padding:8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55;color:#e8e4dc;background:transparent}a{color:#fdf0d5}img{max-width:100%;height:auto}</style></head><body>${htmlBody}</body></html>`;
 
     return (
       <div

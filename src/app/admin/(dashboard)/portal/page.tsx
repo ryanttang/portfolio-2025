@@ -116,7 +116,7 @@ export default async function AdminPortalPreviewPage() {
           <button
             type="submit"
             disabled={allClients.length === 0}
-            className="mt-4 bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f0d49a] disabled:opacity-40"
+            className="mt-4 bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black hover:bg-[#f0d49a] disabled:opacity-40"
           >
             Open portal
           </button>
@@ -154,7 +154,7 @@ export default async function AdminPortalPreviewPage() {
           </label>
           <button
             type="submit"
-            className="mt-4 border border-[#e6c47a]/50 px-4 py-2 text-sm text-[#e6c47a] hover:bg-[#e6c47a]/10"
+            className="mt-4 border border-[#fdf0d5]/50 px-4 py-2 text-sm text-[#fdf0d5] hover:bg-[#fdf0d5]/10"
           >
             Start demo
           </button>
@@ -189,7 +189,7 @@ export default async function AdminPortalPreviewPage() {
                   <td className="py-3 pr-4">
                     <Link
                       href={`/admin/onboarding/${onboarding.id}`}
-                      className="text-[#e6c47a] hover:underline"
+                      className="text-[#fdf0d5] hover:underline"
                     >
                       {onboarding.projectName || "Untitled"}
                     </Link>
@@ -211,7 +211,7 @@ export default async function AdminPortalPreviewPage() {
                         <input type="hidden" name="onboardingId" value={onboarding.id} />
                         <button
                           type="submit"
-                          className="border border-[#e6c47a]/50 px-2.5 py-1 text-[11px] text-[#e6c47a]"
+                          className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5]"
                         >
                           {onboarding.status === "completed"
                             ? "Preview hub"

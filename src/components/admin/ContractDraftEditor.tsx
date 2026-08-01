@@ -9,11 +9,13 @@ export default function ContractDraftEditor({
   initialTitle,
   initialBody,
   initialAmountCents,
+  initialPaymentNotes,
 }: {
   id: string;
   initialTitle: string;
   initialBody: string;
   initialAmountCents: number | null;
+  initialPaymentNotes?: string | null;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
@@ -21,6 +23,7 @@ export default function ContractDraftEditor({
   const [amount, setAmount] = useState(
     initialAmountCents != null ? (initialAmountCents / 100).toFixed(2) : "",
   );
+  const [paymentNotes, setPaymentNotes] = useState(initialPaymentNotes || "");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -33,6 +36,7 @@ export default function ContractDraftEditor({
         title: title.trim(),
         bodyText: bodyText.trim(),
         amountCents: Number.isFinite(amountCents as number) ? amountCents : null,
+        paymentNotes: paymentNotes.trim() || null,
       });
       setMsg("Draft saved.");
       router.refresh();
@@ -51,7 +55,7 @@ export default function ContractDraftEditor({
           type="button"
           onClick={save}
           disabled={saving}
-          className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-60"
+          className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save draft"}
         </button>
@@ -61,7 +65,7 @@ export default function ContractDraftEditor({
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
         />
       </label>
       <label className="block text-xs uppercase tracking-wider text-white/40">
@@ -71,8 +75,20 @@ export default function ContractDraftEditor({
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#e6c47a] sm:max-w-xs"
+          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5] sm:max-w-xs"
         />
+      </label>
+      <label className="block text-xs uppercase tracking-wider text-white/40">
+        Payment schedule notes
+        <textarea
+          value={paymentNotes}
+          onChange={(e) => setPaymentNotes(e.target.value)}
+          rows={3}
+          className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
+        />
+        <span className="mt-1 block text-[10px] normal-case tracking-normal text-white/30">
+          Copied onto new invoices linked to this contract.
+        </span>
       </label>
       <label className="block text-xs uppercase tracking-wider text-white/40">
         Agreement body
@@ -80,7 +96,7 @@ export default function ContractDraftEditor({
           value={bodyText}
           onChange={(e) => setBodyText(e.target.value)}
           rows={18}
-          className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 font-mono text-xs normal-case tracking-normal text-white outline-none focus:border-[#e6c47a]"
+          className="mt-1 w-full resize-y border border-white/15 bg-black/40 px-3 py-2 font-mono text-xs normal-case tracking-normal text-white outline-none focus:border-[#fdf0d5]"
         />
       </label>
       {msg && <p className="text-sm text-white/50">{msg}</p>}

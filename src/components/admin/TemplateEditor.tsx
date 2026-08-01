@@ -125,7 +125,7 @@ export default function TemplateEditor({
       <button
         type="button"
         onClick={save}
-        className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+        className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
       >
         Save template
       </button>

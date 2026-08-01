@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { saveContentAction } from "@/app/admin/actions/content";
+import { syncServicesTermsToTemplatesAction } from "@/app/admin/actions/contracts";
+import TermsListEditor from "@/components/admin/TermsListEditor";
 import {
   aboutSchema,
   designSchema,
   projectsSchema,
   retailSchema,
+  helloSchema,
   servicesOverviewSchema,
   servicesProjectsSchema,
   servicesRetainersSchema,
@@ -14,6 +18,7 @@ import {
   type AboutContent,
   type ContentKey,
   type DesignContent,
+  type HelloContent,
   type ProjectsContent,
   type RetailContent,
   type ServicesOverviewContent,
@@ -21,6 +26,7 @@ import {
   type ServicesRetainersContent,
   type ServicesTermsContent,
 } from "@/lib/content/schemas";
+import { getDefaultContent } from "@/lib/content/defaults";
 
 const SECTIONS: { key: ContentKey; label: string; hint: string }[] = [
   {
@@ -61,7 +67,7 @@ const SECTIONS: { key: ContentKey; label: string; hint: string }[] = [
   {
     key: "services_terms",
     label: "Services terms",
-    hint: "Public Services page Terms tab. Independent from contract templates.",
+    hint: "Public Services Terms tab and shared library for Project/Retainer contract templates.",
   },
 ];
 
@@ -74,6 +80,7 @@ type SectionPayload = {
   services_projects: ServicesProjectsContent;
   services_retainers: ServicesRetainersContent;
   services_terms: ServicesTermsContent;
+  hello: HelloContent;
 };
 
 function normalizeSection<K extends ContentKey>(
@@ -104,6 +111,8 @@ function normalizeSection<K extends ContentKey>(
           retainerTerms: [],
         },
       ) as SectionPayload[K];
+    case "hello":
+      return helloSchema.parse(payload ?? getDefaultContent("hello")) as SectionPayload[K];
     default: {
       const _exhaustive: never = key;
       return _exhaustive;
@@ -148,7 +157,7 @@ export default function ContentManager({
             onClick={() => setActive(s.key)}
             className={`px-3 py-2 text-xs font-medium transition-colors ${
               active === s.key
-                ? "border-b-2 border-[#e6c47a] text-[#e6c47a]"
+                ? "border-b-2 border-[#fdf0d5] text-[#fdf0d5]"
                 : "text-white/45 hover:text-white/70"
             }`}
           >
@@ -188,6 +197,7 @@ function SectionEditor({
   );
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   async function savePayload(payload: unknown) {
     setSaving(true);
@@ -202,6 +212,26 @@ function SectionEditor({
       setStatus(err instanceof Error ? err.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveAndSyncTemplates() {
+    setSyncing(true);
+    setStatus("");
+    try {
+      const payload = mode === "json" ? JSON.parse(jsonValue) : data;
+      const parsed = normalizeSection(contentKey, payload);
+      await saveContentAction(contentKey, JSON.stringify(parsed));
+      setData(parsed);
+      setJsonValue(JSON.stringify(parsed, null, 2));
+      const result = await syncServicesTermsToTemplatesAction();
+      setStatus(
+        `Saved · synced ${result.updated} template${result.updated === 1 ? "" : "s"}`,
+      );
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Sync failed");
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -230,19 +260,28 @@ function SectionEditor({
             {label}
           </h2>
           <p className="mt-1 text-xs text-white/40">{hint}</p>
+          {contentKey === "services_terms" && (
+            <p className="mt-1 text-xs text-white/35">
+              Prefer editing under{" "}
+              <Link href="/admin/contracts/terms" className="text-[#fdf0d5] hover:underline">
+                Contracts → Terms
+              </Link>
+              .
+            </p>
+          )}
         </div>
         <div className="flex gap-1 border border-white/10 p-0.5">
           <button
             type="button"
             onClick={switchToForm}
-            className={`px-2 py-1 text-xs ${mode === "form" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+            className={`px-2 py-1 text-xs ${mode === "form" ? "bg-white/10 text-[#fdf0d5]" : "text-white/50"}`}
           >
             Form
           </button>
           <button
             type="button"
             onClick={switchToJson}
-            className={`px-2 py-1 text-xs ${mode === "json" ? "bg-white/10 text-[#e6c47a]" : "text-white/50"}`}
+            className={`px-2 py-1 text-xs ${mode === "json" ? "bg-white/10 text-[#fdf0d5]" : "text-white/50"}`}
           >
             JSON
           </button>
@@ -256,7 +295,7 @@ function SectionEditor({
             onChange={(e) => setJsonValue(e.target.value)}
             rows={16}
             spellCheck={false}
-            className="w-full border border-white/10 bg-black/40 p-3 font-mono text-xs text-white/90 outline-none focus:border-[#e6c47a]/50"
+            className="w-full border border-white/10 bg-black/40 p-3 font-mono text-xs text-white/90 outline-none focus:border-[#fdf0d5]/50"
           />
         ) : (
           <SectionForm contentKey={contentKey} data={data} onChange={setData} />
@@ -266,7 +305,7 @@ function SectionEditor({
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          disabled={saving}
+          disabled={saving || syncing}
           onClick={() => {
             if (mode === "json") {
               try {
@@ -278,13 +317,25 @@ function SectionEditor({
               void savePayload(data);
             }
           }}
-          className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
+          className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
         </button>
+        {contentKey === "services_terms" && (
+          <button
+            type="button"
+            disabled={saving || syncing}
+            onClick={() => void saveAndSyncTemplates()}
+            className="border border-white/20 px-4 py-2 text-sm disabled:opacity-50"
+          >
+            {syncing ? "Syncing…" : "Sync to Project & Retainer templates"}
+          </button>
+        )}
         {status && (
           <p
-            className={`text-sm ${status === "Saved" ? "text-emerald-400/80" : "text-red-400/90"}`}
+            className={`text-sm ${
+              status.startsWith("Saved") ? "text-emerald-400/80" : "text-red-400/90"
+            }`}
           >
             {status}
           </p>
@@ -359,6 +410,16 @@ function SectionForm({
           data={data as ServicesTermsContent}
           onChange={onChange as (n: ServicesTermsContent) => void}
         />
+      );
+    case "hello":
+      return (
+        <p className="text-sm text-white/50">
+          Edit the Hello QR landing page under{" "}
+          <Link href="/admin/hello" className="text-[#fdf0d5] hover:underline">
+            Manage Site → Hello
+          </Link>
+          .
+        </p>
       );
     default: {
       const _exhaustive: never = contentKey;
@@ -821,12 +882,13 @@ function ServicesTermsForm({
 }) {
   return (
     <div className="space-y-6">
-      <StringList
+      <TermsListEditor
         label="Project payment lines"
         values={data.projectPaymentLines}
         onChange={(projectPaymentLines) => onChange({ ...data, projectPaymentLines })}
         placeholder="e.g. 50% to begin"
-        hint="Shown under “Projects Under ~$10k” on the public Terms tab."
+        hint="Shown under “Payment Terms” on the public Terms tab."
+        addLabel="Add payment line"
       />
       <Field
         label="Project payment note"
@@ -834,17 +896,15 @@ function ServicesTermsForm({
         onChange={(projectPaymentNote) => onChange({ ...data, projectPaymentNote })}
         hint="e.g. Smaller projects: 50% / 50%"
       />
-      <StringList
+      <TermsListEditor
         label="Project terms"
         values={data.projectTerms}
         onChange={(projectTerms) => onChange({ ...data, projectTerms })}
-        placeholder="Term line"
       />
-      <StringList
+      <TermsListEditor
         label="Retainer terms"
         values={data.retainerTerms}
         onChange={(retainerTerms) => onChange({ ...data, retainerTerms })}
-        placeholder="Term line"
       />
     </div>
   );
@@ -853,7 +913,7 @@ function ServicesTermsForm({
 /* ——— shared field primitives ——— */
 
 const inputClass =
-  "w-full border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#e6c47a]";
+  "w-full border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-[#fdf0d5]";
 
 function Field({
   label,
@@ -951,7 +1011,7 @@ function AddButton({ label, onClick }: { label: string; onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="mt-2 text-xs text-[#e6c47a] hover:underline"
+      className="mt-2 text-xs text-[#fdf0d5] hover:underline"
     >
       + {label}
     </button>

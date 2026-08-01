@@ -32,7 +32,7 @@ export default function InviteClient({
         <p className="mt-2 text-sm text-white/50">
           {error || "This invite link is invalid or has expired. Ask for a new invite."}
         </p>
-        <Link href="/portal/login" className="mt-4 inline-block text-sm text-[#e6c47a]">
+        <Link href="/portal/login" className="mt-4 inline-block text-sm text-[#fdf0d5]">
           Go to login
         </Link>
       </div>
@@ -79,7 +79,7 @@ export default function InviteClient({
       onSubmit={onSubmit}
       className="mx-auto w-full max-w-sm border border-white/10 bg-[#141414] p-8"
     >
-      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#e6c47a]">
+      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
         Ryan Tang
       </p>
       <h1 className="mt-2 font-[family-name:var(--font-syne)] text-2xl font-bold">
@@ -106,7 +106,7 @@ export default function InviteClient({
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#e6c47a]"
+          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#fdf0d5]"
         />
       </label>
       <label className="mt-4 block text-xs uppercase tracking-wider text-white/40">
@@ -117,14 +117,14 @@ export default function InviteClient({
           minLength={8}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
-          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#e6c47a]"
+          className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-[#fdf0d5]"
         />
       </label>
       {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="mt-6 w-full bg-[#e6c47a] px-4 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+        className="mt-6 w-full bg-[#fdf0d5] px-4 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
       >
         {loading ? "Saving…" : "Continue"}
       </button>

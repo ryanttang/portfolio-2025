@@ -84,7 +84,7 @@ export default function OnboardingWizard({
 
   return (
     <div>
-      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#e6c47a]">
+      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
         Onboarding
       </p>
       <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">
@@ -97,7 +97,7 @@ export default function OnboardingWizard({
             key={s}
             className={`rounded px-2.5 py-1 text-[11px] uppercase tracking-wider ${
               i === stepIndex
-                ? "bg-[#e6c47a] text-black"
+                ? "bg-[#fdf0d5] text-black"
                 : i < stepIndex
                   ? "bg-white/15 text-white/80"
                   : "bg-white/5 text-white/40"
@@ -218,7 +218,7 @@ function WelcomeStep({
           setLoading(true);
           await onContinue();
         }}
-        className="mt-6 bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+        className="mt-6 bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
       >
         Continue
       </button>
@@ -292,7 +292,7 @@ function InfoStep({
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+        className="mt-2 bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
       >
         {loading ? "Saving…" : "Looks good — continue"}
       </button>
@@ -464,7 +464,7 @@ function QuestionnaireStep({
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+        className="mt-2 bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
       >
         {loading ? "Saving…" : "Continue"}
       </button>
@@ -489,7 +489,7 @@ function ContractStep({
         <p className="mt-3 text-sm text-white/50">
           No contract is linked yet. Please check back shortly.
         </p>
-        <button type="button" onClick={onRefresh} className="mt-4 text-sm text-[#e6c47a]">
+        <button type="button" onClick={onRefresh} className="mt-4 text-sm text-[#fdf0d5]">
           Refresh
         </button>
       </div>
@@ -507,7 +507,7 @@ function ContractStep({
         <Link
           href={`/sign/${contract.token}`}
           target="_blank"
-          className="mt-6 inline-block bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black"
+          className="mt-6 inline-block bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black"
         >
           Review & sign
         </Link>
@@ -554,7 +554,7 @@ function DepositStep({
       <div>
         <h2 className="font-[family-name:var(--font-syne)] text-xl font-bold">Deposit</h2>
         <p className="mt-3 text-sm text-white/50">No deposit invoice is linked yet.</p>
-        <button type="button" onClick={onRefresh} className="mt-4 text-sm text-[#e6c47a]">
+        <button type="button" onClick={onRefresh} className="mt-4 text-sm text-[#fdf0d5]">
           Refresh
         </button>
       </div>
@@ -574,7 +574,7 @@ function DepositStep({
         <Link
           href={`/pay/${invoice.payToken}`}
           target="_blank"
-          className="mt-6 inline-block bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black"
+          className="mt-6 inline-block bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black"
         >
           Pay deposit
         </Link>
@@ -624,7 +624,7 @@ function HandoffStep({
           setLoading(true);
           await onComplete();
         }}
-        className="mt-6 bg-[#e6c47a] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
+        className="mt-6 bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
       >
         Enter portal
       </button>

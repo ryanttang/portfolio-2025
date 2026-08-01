@@ -74,7 +74,7 @@ export default async function OnboardingListPage() {
             className="mt-1 block min-w-[200px] border border-white/15 bg-black/40 px-3 py-2 text-sm"
           />
         </label>
-        <button type="submit" className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black">
+        <button type="submit" className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black">
           New project
         </button>
       </form>
@@ -104,7 +104,7 @@ export default async function OnboardingListPage() {
                 <td className="py-3 pr-4">
                   <Link
                     href={`/admin/onboarding/${onboarding.id}`}
-                    className="text-[#e6c47a] hover:underline"
+                    className="text-[#fdf0d5] hover:underline"
                   >
                     {onboarding.projectName || "Untitled"}
                   </Link>
@@ -130,7 +130,7 @@ export default async function OnboardingListPage() {
                       clientId={clientId}
                       onboardingId={onboarding.id}
                       label="Preview"
-                      className="border border-[#e6c47a]/50 px-2.5 py-1 text-[11px] text-[#e6c47a]"
+                      className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5]"
                     />
                   </div>
                 </td>

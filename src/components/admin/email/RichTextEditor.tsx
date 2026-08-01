@@ -31,7 +31,7 @@ function ToolbarButton({
       title={title}
       onClick={onClick}
       className={`px-2 py-1 text-xs ${
-        active ? "bg-white/15 text-[#e6c47a]" : "text-white/60 hover:bg-white/5 hover:text-white"
+        active ? "bg-white/15 text-[#fdf0d5]" : "text-white/60 hover:bg-white/5 hover:text-white"
       }`}
     >
       {children}
@@ -66,7 +66,7 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose-invert max-w-none px-3 py-2 text-sm text-white/90 outline-none [&_a]:text-[#e6c47a] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2",
+          "prose-invert max-w-none px-3 py-2 text-sm text-white/90 outline-none [&_a]:text-[#fdf0d5] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2",
         style: `min-height: ${minHeight}`,
       },
     },

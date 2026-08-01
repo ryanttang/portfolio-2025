@@ -26,14 +26,20 @@ export default async function ContractsPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/admin/contracts/terms"
+            className="border border-white/15 px-4 py-2 text-sm text-white/70 hover:text-[#fdf0d5]"
+          >
+            Terms
+          </Link>
+          <Link
             href="/admin/contracts/templates"
-            className="border border-white/15 px-4 py-2 text-sm text-white/70 hover:text-[#e6c47a]"
+            className="border border-white/15 px-4 py-2 text-sm text-white/70 hover:text-[#fdf0d5]"
           >
             Templates
           </Link>
           <Link
             href="/admin/contracts/new"
-            className="bg-[#e6c47a] px-4 py-2 text-sm font-semibold text-black"
+            className="bg-[#fdf0d5] px-4 py-2 text-sm font-semibold text-black"
           >
             New contract
           </Link>
@@ -61,7 +67,7 @@ export default async function ContractsPage() {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-3">
-                  <Link href={`/admin/contracts/${r.id}`} className="text-[#e6c47a] hover:underline">
+                  <Link href={`/admin/contracts/${r.id}`} className="text-[#fdf0d5] hover:underline">
                     {r.title}
                   </Link>
                 </td>

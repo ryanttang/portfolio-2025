@@ -45,7 +45,7 @@ export default async function ClientDetailPage({
       <div className="mt-4 flex flex-wrap gap-2">
         <Link
           href={`/admin/inbox?compose=1&to=${encodeURIComponent(client.email)}`}
-          className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+          className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
         >
           Compose email
         </Link>
@@ -72,7 +72,7 @@ export default async function ClientDetailPage({
           </div>
           <Link
             href={`/admin/inbox?compose=1&to=${encodeURIComponent(client.email)}`}
-            className="text-xs text-[#e6c47a] hover:underline"
+            className="text-xs text-[#fdf0d5] hover:underline"
           >
             Email client
           </Link>
@@ -85,7 +85,7 @@ export default async function ClientDetailPage({
             >
               <Link
                 href={`/admin/inbox?thread=${t.id}`}
-                className="text-[#e6c47a] hover:underline"
+                className="text-[#fdf0d5] hover:underline"
               >
                 {t.subject}
               </Link>
@@ -116,7 +116,7 @@ export default async function ClientDetailPage({
             />
             <button
               type="submit"
-              className="bg-[#e6c47a] px-3 py-1.5 text-xs font-semibold text-black"
+              className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
             >
               New project
             </button>
@@ -131,7 +131,7 @@ export default async function ClientDetailPage({
               <div>
                 <Link
                   href={`/admin/onboarding/${p.id}`}
-                  className="text-[#e6c47a] hover:underline"
+                  className="text-[#fdf0d5] hover:underline"
                 >
                   {p.projectName || "Untitled project"}
                 </Link>
@@ -155,7 +155,7 @@ export default async function ClientDetailPage({
                   clientId={clientId}
                   onboardingId={p.id}
                   label={p.status === "completed" ? "Preview hub" : "Preview onboarding"}
-                  className="border border-[#e6c47a]/50 px-2.5 py-1 text-[11px] text-[#e6c47a]"
+                  className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5]"
                 />
               </div>
             </li>

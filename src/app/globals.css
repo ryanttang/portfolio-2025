@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --accent-gold: #e6c47a;
+  --accent-gold: #fdf0d5;
   --accent-blue: #0070f3;
 }
 
@@ -89,7 +89,7 @@ body {
   }
 }
 .menu-link:hover {
-  color: #e6c47a;
+  color: #fdf0d5;
 }
 
 /* Hamburger animation (for fallback, mostly handled by Tailwind) */
