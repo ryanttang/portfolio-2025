@@ -4,7 +4,6 @@ import { Text } from "@react-email/components";
 import { getSetting } from "@/lib/content";
 import { getAppUrl } from "@/lib/env";
 import { BrandShell } from "./brand-shell";
-import { sanitizeEmailHtml } from "@/lib/email/sanitize";
 
 export type EmailSettings = {
   fromName?: string;
@@ -20,6 +19,7 @@ export type EmailSettings = {
 };
 
 export async function getEmailBrandContext(overrides?: Partial<EmailSettings>) {
+  const { sanitizeEmailHtml } = await import("@/lib/email/sanitize");
   const emailSettings = await getSetting<EmailSettings>("email");
   const merged: EmailSettings = { ...emailSettings, ...overrides };
   return {
