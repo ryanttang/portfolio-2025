@@ -41,7 +41,10 @@ export default async function ProjectOnboardingPage({
   const bundle = await getOnboardingBundle(onboarding.id);
   if (!bundle) notFound();
 
-  const enabledSteps = getEnabledSteps(onboarding);
+  const enabledSteps = getEnabledSteps({
+    ...onboarding,
+    hasQuestionnaire: bundle.questions.length > 0,
+  });
   let currentStep = onboarding.currentStep as OnboardingStep;
   if (!enabledSteps.includes(currentStep)) {
     currentStep = enabledSteps[0];

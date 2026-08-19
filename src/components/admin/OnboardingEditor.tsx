@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   addQuestionAction,
+  addStarterQuestionsAction,
   adminUpsertAnswerAction,
   applyTemplateAction,
   cancelOnboardingAction,
@@ -15,6 +16,7 @@ import {
   updateOnboardingClientInfoAction,
   updateQuestionAction,
 } from "@/app/admin/actions/onboarding";
+import SensitiveAnswerReveal from "@/components/admin/SensitiveAnswerReveal";
 import {
   ONBOARDING_STEPS,
   QUESTION_TYPES,
@@ -44,6 +46,8 @@ type Question = {
   options: string[];
   required: boolean;
   sortOrder: number;
+  key?: string | null;
+  sensitive?: boolean;
 };
 
 type Option = { id: string; label: string };
@@ -121,6 +125,7 @@ export default function OnboardingEditor({
   const [message, setMessage] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [newType, setNewType] = useState<QuestionType>("short_text");
+  const [newSensitive, setNewSensitive] = useState(false);
   const [templateId, setTemplateId] = useState("");
   const [templateName, setTemplateName] = useState("");
   const [clientForm, setClientForm] = useState({
@@ -222,6 +227,11 @@ export default function OnboardingEditor({
     router.refresh();
   }
 
+  async function addStarterQuestions() {
+    await addStarterQuestionsAction(onboarding.id);
+    router.refresh();
+  }
+
   async function addQuestion() {
     if (!newLabel.trim()) return;
     await addQuestionAction(onboarding.id, {
@@ -229,8 +239,10 @@ export default function OnboardingEditor({
       type: newType,
       required: true,
       options: [],
+      sensitive: newSensitive,
     });
     setNewLabel("");
+    setNewSensitive(false);
     router.refresh();
   }
 
@@ -500,8 +512,8 @@ export default function OnboardingEditor({
           {activeStep === "questionnaire" && (
             <>
               <p className="text-xs text-white/40">
-                Fixed core intake (goals, timeline, budget, audience) is always included. Add
-                project-specific questions below.
+                Optional step. Mark a question as encrypted when you need logins or other secrets —
+                answers are stored encrypted and only you can reveal them in admin.
               </p>
 
               <div className="flex flex-wrap gap-2">
@@ -537,6 +549,13 @@ export default function OnboardingEditor({
                 >
                   Save as template
                 </button>
+                <button
+                  type="button"
+                  onClick={addStarterQuestions}
+                  className="border border-white/20 px-3 py-1.5 text-xs"
+                >
+                  Insert starter questions
+                </button>
               </div>
 
               <ul className="space-y-2">
@@ -560,9 +579,36 @@ export default function OnboardingEditor({
                       />
                       <p className="mt-1 text-[10px] uppercase tracking-wider text-white/30">
                         {q.type}
-                        {q.required ? " · required" : ""}
+                        {q.required ? " · required" : " · optional"}
+                        {q.sensitive ? " · encrypted" : ""}
                       </p>
                     </div>
+                    <label className="flex items-center gap-1 self-center text-[10px] uppercase tracking-wider text-white/40">
+                      <input
+                        type="checkbox"
+                        checked={q.required}
+                        onChange={async (e) => {
+                          await updateQuestionAction(q.id, onboarding.id, {
+                            required: e.target.checked,
+                          });
+                          router.refresh();
+                        }}
+                      />
+                      Required
+                    </label>
+                    <label className="flex items-center gap-1 self-center text-[10px] uppercase tracking-wider text-white/40">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(q.sensitive)}
+                        onChange={async (e) => {
+                          await updateQuestionAction(q.id, onboarding.id, {
+                            sensitive: e.target.checked,
+                          });
+                          router.refresh();
+                        }}
+                      />
+                      Encrypt
+                    </label>
                     <button
                       type="button"
                       onClick={async () => {
@@ -581,7 +627,9 @@ export default function OnboardingEditor({
                   </li>
                 ))}
                 {questions.length === 0 && (
-                  <li className="text-sm text-white/40">No custom questions yet.</li>
+                  <li className="text-sm text-white/40">
+                    No questions yet — this step is skipped until you add some.
+                  </li>
                 )}
               </ul>
 
@@ -603,6 +651,14 @@ export default function OnboardingEditor({
                     </option>
                   ))}
                 </select>
+                <label className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-white/40">
+                  <input
+                    type="checkbox"
+                    checked={newSensitive}
+                    onChange={(e) => setNewSensitive(e.target.checked)}
+                  />
+                  Encrypt
+                </label>
                 <button
                   type="button"
                   onClick={addQuestion}
@@ -616,7 +672,7 @@ export default function OnboardingEditor({
                 <div className="border-t border-white/10 pt-4">
                   <h3 className="text-sm font-semibold">Answers</h3>
                   <p className="mt-1 text-xs text-white/40">
-                    Edit text answers if you need to correct them.
+                    Encrypted answers stay hidden until you reveal them. Only admins can decrypt.
                   </p>
                   <ul className="mt-3 space-y-3 text-sm">
                     {answers.map((a) => {
@@ -626,18 +682,30 @@ export default function OnboardingEditor({
                         filename?: string;
                         bool?: boolean;
                         selected?: string[];
+                        redacted?: boolean;
+                        saved?: boolean;
                       };
+                      const question = questions.find((q) => q.id === a.questionId);
                       const label =
+                        question?.label ||
                         a.key ||
-                        questions.find((q) => q.id === a.questionId)?.label ||
                         a.questionId ||
                         "Answer";
+                      const encrypted = Boolean(question?.sensitive || value?.redacted);
                       return (
                         <li key={a.id} className="border-t border-white/5 pt-3">
                           <span className="text-[10px] uppercase tracking-wider text-[#fdf0d5]/80">
                             {label}
                           </span>
-                          {value?.url ? (
+                          {encrypted ? (
+                            <SensitiveAnswerReveal
+                              answerId={a.id}
+                              onboardingId={onboarding.id}
+                              questionId={a.questionId}
+                              answerKey={a.key}
+                              filename={value?.filename}
+                            />
+                          ) : value?.url ? (
                             <p className="mt-1">
                               <a
                                 href={value.url}

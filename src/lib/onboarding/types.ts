@@ -41,6 +41,19 @@ export const CORE_QUESTION_LABELS: Record<CoreAnswerKey, string> = {
   audience: "Target audience",
 };
 
+/** Optional starter questions — not added unless an admin inserts them. */
+export const CORE_STARTER_QUESTIONS: {
+  key: CoreAnswerKey;
+  label: string;
+  type: QuestionType;
+  required: boolean;
+}[] = [
+  { key: "goals", label: CORE_QUESTION_LABELS.goals, type: "long_text", required: false },
+  { key: "timeline", label: CORE_QUESTION_LABELS.timeline, type: "short_text", required: false },
+  { key: "budget", label: CORE_QUESTION_LABELS.budget, type: "short_text", required: false },
+  { key: "audience", label: CORE_QUESTION_LABELS.audience, type: "long_text", required: false },
+];
+
 export const MILESTONE_STATUSES = ["upcoming", "in_progress", "done"] as const;
 
 export type MilestoneStatus = (typeof MILESTONE_STATUSES)[number];
@@ -51,4 +64,6 @@ export type QuestionInput = {
   type: QuestionType;
   options?: string[];
   required?: boolean;
+  key?: CoreAnswerKey | null;
+  sensitive?: boolean;
 };

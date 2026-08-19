@@ -9,9 +9,9 @@ import {
   completeOnboarding,
   getOnboarding,
   getOnboardingForClient,
+  listOnboardingQuestions,
   portalProjectPath,
   refreshOnboardingSlug,
-  saveCoreAnswers,
   updateOnboarding,
   upsertAnswer,
 } from "@/lib/onboarding";
@@ -24,9 +24,9 @@ import { sendEmail } from "@/lib/email/send";
 import { getSetting } from "@/lib/content";
 import { logAudit } from "@/lib/audit";
 import { storeFile } from "@/lib/storage";
-import type { CoreAnswerKey, OnboardingStep } from "@/lib/onboarding/types";
-import { CORE_ANSWER_KEYS } from "@/lib/onboarding/types";
+import type { OnboardingStep } from "@/lib/onboarding/types";
 import { randomBytes } from "crypto";
+import { encryptBytes } from "@/lib/crypto/sensitive";
 
 async function ownedOnboarding(onboardingId: string) {
   const actor = await requirePortalActor();
@@ -110,23 +110,28 @@ export async function saveClientInfoAction(
 export async function saveQuestionnaireAction(
   onboardingId: string,
   data: {
-    core: Partial<Record<CoreAnswerKey, string>>;
     answers: { questionId: string; value: unknown }[];
   },
 ) {
   const { actor, onboarding } = await ownedOnboarding(onboardingId);
   if (onboarding.status === "completed") throw new Error("Onboarding already completed");
 
-  const core: Partial<Record<CoreAnswerKey, string>> = {};
-  for (const key of CORE_ANSWER_KEYS) {
-    if (data.core[key] !== undefined) core[key] = data.core[key];
-  }
-  await saveCoreAnswers(onboarding.id, core);
+  const questions = await listOnboardingQuestions(onboarding.id);
+  const byId = new Map(questions.map((q) => [q.id, q]));
 
   for (const a of data.answers) {
+    const question = byId.get(a.questionId);
+    if (question?.sensitive) {
+      const text =
+        a.value && typeof a.value === "object" && "text" in a.value
+          ? String((a.value as { text?: unknown }).text || "")
+          : "";
+      if (!text.trim()) continue;
+    }
     await upsertAnswer({
       onboardingId: onboarding.id,
       questionId: a.questionId,
+      key: question?.key || null,
       value: a.value,
     });
   }
@@ -157,20 +162,34 @@ export async function uploadQuestionnaireFileAction(
     throw new Error("Only PDF and images are allowed");
   }
 
+  const questions = await listOnboardingQuestions(onboardingId);
+  const question = questions.find((q) => q.id === questionId);
+
   const buf = Buffer.from(await file.arrayBuffer());
   const ext = file.name.split(".").pop() || "bin";
-  const path = `onboarding/${onboardingId}/${questionId}-${randomBytes(6).toString("hex")}.${ext}`;
-  const url = await storeFile(path, buf, file.type);
+  const sensitive = Boolean(question?.sensitive);
+  const stored = sensitive ? encryptBytes(buf) : buf;
+  const path = `onboarding/${onboardingId}/${questionId}-${randomBytes(6).toString("hex")}.${sensitive ? "enc" : ext}`;
+  const url = await storeFile(
+    path,
+    stored,
+    sensitive ? "application/octet-stream" : file.type,
+  );
 
   await upsertAnswer({
     onboardingId,
     questionId,
-    value: { url, filename: file.name, contentType: file.type },
+    value: {
+      url,
+      filename: file.name,
+      contentType: file.type,
+      ...(sensitive ? { encryptedFile: true } : {}),
+    },
   });
 
   await auditImpersonation(actor, "upload_file", onboardingId);
   revalidatePath(portalProjectPath(onboarding, "onboarding"));
-  return { ok: true, url, filename: file.name };
+  return { ok: true, filename: file.name, saved: true as const };
 }
 
 export async function advanceOnboardingAction(

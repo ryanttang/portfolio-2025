@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { contracts, invoices } from "@/db/schema";
 import {
   addOnboardingQuestion,
+  addStarterOnboardingQuestions,
   applyTemplateToOnboarding,
   cancelOnboarding,
   createOnboarding,
@@ -25,6 +26,7 @@ import {
   refreshOnboardingSlug,
   replaceTemplateItems,
   saveOnboardingQuestionsAsTemplate,
+  getDecryptedAnswer,
   updateOnboarding,
   updateOnboardingQuestion,
   updatePortalMilestone,
@@ -35,7 +37,7 @@ import {
 import { ensureClientAccount, sendPortalInviteEmail } from "@/lib/portal/auth";
 import { setViewAsCookie, clearViewAsCookie, getViewAsPayload } from "@/lib/portal/view-as";
 import { logAudit } from "@/lib/audit";
-import { QUESTION_TYPES, type QuestionInput } from "@/lib/onboarding/types";
+import { QUESTION_TYPES, CORE_ANSWER_KEYS, type QuestionInput } from "@/lib/onboarding/types";
 import { redirect } from "next/navigation";
 
 async function revalidateOnboarding(id: string, clientId?: string, slug?: string) {
@@ -62,6 +64,8 @@ const questionSchema = z.object({
   type: z.enum(QUESTION_TYPES),
   options: z.array(z.string()).optional(),
   required: z.boolean().optional(),
+  key: z.enum(CORE_ANSWER_KEYS).optional().nullable(),
+  sensitive: z.boolean().optional(),
 });
 
 export async function createOnboardingAction(clientId: string, projectName?: string) {
@@ -169,6 +173,14 @@ export async function cancelOnboardingAction(id: string) {
   return { ok: true };
 }
 
+export async function addStarterQuestionsAction(onboardingId: string) {
+  await requireAdmin();
+  await addStarterOnboardingQuestions(onboardingId);
+  const onboarding = await getOnboarding(onboardingId);
+  await revalidateOnboarding(onboardingId, onboarding?.clientId);
+  return { ok: true };
+}
+
 export async function addQuestionAction(onboardingId: string, question: QuestionInput) {
   await requireAdmin();
   const parsed = questionSchema.parse(question);
@@ -192,10 +204,6 @@ export async function updateQuestionAction(
 
 export async function deleteQuestionAction(id: string, onboardingId: string) {
   await requireAdmin();
-  const answers = await listAnswers(onboardingId);
-  if (answers.some((a) => a.questionId === id)) {
-    throw new Error("Cannot delete a question that already has answers");
-  }
   await deleteOnboardingQuestion(id);
   const onboarding = await getOnboarding(onboardingId);
   await revalidateOnboarding(onboardingId, onboarding?.clientId);
@@ -223,6 +231,13 @@ export async function saveAsTemplateAction(
   const template = await saveOnboardingQuestionsAsTemplate(onboardingId, name, description);
   revalidatePath("/admin/onboarding/templates");
   return { ok: true, id: template.id };
+}
+
+export async function revealSensitiveAnswerAction(answerId: string) {
+  await requireAdmin();
+  const answer = await getDecryptedAnswer(answerId);
+  if (!answer) throw new Error("Not found");
+  return { ok: true as const, value: answer.value };
 }
 
 export async function adminUpsertAnswerAction(opts: {

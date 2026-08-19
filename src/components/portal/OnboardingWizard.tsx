@@ -10,12 +10,7 @@ import {
   saveQuestionnaireAction,
   uploadQuestionnaireFileAction,
 } from "@/app/portal/actions/onboarding";
-import {
-  CORE_ANSWER_KEYS,
-  CORE_QUESTION_LABELS,
-  type CoreAnswerKey,
-  type OnboardingStep,
-} from "@/lib/onboarding/types";
+import type { OnboardingStep } from "@/lib/onboarding/types";
 
 type Question = {
   id: string;
@@ -24,6 +19,8 @@ type Question = {
   type: string;
   options: string[];
   required: boolean;
+  key?: string | null;
+  sensitive?: boolean;
 };
 
 export default function OnboardingWizard({
@@ -71,17 +68,15 @@ export default function OnboardingWizard({
   const step = onboarding.currentStep as OnboardingStep;
   const stepIndex = Math.max(0, enabledSteps.indexOf(step));
 
-  const coreDefaults: Record<CoreAnswerKey, string> = {
-    goals: "",
-    timeline: "",
-    budget: "",
-    audience: "",
-  };
+  const answerMap = Object.fromEntries(
+    answers
+      .filter((a) => a.questionId)
+      .map((a) => [a.questionId!, a.value]),
+  );
   for (const a of answers) {
-    if (a.key && CORE_ANSWER_KEYS.includes(a.key as CoreAnswerKey)) {
-      const v = a.value as { text?: string };
-      coreDefaults[a.key as CoreAnswerKey] = v?.text || "";
-    }
+    if (!a.key || a.questionId) continue;
+    const match = questions.find((q) => q.key === a.key);
+    if (match && answerMap[match.id] === undefined) answerMap[match.id] = a.value;
   }
 
   return (
@@ -137,12 +132,7 @@ export default function OnboardingWizard({
           <QuestionnaireStep
             onboardingId={onboardingId}
             questions={questions}
-            coreDefaults={coreDefaults}
-            answerMap={Object.fromEntries(
-              answers
-                .filter((a) => a.questionId)
-                .map((a) => [a.questionId!, a.value]),
-            )}
+            answerMap={answerMap}
             onSave={async (data) => {
               await saveQuestionnaireAction(onboardingId, data);
               router.refresh();
@@ -308,21 +298,17 @@ function InfoStep({
 function QuestionnaireStep({
   onboardingId,
   questions,
-  coreDefaults,
   answerMap,
   onSave,
 }: {
   onboardingId: string;
   questions: Question[];
-  coreDefaults: Record<CoreAnswerKey, string>;
   answerMap: Record<string, unknown>;
   onSave: (data: {
-    core: Partial<Record<CoreAnswerKey, string>>;
     answers: { questionId: string; value: unknown }[];
   }) => Promise<void>;
 }) {
   const [loading, setLoading] = useState(false);
-  const [core, setCore] = useState(coreDefaults);
   const [custom, setCustom] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     for (const q of questions) {
@@ -332,7 +318,13 @@ function QuestionnaireStep({
         selected?: string[];
         url?: string;
         filename?: string;
+        redacted?: boolean;
+        saved?: boolean;
       };
+      if (q.sensitive || v?.redacted) {
+        init[q.id] = q.type === "file" ? v?.filename || (v?.saved ? "saved" : "") : "";
+        continue;
+      }
       if (q.type === "boolean") init[q.id] = v?.bool ? "true" : "false";
       else if (q.type === "multi_select") init[q.id] = (v?.selected || []).join(", ");
       else if (q.type === "single_select") init[q.id] = (v?.selected || [])[0] || "";
@@ -357,9 +349,9 @@ function QuestionnaireStep({
         e.preventDefault();
         setLoading(true);
         await onSave({
-          core,
           answers: questions
             .filter((q) => q.type !== "file")
+            .filter((q) => !(q.sensitive && !(custom[q.id] || "").trim()))
             .map((q) => {
               const raw = custom[q.id] || "";
               if (q.type === "boolean")
@@ -384,22 +376,21 @@ function QuestionnaireStep({
     >
       <h2 className="font-[family-name:var(--font-syne)] text-xl font-bold">Questionnaire</h2>
 
-      {CORE_ANSWER_KEYS.map((key) => (
-        <label key={key} className="block text-xs uppercase tracking-wider text-white/40">
-          {CORE_QUESTION_LABELS[key]}
-          <textarea
-            required
-            value={core[key]}
-            onChange={(e) => setCore({ ...core, [key]: e.target.value })}
-            rows={key === "goals" ? 3 : 2}
-            className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
-          />
-        </label>
-      ))}
-
-      {questions.map((q) => (
+      {questions.map((q) => {
+        const saved = Boolean(
+          (answerMap[q.id] as { saved?: boolean; redacted?: boolean } | undefined)?.saved ||
+            (answerMap[q.id] as { redacted?: boolean } | undefined)?.redacted ||
+            fileNames[q.id],
+        );
+        const isSecret = Boolean(q.sensitive);
+        return (
         <label key={q.id} className="block text-xs uppercase tracking-wider text-white/40">
           {q.label}
+          {isSecret && (
+            <span className="ml-2 normal-case tracking-normal text-[#fdf0d5]/70">
+              Encrypted — admin-only
+            </span>
+          )}
           {q.helpText && (
             <span className="mt-0.5 block normal-case text-white/30">{q.helpText}</span>
           )}
@@ -408,7 +399,7 @@ function QuestionnaireStep({
               <input
                 type="file"
                 accept="image/*,application/pdf"
-                required={q.required && !custom[q.id]}
+                required={q.required && !saved}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -419,14 +410,15 @@ function QuestionnaireStep({
                     q.id,
                     fd,
                   );
-                  setCustom({ ...custom, [q.id]: result.url });
+                  setCustom({ ...custom, [q.id]: result.filename || "saved" });
                   setFileNames({ ...fileNames, [q.id]: result.filename });
                 }}
                 className="w-full text-sm normal-case"
               />
               {fileNames[q.id] && (
                 <p className="mt-1 text-xs normal-case text-white/50">
-                  Uploaded: {fileNames[q.id]}
+                  {isSecret ? "Stored securely: " : "Uploaded: "}
+                  {fileNames[q.id]}
                 </p>
               )}
             </div>
@@ -454,17 +446,34 @@ function QuestionnaireStep({
                 </option>
               ))}
             </select>
+          ) : isSecret && q.type !== "long_text" ? (
+            <input
+              type="password"
+              autoComplete="off"
+              spellCheck={false}
+              required={q.required && !saved}
+              value={custom[q.id] || ""}
+              onChange={(e) => setCustom({ ...custom, [q.id]: e.target.value })}
+              placeholder={saved ? "Saved securely — type to replace" : "Stored encrypted"}
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+            />
           ) : (
             <textarea
-              required={q.required}
+              required={q.required && !(isSecret && saved)}
               value={custom[q.id] || ""}
               onChange={(e) => setCustom({ ...custom, [q.id]: e.target.value })}
               rows={q.type === "long_text" ? 4 : 2}
+              autoComplete={isSecret ? "off" : undefined}
+              spellCheck={isSecret ? false : undefined}
+              placeholder={
+                isSecret && saved ? "Saved securely — type to replace" : undefined
+              }
               className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
             />
           )}
         </label>
-      ))}
+        );
+      })}
 
       <button
         type="submit"

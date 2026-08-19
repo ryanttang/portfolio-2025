@@ -17,6 +17,7 @@ export default function TemplateEditor({
     type: string;
     options: string[];
     required: boolean;
+    sensitive?: boolean;
   }[];
 }) {
   const router = useRouter();
@@ -29,10 +30,12 @@ export default function TemplateEditor({
       type: i.type as QuestionType,
       options: i.options || [],
       required: i.required,
+      sensitive: i.sensitive,
     })),
   );
   const [newLabel, setNewLabel] = useState("");
   const [newType, setNewType] = useState<QuestionType>("short_text");
+  const [newSensitive, setNewSensitive] = useState(false);
   const [message, setMessage] = useState("");
 
   async function save() {
@@ -76,7 +79,22 @@ export default function TemplateEditor({
               }}
               className="flex-1 border border-white/15 bg-black/40 px-2 py-1 text-sm"
             />
-            <span className="self-center text-[10px] uppercase text-white/30">{q.type}</span>
+            <span className="self-center text-[10px] uppercase text-white/30">
+              {q.type}
+              {q.sensitive ? " · encrypted" : ""}
+            </span>
+            <label className="flex items-center gap-1 self-center text-[10px] uppercase text-white/40">
+              <input
+                type="checkbox"
+                checked={Boolean(q.sensitive)}
+                onChange={(e) => {
+                  const next = [...questions];
+                  next[idx] = { ...q, sensitive: e.target.checked };
+                  setQuestions(next);
+                }}
+              />
+              Encrypt
+            </label>
             <button
               type="button"
               onClick={() => setQuestions(questions.filter((_, i) => i !== idx))}
@@ -106,15 +124,30 @@ export default function TemplateEditor({
             </option>
           ))}
         </select>
+        <label className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-white/40">
+          <input
+            type="checkbox"
+            checked={newSensitive}
+            onChange={(e) => setNewSensitive(e.target.checked)}
+          />
+          Encrypt
+        </label>
         <button
           type="button"
           onClick={() => {
             if (!newLabel.trim()) return;
             setQuestions([
               ...questions,
-              { label: newLabel.trim(), type: newType, required: true, options: [] },
+              {
+                label: newLabel.trim(),
+                type: newType,
+                required: true,
+                options: [],
+                sensitive: newSensitive,
+              },
             ]);
             setNewLabel("");
+            setNewSensitive(false);
           }}
           className="bg-white/10 px-3 py-2 text-sm"
         >

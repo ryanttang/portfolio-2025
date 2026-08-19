@@ -15,12 +15,18 @@ import { addActivity, getClient, updateClient } from "@/lib/crm/clients";
 import { logAudit } from "@/lib/audit";
 import {
   CORE_ANSWER_KEYS,
+  CORE_STARTER_QUESTIONS,
   type CoreAnswerKey,
   type OnboardingStep,
   type QuestionInput,
   type QuestionType,
 } from "@/lib/onboarding/types";
-import { isUuid, onboardingSlugBase } from "@/lib/onboarding/slug";
+import {
+  decryptJson,
+  encryptJson,
+  filenameFromValue,
+  isEncryptedPayload,
+} from "@/lib/crypto/sensitive";
 
 export { portalProjectPath } from "@/lib/onboarding/slug";
 
@@ -197,8 +203,10 @@ export async function cancelOnboarding(id: string) {
 export function getEnabledSteps(onboarding: {
   contractEnabled: boolean;
   depositEnabled: boolean;
+  hasQuestionnaire?: boolean;
 }): OnboardingStep[] {
-  const steps: OnboardingStep[] = ["welcome", "info", "questionnaire"];
+  const steps: OnboardingStep[] = ["welcome", "info"];
+  if (onboarding.hasQuestionnaire) steps.push("questionnaire");
   if (onboarding.contractEnabled) steps.push("contract");
   if (onboarding.depositEnabled) steps.push("deposit");
   steps.push("handoff");
@@ -206,7 +214,11 @@ export function getEnabledSteps(onboarding: {
 }
 
 export function getNextStep(
-  onboarding: { contractEnabled: boolean; depositEnabled: boolean },
+  onboarding: {
+    contractEnabled: boolean;
+    depositEnabled: boolean;
+    hasQuestionnaire?: boolean;
+  },
   current: OnboardingStep,
 ): OnboardingStep | null {
   const steps = getEnabledSteps(onboarding);
@@ -244,6 +256,8 @@ export async function replaceOnboardingQuestions(
         type: q.type,
         options: q.options || [],
         required: q.required ?? true,
+        key: q.key ?? null,
+        sensitive: q.sensitive ?? false,
       })),
     )
     .returning();
@@ -270,9 +284,34 @@ export async function addOnboardingQuestion(
       type: question.type,
       options: question.options || [],
       required: question.required ?? true,
+      key: question.key ?? null,
+      sensitive: question.sensitive ?? false,
     })
     .returning();
   return row;
+}
+
+export async function addStarterOnboardingQuestions(onboardingId: string) {
+  const existing = await listOnboardingQuestions(onboardingId);
+  const usedKeys = new Set(
+    existing.map((q) => q.key).filter((k): k is string => Boolean(k)),
+  );
+  const missing = CORE_STARTER_QUESTIONS.filter((q) => !usedKeys.has(q.key));
+  if (missing.length === 0) return existing;
+
+  const added = [];
+  for (const question of missing) {
+    added.push(
+      await addOnboardingQuestion(onboardingId, {
+        label: question.label,
+        type: question.type,
+        required: question.required,
+        options: [],
+        key: question.key,
+      }),
+    );
+  }
+  return added;
 }
 
 export async function updateOnboardingQuestion(
@@ -284,6 +323,8 @@ export async function updateOnboardingQuestion(
     options: string[];
     required: boolean;
     sortOrder: number;
+    key: string | null;
+    sensitive: boolean;
   }>,
 ) {
   const [row] = await db
@@ -291,7 +332,27 @@ export async function updateOnboardingQuestion(
     .set(data)
     .where(eq(onboardingQuestions.id, id))
     .returning();
+  if (row && data.sensitive === true) {
+    await encryptExistingAnswersForQuestion(id);
+  }
   return row;
+}
+
+export async function encryptExistingAnswersForQuestion(questionId: string) {
+  const answers = await db
+    .select()
+    .from(onboardingAnswers)
+    .where(eq(onboardingAnswers.questionId, questionId));
+  for (const answer of answers) {
+    if (isEncryptedPayload(answer.value)) continue;
+    await db
+      .update(onboardingAnswers)
+      .set({
+        value: encryptJson(answer.value, { filename: filenameFromValue(answer.value) }),
+        updatedAt: new Date(),
+      })
+      .where(eq(onboardingAnswers.id, answer.id));
+  }
 }
 
 export async function deleteOnboardingQuestion(id: string) {
@@ -303,6 +364,45 @@ export async function listAnswers(onboardingId: string) {
     .select()
     .from(onboardingAnswers)
     .where(eq(onboardingAnswers.onboardingId, onboardingId));
+}
+
+function isEmptyAnswerValue(value: unknown) {
+  if (!value || typeof value !== "object") return true;
+  const v = value as { text?: string; selected?: string[] };
+  if (typeof v.text === "string") return v.text.trim() === "";
+  if (Array.isArray(v.selected)) return v.selected.length === 0;
+  return false;
+}
+
+export function redactAnswerValue(value: unknown) {
+  if (isEncryptedPayload(value)) {
+    return {
+      redacted: true as const,
+      saved: true as const,
+      ...(value.meta?.filename ? { filename: value.meta.filename } : {}),
+    };
+  }
+  return value;
+}
+
+export function decryptAnswerValue(value: unknown) {
+  if (isEncryptedPayload(value)) return decryptJson(value);
+  return value;
+}
+
+async function valueForStorage(opts: {
+  questionId?: string | null;
+  value: unknown;
+}) {
+  if (isEncryptedPayload(opts.value)) return opts.value;
+  if (!opts.questionId) return opts.value;
+  const [question] = await db
+    .select({ sensitive: onboardingQuestions.sensitive })
+    .from(onboardingQuestions)
+    .where(eq(onboardingQuestions.id, opts.questionId))
+    .limit(1);
+  if (!question?.sensitive) return opts.value;
+  return encryptJson(opts.value, { filename: filenameFromValue(opts.value) });
 }
 
 export async function upsertAnswer(opts: {
@@ -327,10 +427,23 @@ export async function upsertAnswer(opts: {
       )
       .limit(1);
 
+    if (existing && isEmptyAnswerValue(opts.value) && isEncryptedPayload(existing.value)) {
+      return existing;
+    }
+
+    const value = (await valueForStorage({
+      questionId: opts.questionId,
+      value: opts.value,
+    })) as object;
+
     if (existing) {
       const [row] = await db
         .update(onboardingAnswers)
-        .set({ value: opts.value as object, updatedAt: new Date() })
+        .set({
+          value,
+          key: opts.key ?? existing.key,
+          updatedAt: new Date(),
+        })
         .where(eq(onboardingAnswers.id, existing.id))
         .returning();
       return row;
@@ -341,8 +454,8 @@ export async function upsertAnswer(opts: {
       .values({
         onboardingId: opts.onboardingId,
         questionId: opts.questionId,
-        key: null,
-        value: opts.value as object,
+        key: opts.key || null,
+        value,
       })
       .returning();
     return row;
@@ -459,6 +572,7 @@ export async function replaceTemplateItems(templateId: string, questions: Questi
         type: q.type,
         options: q.options || [],
         required: q.required ?? true,
+        sensitive: q.sensitive ?? false,
       })),
     )
     .returning();
@@ -474,6 +588,7 @@ export async function applyTemplateToOnboarding(onboardingId: string, templateId
       type: i.type as QuestionType,
       options: i.options || [],
       required: i.required,
+      sensitive: i.sensitive,
     })),
   );
 }
@@ -493,6 +608,7 @@ export async function saveOnboardingQuestionsAsTemplate(
       type: q.type as QuestionType,
       options: q.options || [],
       required: q.required,
+      sensitive: q.sensitive,
     })),
   );
   return template;
@@ -523,7 +639,11 @@ export async function advanceStep(id: string, fromStep: OnboardingStep) {
   const onboarding = await getOnboarding(id);
   if (!onboarding) throw new Error("Not found");
 
-  const next = getNextStep(onboarding, fromStep);
+  const questions = await listOnboardingQuestions(id);
+  const next = getNextStep(
+    { ...onboarding, hasQuestionnaire: questions.length > 0 },
+    fromStep,
+  );
   if (!next) return onboarding;
 
   const status =
@@ -538,7 +658,7 @@ export async function getOnboardingBundle(id: string) {
   const onboarding = await getOnboarding(id);
   if (!onboarding) return null;
 
-  const [questions, answers, contract, invoice] = await Promise.all([
+  const [questions, rawAnswers, contract, invoice] = await Promise.all([
     listOnboardingQuestions(id),
     listAnswers(id),
     onboarding.contractId
@@ -559,7 +679,44 @@ export async function getOnboardingBundle(id: string) {
       : Promise.resolve(null),
   ]);
 
+  const answers = rawAnswers.map((answer) => {
+    const question = questions.find((q) => q.id === answer.questionId);
+    if (question?.sensitive || isEncryptedPayload(answer.value)) {
+      return { ...answer, value: redactAnswerValue(answer.value) };
+    }
+    return answer;
+  });
+
   return { onboarding, questions, answers, contract, invoice };
+}
+
+export async function getDecryptedAnswer(answerId: string) {
+  const [answer] = await db
+    .select()
+    .from(onboardingAnswers)
+    .where(eq(onboardingAnswers.id, answerId))
+    .limit(1);
+  if (!answer) return null;
+
+  if (answer.questionId) {
+    const [question] = await db
+      .select({ sensitive: onboardingQuestions.sensitive })
+      .from(onboardingQuestions)
+      .where(eq(onboardingQuestions.id, answer.questionId))
+      .limit(1);
+    if (question?.sensitive && !isEncryptedPayload(answer.value)) {
+      const encrypted = encryptJson(answer.value, {
+        filename: filenameFromValue(answer.value),
+      });
+      await db
+        .update(onboardingAnswers)
+        .set({ value: encrypted, updatedAt: new Date() })
+        .where(eq(onboardingAnswers.id, answer.id));
+      return { ...answer, value: answer.value };
+    }
+  }
+
+  return { ...answer, value: decryptAnswerValue(answer.value) };
 }
 
 export async function listPortalUpdates(onboardingId: string) {

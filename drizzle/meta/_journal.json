@@ -50,6 +50,20 @@
       "when": 1787163840000,
       "tag": "0006_onboarding_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787165100000,
+      "tag": "0007_editable_core_questions",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787166060000,
+      "tag": "0008_sensitive_answers",
+      "breakpoints": true
     }
   ]
 }

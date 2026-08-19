@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const admins = pgTable("admins", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -385,6 +386,8 @@ export const questionTemplateItems = pgTable(
     type: text("type").notNull().default("short_text"), // short_text | long_text | single_select | multi_select | boolean
     options: jsonb("options").$type<string[]>().notNull().default([]),
     required: boolean("required").notNull().default(true),
+    /** Encrypt answers at rest; only admin can reveal. */
+    sensitive: boolean("sensitive").notNull().default(false),
   },
   (t) => [index("question_template_items_template_idx").on(t.templateId)],
 );
@@ -402,8 +405,17 @@ export const onboardingQuestions = pgTable(
     type: text("type").notNull().default("short_text"),
     options: jsonb("options").$type<string[]>().notNull().default([]),
     required: boolean("required").notNull().default(true),
+    /** Optional starter identity: goals | timeline | budget | audience */
+    key: text("key"),
+    /** Encrypt answers at rest; portal never sees plaintext. */
+    sensitive: boolean("sensitive").notNull().default(false),
   },
-  (t) => [index("onboarding_questions_onboarding_idx").on(t.onboardingId)],
+  (t) => [
+    index("onboarding_questions_onboarding_idx").on(t.onboardingId),
+    uniqueIndex("onboarding_questions_key_uidx")
+      .on(t.onboardingId, t.key)
+      .where(sql`${t.key} is not null`),
+  ],
 );
 
 export const onboardingAnswers = pgTable(
