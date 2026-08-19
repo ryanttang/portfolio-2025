@@ -27,6 +27,7 @@ import {
   filenameFromValue,
   isEncryptedPayload,
 } from "@/lib/crypto/sensitive";
+import { isUuid, onboardingSlugBase } from "@/lib/onboarding/slug";
 
 export { portalProjectPath } from "@/lib/onboarding/slug";
 
