@@ -11,7 +11,7 @@ import {
   questionTemplateItems,
   questionTemplates,
 } from "@/db/schema";
-import { addActivity, updateClient } from "@/lib/crm/clients";
+import { addActivity, getClient, updateClient } from "@/lib/crm/clients";
 import { logAudit } from "@/lib/audit";
 import {
   CORE_ANSWER_KEYS,
@@ -20,6 +20,9 @@ import {
   type QuestionInput,
   type QuestionType,
 } from "@/lib/onboarding/types";
+import { isUuid, onboardingSlugBase } from "@/lib/onboarding/slug";
+
+export { portalProjectPath } from "@/lib/onboarding/slug";
 
 export async function listOnboardings() {
   return db.select().from(onboardings).orderBy(desc(onboardings.updatedAt));
@@ -38,13 +41,66 @@ export async function getOnboarding(id: string) {
   return row || null;
 }
 
-export async function getOnboardingForClient(clientId: string, id: string) {
+export async function getOnboardingForClient(clientId: string, idOrSlug: string) {
   const [row] = await db
     .select()
     .from(onboardings)
-    .where(and(eq(onboardings.id, id), eq(onboardings.clientId, clientId)))
+    .where(
+      and(
+        eq(onboardings.clientId, clientId),
+        isUuid(idOrSlug) ? eq(onboardings.id, idOrSlug) : eq(onboardings.slug, idOrSlug),
+      ),
+    )
     .limit(1);
   return row || null;
+}
+
+async function allocateUniqueSlug(
+  projectName: string,
+  clientName: string,
+  excludeId?: string,
+) {
+  const base = onboardingSlugBase(projectName, clientName);
+  let candidate = base;
+  let n = 2;
+  while (true) {
+    const [existing] = await db
+      .select({ id: onboardings.id })
+      .from(onboardings)
+      .where(
+        excludeId
+          ? and(eq(onboardings.slug, candidate), ne(onboardings.id, excludeId))
+          : eq(onboardings.slug, candidate),
+      )
+      .limit(1);
+    if (!existing) return candidate;
+    candidate = `${base}-${n}`;
+    n += 1;
+  }
+}
+
+export async function refreshOnboardingSlug(id: string) {
+  const row = await getOnboarding(id);
+  if (!row) return null;
+  const client = await getClient(row.clientId);
+  const slug = await allocateUniqueSlug(row.projectName, client?.name || "client", id);
+  if (slug === row.slug) return row;
+  const [updated] = await db
+    .update(onboardings)
+    .set({ slug, updatedAt: new Date() })
+    .where(eq(onboardings.id, id))
+    .returning();
+  return updated || row;
+}
+
+export async function refreshOnboardingSlugsForClient(clientId: string) {
+  const rows = await db
+    .select({ id: onboardings.id })
+    .from(onboardings)
+    .where(eq(onboardings.clientId, clientId));
+  for (const row of rows) {
+    await refreshOnboardingSlug(row.id);
+  }
 }
 
 /** @deprecated Prefer listOnboardingsForClient / getOnboardingForClient for multi-project. */
@@ -72,11 +128,16 @@ export async function getActiveOnboardingForClient(clientId: string) {
 }
 
 export async function createOnboarding(clientId: string, projectName = "") {
+  const name = projectName || "New project";
+  const client = await getClient(clientId);
+  const slug = await allocateUniqueSlug(name, client?.name || "client");
+
   const [row] = await db
     .insert(onboardings)
     .values({
       clientId,
-      projectName: projectName || "New project",
+      projectName: name,
+      slug,
       status: "draft",
       currentStep: "welcome",
     })
@@ -102,9 +163,24 @@ export async function updateOnboarding(
     completedAt: Date | null;
   }>,
 ) {
+  const patch: typeof data & { slug?: string; updatedAt: Date } = {
+    ...data,
+    updatedAt: new Date(),
+  };
+  if (data.projectName !== undefined) {
+    const existing = await getOnboarding(id);
+    if (existing) {
+      const client = await getClient(existing.clientId);
+      patch.slug = await allocateUniqueSlug(
+        data.projectName,
+        client?.name || "client",
+        id,
+      );
+    }
+  }
   const [row] = await db
     .update(onboardings)
-    .set({ ...data, updatedAt: new Date() })
+    .set(patch)
     .where(eq(onboardings.id, id))
     .returning();
   return row;

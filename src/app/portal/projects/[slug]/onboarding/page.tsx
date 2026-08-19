@@ -5,6 +5,7 @@ import {
   getEnabledSteps,
   getOnboardingBundle,
   getOnboardingForClient,
+  portalProjectPath,
 } from "@/lib/onboarding";
 import OnboardingWizard from "@/components/portal/OnboardingWizard";
 import type { OnboardingStep } from "@/lib/onboarding/types";
@@ -13,7 +14,7 @@ import Link from "next/link";
 export default async function ProjectOnboardingPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
   let actor;
   try {
@@ -22,18 +23,22 @@ export default async function ProjectOnboardingPage({
     redirect("/portal/login");
   }
 
-  const { id } = await params;
-  const onboarding = await getOnboardingForClient(actor.clientId, id);
+  const { slug } = await params;
+  const onboarding = await getOnboardingForClient(actor.clientId, slug);
   if (!onboarding) notFound();
 
+  if (slug !== onboarding.slug) {
+    redirect(portalProjectPath(onboarding, "onboarding"));
+  }
+
   if (onboarding.status === "completed") {
-    redirect(`/portal/projects/${id}`);
+    redirect(portalProjectPath(onboarding));
   }
 
   const client = await getClient(actor.clientId);
   if (!client) redirect("/portal/login");
 
-  const bundle = await getOnboardingBundle(id);
+  const bundle = await getOnboardingBundle(onboarding.id);
   if (!bundle) notFound();
 
   const enabledSteps = getEnabledSteps(onboarding);
@@ -49,7 +54,8 @@ export default async function ProjectOnboardingPage({
       </Link>
       <div className="mt-4">
         <OnboardingWizard
-          onboardingId={id}
+          onboardingId={onboarding.id}
+          projectSlug={onboarding.slug}
           onboarding={{
             ...bundle.onboarding,
             currentStep,

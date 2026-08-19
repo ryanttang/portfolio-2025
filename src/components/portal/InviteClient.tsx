@@ -63,8 +63,8 @@ export default function InviteClient({
         setLoading(false);
         return;
       }
-      const dest = result.onboardingId
-        ? `/portal/projects/${result.onboardingId}/onboarding`
+      const dest = result.projectSlug
+        ? `/portal/projects/${result.projectSlug}/onboarding`
         : "/portal";
       router.push(dest);
       router.refresh();

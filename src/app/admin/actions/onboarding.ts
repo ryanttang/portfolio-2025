@@ -21,6 +21,8 @@ import {
   getOnboarding,
   listAnswers,
   listOnboardingQuestions,
+  portalProjectPath,
+  refreshOnboardingSlug,
   replaceTemplateItems,
   saveOnboardingQuestionsAsTemplate,
   updateOnboarding,
@@ -36,12 +38,22 @@ import { logAudit } from "@/lib/audit";
 import { QUESTION_TYPES, type QuestionInput } from "@/lib/onboarding/types";
 import { redirect } from "next/navigation";
 
-function revalidateOnboarding(id: string, clientId?: string) {
+async function revalidateOnboarding(id: string, clientId?: string, slug?: string) {
   revalidatePath("/admin/onboarding");
   revalidatePath(`/admin/onboarding/${id}`);
   revalidatePath("/admin/onboarding/templates");
-  revalidatePath(`/portal/projects/${id}`);
-  if (clientId) revalidatePath(`/admin/crm/${clientId}`);
+  let resolvedSlug = slug;
+  let resolvedClientId = clientId;
+  if (!resolvedSlug || !resolvedClientId) {
+    const row = await getOnboarding(id);
+    resolvedSlug = resolvedSlug || row?.slug;
+    resolvedClientId = resolvedClientId || row?.clientId;
+  }
+  if (resolvedSlug) {
+    revalidatePath(portalProjectPath({ slug: resolvedSlug }));
+    revalidatePath(portalProjectPath({ slug: resolvedSlug }, "onboarding"));
+  }
+  if (resolvedClientId) revalidatePath(`/admin/crm/${resolvedClientId}`);
 }
 
 const questionSchema = z.object({
@@ -55,7 +67,7 @@ const questionSchema = z.object({
 export async function createOnboardingAction(clientId: string, projectName?: string) {
   await requireAdmin();
   const row = await createOnboarding(clientId, projectName);
-  revalidateOnboarding(row.id, clientId);
+  await revalidateOnboarding(row.id, clientId, row.slug);
   return { ok: true, id: row.id };
 }
 
@@ -85,7 +97,7 @@ export async function updateOnboardingAction(
   };
   const row = await updateOnboarding(id, parsed);
   if (!row) throw new Error("Not found");
-  revalidateOnboarding(id, row.clientId);
+  await revalidateOnboarding(id, row.clientId, row.slug);
   return { ok: true };
 }
 
@@ -123,8 +135,8 @@ export async function updateOnboardingClientInfoAction(
     address: parsed.address?.trim() ? parsed.address.trim() : null,
   });
 
-  revalidateOnboarding(onboardingId, onboarding.clientId);
-  revalidatePath(`/portal/projects/${onboardingId}/onboarding`);
+  const refreshed = await refreshOnboardingSlug(onboardingId);
+  await revalidateOnboarding(onboardingId, onboarding.clientId, (refreshed || onboarding).slug);
   return { ok: true };
 }
 
@@ -146,14 +158,14 @@ export async function sendOnboardingInviteAction(id: string) {
     await updateOnboarding(id, { status: "sent" });
   }
 
-  revalidateOnboarding(id, onboarding.clientId);
+  await revalidateOnboarding(id, onboarding.clientId);
   return { ok: true, url, error: result.error };
 }
 
 export async function cancelOnboardingAction(id: string) {
   await requireAdmin();
   const row = await cancelOnboarding(id);
-  if (row) revalidateOnboarding(id, row.clientId);
+  if (row) await revalidateOnboarding(id, row.clientId);
   return { ok: true };
 }
 
@@ -162,7 +174,7 @@ export async function addQuestionAction(onboardingId: string, question: Question
   const parsed = questionSchema.parse(question);
   await addOnboardingQuestion(onboardingId, parsed);
   const onboarding = await getOnboarding(onboardingId);
-  revalidateOnboarding(onboardingId, onboarding?.clientId);
+  await revalidateOnboarding(onboardingId, onboarding?.clientId);
   return { ok: true };
 }
 
@@ -174,7 +186,7 @@ export async function updateQuestionAction(
   await requireAdmin();
   await updateOnboardingQuestion(id, data);
   const onboarding = await getOnboarding(onboardingId);
-  revalidateOnboarding(onboardingId, onboarding?.clientId);
+  await revalidateOnboarding(onboardingId, onboarding?.clientId);
   return { ok: true };
 }
 
@@ -186,7 +198,7 @@ export async function deleteQuestionAction(id: string, onboardingId: string) {
   }
   await deleteOnboardingQuestion(id);
   const onboarding = await getOnboarding(onboardingId);
-  revalidateOnboarding(onboardingId, onboarding?.clientId);
+  await revalidateOnboarding(onboardingId, onboarding?.clientId);
   return { ok: true };
 }
 
@@ -198,7 +210,7 @@ export async function applyTemplateAction(onboardingId: string, templateId: stri
   }
   await applyTemplateToOnboarding(onboardingId, templateId);
   const onboarding = await getOnboarding(onboardingId);
-  revalidateOnboarding(onboardingId, onboarding?.clientId);
+  await revalidateOnboarding(onboardingId, onboarding?.clientId);
   return { ok: true };
 }
 
@@ -222,7 +234,7 @@ export async function adminUpsertAnswerAction(opts: {
   await requireAdmin();
   await upsertAnswer(opts);
   const onboarding = await getOnboarding(opts.onboardingId);
-  revalidateOnboarding(opts.onboardingId, onboarding?.clientId);
+  await revalidateOnboarding(opts.onboardingId, onboarding?.clientId);
   return { ok: true };
 }
 
@@ -274,7 +286,7 @@ export async function createUpdateAction(
     body,
     createdByAdminId: session.user.id,
   });
-  revalidateOnboarding(onboardingId, clientId);
+  await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
@@ -287,14 +299,14 @@ export async function updateUpdateAction(
 ) {
   await requireAdmin();
   await updatePortalUpdate(id, { title, body });
-  revalidateOnboarding(onboardingId, clientId);
+  await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
 export async function deleteUpdateAction(id: string, clientId: string, onboardingId: string) {
   await requireAdmin();
   await deletePortalUpdate(id);
-  revalidateOnboarding(onboardingId, clientId);
+  await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
@@ -311,7 +323,7 @@ export async function createMilestoneAction(
     description: data.description,
     status: data.status,
   });
-  revalidateOnboarding(onboardingId, clientId);
+  await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
@@ -323,7 +335,7 @@ export async function updateMilestoneAction(
 ) {
   await requireAdmin();
   await updatePortalMilestone(id, data);
-  revalidateOnboarding(onboardingId, clientId);
+  await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
@@ -334,7 +346,7 @@ export async function deleteMilestoneAction(
 ) {
   await requireAdmin();
   await deletePortalMilestone(id);
-  revalidateOnboarding(onboardingId, clientId);
+  await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }
 
@@ -355,9 +367,9 @@ export async function startViewAsClientAction(
     }
     returnOnboardingId = onboarding.id;
     if (onboarding.status === "completed") {
-      redirectTo = `/portal/projects/${onboarding.id}`;
+      redirectTo = portalProjectPath(onboarding);
     } else if (onboarding.status !== "cancelled") {
-      redirectTo = `/portal/projects/${onboarding.id}/onboarding`;
+      redirectTo = portalProjectPath(onboarding, "onboarding");
     }
   }
 
@@ -397,7 +409,7 @@ export async function restartOnboardingWizardAction(onboardingId: string) {
     status: onboarding.status === "cancelled" ? "draft" : "in_progress",
     completedAt: null,
   });
-  revalidateOnboarding(onboardingId, onboarding.clientId);
+  await revalidateOnboarding(onboardingId, onboarding.clientId);
   return { ok: true };
 }
 

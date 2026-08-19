@@ -8,13 +8,14 @@ import {
   getOnboardingForClient,
   listPortalMilestones,
   listPortalUpdates,
+  portalProjectPath,
 } from "@/lib/onboarding";
 import ProjectMessageForm from "@/components/portal/ProjectMessageForm";
 
 export default async function ProjectHubPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
   let actor;
   try {
@@ -23,17 +24,21 @@ export default async function ProjectHubPage({
     redirect("/portal/login");
   }
 
-  const { id } = await params;
-  const onboarding = await getOnboardingForClient(actor.clientId, id);
+  const { slug } = await params;
+  const onboarding = await getOnboardingForClient(actor.clientId, slug);
   if (!onboarding) notFound();
 
+  if (slug !== onboarding.slug) {
+    redirect(portalProjectPath(onboarding));
+  }
+
   if (onboarding.status !== "completed") {
-    redirect(`/portal/projects/${id}/onboarding`);
+    redirect(portalProjectPath(onboarding, "onboarding"));
   }
 
   const [milestones, updates, clientContracts, clientInvoices] = await Promise.all([
-    listPortalMilestones(id),
-    listPortalUpdates(id),
+    listPortalMilestones(onboarding.id),
+    listPortalUpdates(onboarding.id),
     onboarding.contractId
       ? db.select().from(contracts).where(eq(contracts.id, onboarding.contractId))
       : db.select().from(contracts).where(eq(contracts.clientId, actor.clientId)),
@@ -168,7 +173,7 @@ export default async function ProjectHubPage({
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">
           Message
         </h2>
-        <ProjectMessageForm onboardingId={id} />
+        <ProjectMessageForm onboardingId={onboarding.id} />
       </section>
     </div>
   );

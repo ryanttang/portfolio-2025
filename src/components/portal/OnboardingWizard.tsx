@@ -28,6 +28,7 @@ type Question = {
 
 export default function OnboardingWizard({
   onboardingId,
+  projectSlug,
   onboarding,
   client,
   questions,
@@ -37,6 +38,7 @@ export default function OnboardingWizard({
   invoice,
 }: {
   onboardingId: string;
+  projectSlug: string;
   onboarding: {
     id: string;
     projectName: string;
@@ -123,7 +125,10 @@ export default function OnboardingWizard({
           <InfoStep
             client={client}
             onSave={async (data) => {
-              await saveClientInfoAction(onboardingId, data);
+              const result = await saveClientInfoAction(onboardingId, data);
+              if (result.projectSlug && result.projectSlug !== projectSlug) {
+                router.replace(`/portal/projects/${result.projectSlug}/onboarding`);
+              }
               router.refresh();
             }}
           />
@@ -171,7 +176,7 @@ export default function OnboardingWizard({
             projectName={onboarding.projectName}
             onComplete={async () => {
               await completeHandoffAction(onboardingId);
-              router.push(`/portal/projects/${onboardingId}`);
+              router.push(`/portal/projects/${projectSlug}`);
               router.refresh();
             }}
           />

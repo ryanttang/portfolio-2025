@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePortalActor } from "@/lib/auth";
-import { listOnboardingsForClient } from "@/lib/onboarding";
+import { listOnboardingsForClient, portalProjectPath } from "@/lib/onboarding";
 
 export default async function PortalHomePage() {
   let actor;
@@ -27,8 +27,8 @@ export default async function PortalHomePage() {
         {projects.map((p) => {
           const incomplete = p.status !== "completed";
           const href = incomplete
-            ? `/portal/projects/${p.id}/onboarding`
-            : `/portal/projects/${p.id}`;
+            ? portalProjectPath(p, "onboarding")
+            : portalProjectPath(p);
           return (
             <li key={p.id}>
               <Link

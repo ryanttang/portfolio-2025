@@ -96,6 +96,10 @@ export async function updateClientAction(id: string, formData: FormData) {
       tags: parseTags(formData.get("tags")) ?? [],
     });
   await updateClient(id, parsed);
+  if (parsed.name) {
+    const { refreshOnboardingSlugsForClient } = await import("@/lib/onboarding");
+    await refreshOnboardingSlugsForClient(id);
+  }
   revalidatePath("/admin/crm");
   revalidatePath(`/admin/crm/${id}`);
   return { ok: true };

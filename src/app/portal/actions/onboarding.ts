@@ -7,7 +7,10 @@ import { getClient, updateClient } from "@/lib/crm/clients";
 import {
   advanceStep,
   completeOnboarding,
+  getOnboarding,
   getOnboardingForClient,
+  portalProjectPath,
+  refreshOnboardingSlug,
   saveCoreAnswers,
   updateOnboarding,
   upsertAnswer,
@@ -49,11 +52,17 @@ function auditImpersonation(
 export async function setPasswordFromInviteAction(token: string, password: string) {
   const invite = await getInviteByToken(token);
   const account = await setPasswordFromInvite(token, password);
+  let projectSlug: string | null = null;
+  if (invite?.onboardingId) {
+    const onboarding = await getOnboarding(invite.onboardingId);
+    projectSlug = onboarding?.slug || null;
+  }
   return {
     ok: true,
     email: account.email,
     clientId: account.clientId,
     onboardingId: invite?.onboardingId || null,
+    projectSlug,
   };
 }
 
@@ -90,10 +99,12 @@ export async function saveClientInfoAction(
     await advanceStep(onboarding.id, "info");
   }
 
+  const refreshed = await refreshOnboardingSlug(onboarding.id);
+
   await auditImpersonation(actor, "save_client_info", onboardingId);
-  revalidatePath(`/portal/projects/${onboardingId}/onboarding`);
+  revalidatePath(portalProjectPath(refreshed || onboarding, "onboarding"));
   revalidatePath("/portal");
-  return { ok: true };
+  return { ok: true, projectSlug: (refreshed || onboarding).slug };
 }
 
 export async function saveQuestionnaireAction(
@@ -122,7 +133,7 @@ export async function saveQuestionnaireAction(
 
   await advanceStep(onboarding.id, "questionnaire");
   await auditImpersonation(actor, "save_questionnaire", onboardingId);
-  revalidatePath(`/portal/projects/${onboardingId}/onboarding`);
+  revalidatePath(portalProjectPath(onboarding, "onboarding"));
   return { ok: true };
 }
 
@@ -131,7 +142,7 @@ export async function uploadQuestionnaireFileAction(
   questionId: string,
   formData: FormData,
 ) {
-  const { actor } = await ownedOnboarding(onboardingId);
+  const { actor, onboarding } = await ownedOnboarding(onboardingId);
   const file = formData.get("file");
   if (!(file instanceof File)) throw new Error("No file");
   if (file.size > 10 * 1024 * 1024) throw new Error("File must be under 10MB");
@@ -158,7 +169,7 @@ export async function uploadQuestionnaireFileAction(
   });
 
   await auditImpersonation(actor, "upload_file", onboardingId);
-  revalidatePath(`/portal/projects/${onboardingId}/onboarding`);
+  revalidatePath(portalProjectPath(onboarding, "onboarding"));
   return { ok: true, url, filename: file.name };
 }
 
@@ -179,22 +190,22 @@ export async function advanceOnboardingAction(
     await completeOnboarding(onboarding.id);
     await auditImpersonation(actor, "complete_onboarding", onboardingId);
     revalidatePath("/portal");
-    revalidatePath(`/portal/projects/${onboardingId}`);
+    revalidatePath(portalProjectPath(onboarding));
     return { ok: true, completed: true };
   }
 
   await advanceStep(onboarding.id, fromStep);
   await auditImpersonation(actor, "advance_step", onboardingId);
-  revalidatePath(`/portal/projects/${onboardingId}/onboarding`);
+  revalidatePath(portalProjectPath(onboarding, "onboarding"));
   return { ok: true };
 }
 
 export async function completeHandoffAction(onboardingId: string) {
-  const { actor } = await ownedOnboarding(onboardingId);
+  const { actor, onboarding } = await ownedOnboarding(onboardingId);
   await completeOnboarding(onboardingId);
   await auditImpersonation(actor, "complete_onboarding", onboardingId);
   revalidatePath("/portal");
-  revalidatePath(`/portal/projects/${onboardingId}`);
+  revalidatePath(portalProjectPath(onboarding));
   return { ok: true };
 }
 
