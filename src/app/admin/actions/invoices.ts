@@ -11,9 +11,11 @@ import { nextInvoiceNumber } from "@/lib/invoices/numbering";
 import { buildInvoicePdfBuffer } from "@/lib/invoices/pdf";
 import { createPayPalOrder, isPayPalConfigured } from "@/lib/invoices/paypal";
 import {
+  addInvoicePayment,
   createInvoicePayments,
   listInvoicePayments,
   markAllPaymentsPaid,
+  syncLinkedAgreementFromInvoice,
   validatePaymentSchedule,
   voidInvoicePayments,
 } from "@/lib/invoices/payments";
@@ -142,6 +144,7 @@ export async function markInvoicePaidAction(id: string) {
   if (inv) {
     await addActivity(inv.clientId, "invoice", `Marked paid: ${inv.invoiceNumber}`, id);
     await logAudit("paid", "invoice", id, { via: "manual" });
+    await syncLinkedAgreementFromInvoice(id);
   }
   revalidatePath("/admin/invoices");
   return { ok: true };
@@ -170,7 +173,45 @@ export async function markInvoicePaymentPaidAction(paymentId: string) {
 
   revalidatePath("/admin/invoices");
   revalidatePath(`/admin/invoices/${payment.invoiceId}`);
+  if (inv?.contractId) {
+    revalidatePath(`/admin/contracts/${inv.contractId}`);
+  }
   return { ok: true };
+}
+
+export async function addInvoicePaymentAction(
+  invoiceId: string,
+  data: {
+    label: string;
+    amountCents: number;
+    dueDate?: string | null;
+    alreadyReceived?: boolean;
+    paidAt?: string | null;
+    addBalanceDue?: boolean;
+  },
+) {
+  await requireAdmin();
+  const payment = await addInvoicePayment(invoiceId, data);
+
+  const [inv] = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
+  if (inv) {
+    await addActivity(
+      inv.clientId,
+      "invoice",
+      `Payment added: ${inv.invoiceNumber} — ${payment.label}`,
+      inv.id,
+    );
+    await logAudit("create", "invoice_payment", payment.id, {
+      via: data.alreadyReceived ? "manual_received" : "scheduled",
+    });
+  }
+
+  revalidatePath("/admin/invoices");
+  revalidatePath(`/admin/invoices/${invoiceId}`);
+  if (inv?.contractId) {
+    revalidatePath(`/admin/contracts/${inv.contractId}`);
+  }
+  return { ok: true, id: payment.id };
 }
 
 export async function voidInvoiceAction(id: string) {

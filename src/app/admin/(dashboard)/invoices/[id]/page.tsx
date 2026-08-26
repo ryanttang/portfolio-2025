@@ -61,10 +61,14 @@ export default async function InvoiceDetailPage({
       />
 
       <InvoicePaymentSchedule
+        invoiceId={inv.id}
         invoiceStatus={inv.status}
-        payments={payments}
+        invoiceTotalCents={inv.totalCents}
+        payments={payments.filter((p) => p.status !== "void")}
         paidCents={paymentSummary.paidCents}
         remainingCents={paymentSummary.remainingCents}
+        unscheduledRemainingCents={paymentSummary.unscheduledRemainingCents}
+        linkedContractId={inv.contractId}
       />
 
       {inv.notesPublic && (

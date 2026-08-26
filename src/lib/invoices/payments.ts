@@ -1,7 +1,7 @@
 import { asc, eq, and } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { db } from "@/db";
-import { invoicePayments, invoices } from "@/db/schema";
+import { contracts, invoicePayments, invoices } from "@/db/schema";
 
 export type InvoicePaymentRow = typeof invoicePayments.$inferSelect;
 
@@ -9,6 +9,17 @@ export type PaymentScheduleInput = {
   label: string;
   amountCents: number;
   dueDate?: string | null;
+  alreadyReceived?: boolean;
+  paidAt?: string | null;
+};
+
+export type AddInvoicePaymentInput = {
+  label: string;
+  amountCents: number;
+  dueDate?: string | null;
+  alreadyReceived?: boolean;
+  paidAt?: string | null;
+  addBalanceDue?: boolean;
 };
 
 export async function listInvoicePayments(invoiceId: string) {
@@ -56,14 +67,16 @@ export function summarizePayments(
     .reduce((sum, p) => sum + p.amountCents, 0);
   const remainingCents = Math.max(0, invoiceTotalCents - paidCents);
   const pending = active.filter((p) => p.status === "pending");
+  const scheduledCents = active.reduce((sum, p) => sum + p.amountCents, 0);
   return {
     hasSchedule: active.length > 0,
     paidCents,
     remainingCents,
-    isFullyPaid: active.length > 0 && pending.length === 0,
+    isFullyPaid: paidCents >= invoiceTotalCents && invoiceTotalCents > 0,
     pendingCount: pending.length,
     paidCount: active.filter((p) => p.status === "paid").length,
-    totalScheduledCents: active.reduce((sum, p) => sum + p.amountCents, 0),
+    totalScheduledCents: scheduledCents,
+    unscheduledRemainingCents: Math.max(0, invoiceTotalCents - scheduledCents),
   };
 }
 
@@ -78,23 +91,209 @@ export function isDepositSatisfied(
   return first.status === "paid";
 }
 
-export async function createInvoicePayments(
-  invoiceId: string,
-  schedule: PaymentScheduleInput[],
-) {
-  if (schedule.length === 0) return;
+export function formatPaymentNotesFromPayments(
+  payments: InvoicePaymentRow[],
+  invoiceTotalCents: number,
+): string {
+  const active = payments.filter((p) => p.status !== "void");
+  const paid = active.filter((p) => p.status === "paid");
+  const pending = active.filter((p) => p.status === "pending");
+  const summary = summarizePayments(payments, invoiceTotalCents);
+  const lines: string[] = [];
 
-  for (let i = 0; i < schedule.length; i++) {
-    const row = schedule[i];
-    await db.insert(invoicePayments).values({
-      invoiceId,
-      sortOrder: i,
-      label: row.label.trim(),
-      amountCents: row.amountCents,
-      dueDate: row.dueDate ? new Date(row.dueDate) : null,
-      payToken: randomBytes(16).toString("hex"),
-    });
+  if (paid.length > 0) {
+    lines.push("Payments received:");
+    for (const p of paid) {
+      const date = p.paidAt
+        ? ` (${p.paidAt.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })})`
+        : "";
+      lines.push(`- ${p.label}: $${(p.amountCents / 100).toFixed(2)}${date}`);
+    }
   }
+
+  if (pending.length > 0) {
+    if (lines.length > 0) lines.push("");
+    lines.push("Upcoming payments:");
+    for (const p of pending) {
+      const due = p.dueDate
+        ? ` — due ${p.dueDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}`
+        : "";
+      lines.push(`- ${p.label}: $${(p.amountCents / 100).toFixed(2)}${due}`);
+    }
+  }
+
+  const pendingTotal = pending.reduce((sum, p) => sum + p.amountCents, 0);
+  if (summary.remainingCents > 0 && pendingTotal < summary.remainingCents) {
+    if (lines.length > 0) lines.push("");
+    lines.push(`Balance due: $${(summary.remainingCents / 100).toFixed(2)}`);
+  }
+
+  if (summary.isFullyPaid) {
+    if (lines.length > 0) lines.push("");
+    lines.push("Paid in full.");
+  }
+
+  return lines.join("\n").trim();
+}
+
+export function replacePaymentScheduleInContractBody(
+  bodyText: string,
+  paymentNotes: string,
+): string {
+  const block = paymentNotes.trim();
+  if (!block) return bodyText;
+
+  if (/Payment schedule\s*\n/i.test(bodyText)) {
+    return bodyText.replace(
+      /(Payment schedule\s*\n)([\s\S]*?)(\nTerms\s*\n)/i,
+      `$1${block}\n$3`,
+    );
+  }
+
+  return bodyText.replace(
+    /(3\.\s*Payment\s*&\s*Terms\s*\n)/i,
+    `$1Payment schedule\n${block}\n\nTerms\n`,
+  );
+}
+
+export async function syncLinkedAgreementFromInvoice(invoiceId: string) {
+  const [inv] = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
+  if (!inv) return;
+
+  const payments = await listInvoicePayments(invoiceId);
+  const active = payments.filter((p) => p.status !== "void");
+  if (active.length === 0) return;
+
+  const notes = formatPaymentNotesFromPayments(payments, inv.totalCents);
+  const now = new Date();
+
+  await db
+    .update(invoices)
+    .set({ notesPublic: notes, updatedAt: now })
+    .where(eq(invoices.id, invoiceId));
+
+  if (!inv.contractId) return;
+
+  const [contract] = await db
+    .select()
+    .from(contracts)
+    .where(eq(contracts.id, inv.contractId))
+    .limit(1);
+  if (!contract) return;
+
+  const contractUpdate: {
+    paymentNotes: string;
+    updatedAt: Date;
+    bodyText?: string;
+  } = {
+    paymentNotes: notes,
+    updatedAt: now,
+  };
+
+  if (contract.status === "draft") {
+    contractUpdate.bodyText = replacePaymentScheduleInContractBody(
+      contract.bodyText,
+      notes,
+    );
+  }
+
+  await db.update(contracts).set(contractUpdate).where(eq(contracts.id, contract.id));
+}
+
+export function validateAddPayment(
+  existingPayments: InvoicePaymentRow[],
+  amountCents: number,
+  invoiceTotalCents: number,
+) {
+  if (amountCents <= 0) {
+    return { ok: false as const, error: "Payment amount must be greater than zero." };
+  }
+
+  const active = existingPayments.filter((p) => p.status !== "void");
+  const scheduledTotal = active.reduce((sum, p) => sum + p.amountCents, 0);
+  if (scheduledTotal + amountCents > invoiceTotalCents) {
+    const remaining = Math.max(0, invoiceTotalCents - scheduledTotal);
+    return {
+      ok: false as const,
+      error: `Amount exceeds remaining invoice balance of $${(remaining / 100).toFixed(2)}.`,
+    };
+  }
+
+  return { ok: true as const };
+}
+
+export async function addInvoicePayment(
+  invoiceId: string,
+  input: AddInvoicePaymentInput,
+): Promise<InvoicePaymentRow> {
+  const [inv] = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
+  if (!inv) throw new Error("Invoice not found");
+  if (inv.status === "void") throw new Error("Cannot add payments to a void invoice");
+
+  const label = input.label.trim();
+  if (!label) throw new Error("Payment label is required.");
+
+  const existing = await listInvoicePayments(invoiceId);
+  const check = validateAddPayment(existing, input.amountCents, inv.totalCents);
+  if (!check.ok) throw new Error(check.error);
+
+  const active = existing.filter((p) => p.status !== "void");
+  const sortOrder =
+    active.length > 0 ? Math.max(...active.map((p) => p.sortOrder)) + 1 : 0;
+  const now = new Date();
+  const alreadyReceived = Boolean(input.alreadyReceived);
+  const paidAt = alreadyReceived
+    ? input.paidAt
+      ? new Date(input.paidAt)
+      : now
+    : null;
+
+  const [payment] = await db
+    .insert(invoicePayments)
+    .values({
+      invoiceId,
+      sortOrder,
+      label,
+      amountCents: input.amountCents,
+      dueDate: input.dueDate ? new Date(input.dueDate) : null,
+      status: alreadyReceived ? "paid" : "pending",
+      payToken: randomBytes(16).toString("hex"),
+      paidAt,
+      paidVia: alreadyReceived ? "manual" : null,
+    })
+    .returning();
+
+  if (input.addBalanceDue && alreadyReceived) {
+    const updated = await listInvoicePayments(invoiceId);
+    const summary = summarizePayments(updated, inv.totalCents);
+    const pendingTotal = updated
+      .filter((p) => p.status === "pending")
+      .reduce((sum, p) => sum + p.amountCents, 0);
+
+    if (summary.remainingCents > 0 && pendingTotal < summary.remainingCents) {
+      const balanceAmount = summary.remainingCents - pendingTotal;
+      await db.insert(invoicePayments).values({
+        invoiceId,
+        sortOrder: sortOrder + 1,
+        label: "Balance due",
+        amountCents: balanceAmount,
+        status: "pending",
+        payToken: randomBytes(16).toString("hex"),
+      });
+    }
+  }
+
+  await syncInvoiceStatusFromPayments(invoiceId);
+  await syncLinkedAgreementFromInvoice(invoiceId);
+  return payment;
 }
 
 export async function syncInvoiceStatusFromPayments(invoiceId: string) {
@@ -160,6 +359,7 @@ export async function markPaymentPaid(
   if (!payment) return null;
 
   await syncInvoiceStatusFromPayments(payment.invoiceId);
+  await syncLinkedAgreementFromInvoice(payment.invoiceId);
   return payment;
 }
 
@@ -181,6 +381,34 @@ export async function markAllPaymentsPaid(invoiceId: string, via: "manual" | "pa
     );
 
   await syncInvoiceStatusFromPayments(invoiceId);
+  await syncLinkedAgreementFromInvoice(invoiceId);
+}
+
+export async function createInvoicePayments(
+  invoiceId: string,
+  schedule: PaymentScheduleInput[],
+) {
+  if (schedule.length === 0) return;
+
+  for (let i = 0; i < schedule.length; i++) {
+    const row = schedule[i];
+    const alreadyReceived = Boolean(row.alreadyReceived);
+    const now = new Date();
+    await db.insert(invoicePayments).values({
+      invoiceId,
+      sortOrder: i,
+      label: row.label.trim(),
+      amountCents: row.amountCents,
+      dueDate: row.dueDate ? new Date(row.dueDate) : null,
+      status: alreadyReceived ? "paid" : "pending",
+      payToken: randomBytes(16).toString("hex"),
+      paidAt: alreadyReceived ? (row.paidAt ? new Date(row.paidAt) : now) : null,
+      paidVia: alreadyReceived ? "manual" : null,
+    });
+  }
+
+  await syncInvoiceStatusFromPayments(invoiceId);
+  await syncLinkedAgreementFromInvoice(invoiceId);
 }
 
 export async function voidInvoicePayments(invoiceId: string) {
