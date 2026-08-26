@@ -11,6 +11,7 @@ import {
   listOnboardingQuestions,
   portalProjectPath,
   refreshOnboardingSlug,
+  retreatStep,
   updateOnboarding,
   upsertAnswer,
 } from "@/lib/onboarding";
@@ -198,6 +199,20 @@ export async function advanceOnboardingAction(
 
   await advanceStep(onboarding.id, fromStep);
   await auditImpersonation(actor, "advance_step", onboardingId);
+  revalidatePath(portalProjectPath(onboarding, "onboarding"));
+  return { ok: true };
+}
+
+export async function goBackOnboardingAction(
+  onboardingId: string,
+  fromStep: OnboardingStep,
+) {
+  const { actor, onboarding } = await ownedOnboarding(onboardingId);
+  if (onboarding.status === "completed") throw new Error("Already completed");
+  if (onboarding.currentStep !== fromStep) throw new Error("Step changed");
+
+  await retreatStep(onboarding.id, fromStep);
+  await auditImpersonation(actor, "retreat_step", onboardingId);
   revalidatePath(portalProjectPath(onboarding, "onboarding"));
   return { ok: true };
 }

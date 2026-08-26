@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   advanceOnboardingAction,
   completeHandoffAction,
+  goBackOnboardingAction,
   saveClientInfoAction,
   saveQuestionnaireAction,
   uploadQuestionnaireFileAction,
@@ -73,6 +74,17 @@ export default function OnboardingWizard({
   const router = useRouter();
   const step = onboarding.currentStep as OnboardingStep;
   const stepIndex = Math.max(0, enabledSteps.indexOf(step));
+  const [goingBack, setGoingBack] = useState(false);
+
+  async function handleBack() {
+    setGoingBack(true);
+    try {
+      await goBackOnboardingAction(onboardingId, step);
+      router.refresh();
+    } finally {
+      setGoingBack(false);
+    }
+  }
 
   const answerMap = Object.fromEntries(
     answers
@@ -118,6 +130,17 @@ export default function OnboardingWizard({
       </ol>
 
       <div className="rounded-sm border border-white/10 bg-[#121212] p-6">
+        {stepIndex > 0 && (
+          <button
+            type="button"
+            disabled={goingBack}
+            onClick={handleBack}
+            className="mb-4 text-sm text-white/50 transition hover:text-white/80 disabled:opacity-50"
+          >
+            {goingBack ? "Going back…" : "← Back"}
+          </button>
+        )}
+
         {step === "welcome" && (
           <WelcomeStep
             message={onboarding.welcomeMessage}

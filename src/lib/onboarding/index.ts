@@ -236,6 +236,20 @@ export function getNextStep(
   return steps[idx + 1];
 }
 
+export function getPreviousStep(
+  onboarding: {
+    contractEnabled: boolean;
+    depositEnabled: boolean;
+    hasQuestionnaire?: boolean;
+  },
+  current: OnboardingStep,
+): OnboardingStep | null {
+  const steps = getEnabledSteps(onboarding);
+  const idx = steps.indexOf(current);
+  if (idx <= 0) return null;
+  return steps[idx - 1];
+}
+
 export async function listOnboardingQuestions(onboardingId: string) {
   return db
     .select()
@@ -694,6 +708,20 @@ export async function advanceStep(id: string, fromStep: OnboardingStep) {
       : onboarding.status;
 
   return updateOnboarding(id, { currentStep: next, status });
+}
+
+export async function retreatStep(id: string, fromStep: OnboardingStep) {
+  const onboarding = await getOnboarding(id);
+  if (!onboarding) throw new Error("Not found");
+
+  const questions = await listOnboardingQuestions(id);
+  const prev = getPreviousStep(
+    { ...onboarding, hasQuestionnaire: questions.length > 0 },
+    fromStep,
+  );
+  if (!prev) return onboarding;
+
+  return updateOnboarding(id, { currentStep: prev });
 }
 
 export async function getOnboardingBundle(id: string) {

@@ -6,6 +6,7 @@ import { clientAccounts, clients, portalInvites, portalPasswordResets } from "@/
 import { getClient } from "@/lib/crm/clients";
 import { getAppUrl } from "@/lib/env";
 import { sendEmail } from "@/lib/email/send";
+import { firstNameFrom } from "@/lib/email/merge";
 import { addActivity } from "@/lib/crm/clients";
 import { logAudit } from "@/lib/audit";
 import { getOnboarding } from "@/lib/onboarding";
@@ -335,11 +336,14 @@ export async function sendPortalInviteEmail(
     expiresDays: INVITE_DAYS,
   });
 
+  const firstName = firstNameFrom(client.name);
+  const greeting = firstName ? `Hi ${firstName}!` : "Hi there!";
+  const projectLabel = context?.projectName?.trim() || "your project";
+  const subject = `${greeting} Here is your link to access your Client Portal for ${projectLabel}`;
+
   const result = await sendEmail({
     to: [client.email],
-    subject: context?.projectName
-      ? `Access your portal — ${context.projectName}`
-      : "Access your client portal",
+    subject,
     clientId,
     text: branded.text,
     html: branded.html,
