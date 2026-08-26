@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { createInvoiceAction } from "@/app/admin/actions/invoices";
 
 type Line = { description: string; quantity: number; unitPrice: string };
+type PaymentLine = { label: string; amount: string; dueDate: string };
 
 type ContractOption = {
   id: string;
@@ -49,6 +50,23 @@ export default function InvoiceForm({
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [splitPayments, setSplitPayments] = useState(false);
+  const [payments, setPayments] = useState<PaymentLine[]>([
+    { label: "Deposit", amount: "", dueDate: "" },
+    { label: "Final payment", amount: "", dueDate: "" },
+  ]);
+
+  const invoiceTotalCents = useMemo(() => {
+    return lines.reduce((sum, line) => {
+      const qty = line.quantity || 0;
+      const price = Math.round(Number(line.unitPrice || 0) * 100);
+      return sum + qty * price;
+    }, 0);
+  }, [lines]);
+
+  const paymentTotalCents = useMemo(() => {
+    return payments.reduce((sum, p) => sum + Math.round(Number(p.amount || 0) * 100), 0);
+  }, [payments]);
 
   const clientContracts = useMemo(
     () =>
@@ -84,6 +102,15 @@ export default function InvoiceForm({
     setError("");
     const fd = new FormData(e.currentTarget);
     try {
+      const paymentPayload =
+        splitPayments && invoiceTotalCents > 0
+          ? payments.map((p) => ({
+              label: p.label,
+              amountCents: Math.round(Number(p.amount || 0) * 100),
+              dueDate: p.dueDate || null,
+            }))
+          : undefined;
+
       const result = await createInvoiceAction({
         clientId,
         contractId: contractId || null,
@@ -95,6 +122,7 @@ export default function InvoiceForm({
           quantity: l.quantity,
           unitPriceCents: Math.round(Number(l.unitPrice || 0) * 100),
         })),
+        payments: paymentPayload,
       });
       router.push(`/admin/invoices/${result.id}`);
     } catch (err) {
@@ -214,6 +242,88 @@ export default function InvoiceForm({
         >
           + Add line
         </button>
+      </div>
+
+      <div className="border border-white/10 bg-black/20 p-4">
+        <label className="flex items-center gap-2 text-sm text-white/80">
+          <input
+            type="checkbox"
+            checked={splitPayments}
+            onChange={(e) => {
+              const enabled = e.target.checked;
+              setSplitPayments(enabled);
+              if (enabled && invoiceTotalCents > 0) {
+                const half = (invoiceTotalCents / 200).toFixed(2);
+                setPayments([
+                  { label: "Deposit", amount: half, dueDate: "" },
+                  { label: "Final payment", amount: half, dueDate: "" },
+                ]);
+              }
+            }}
+          />
+          Split into scheduled payments
+        </label>
+
+        {splitPayments && (
+          <div className="mt-3 space-y-2">
+            {payments.map((payment, i) => (
+              <div key={i} className="grid grid-cols-[1fr_100px_130px] gap-2">
+                <input
+                  placeholder="Label"
+                  value={payment.label}
+                  onChange={(e) => {
+                    const next = [...payments];
+                    next[i] = { ...payment, label: e.target.value };
+                    setPayments(next);
+                  }}
+                  required
+                  className="border border-white/15 bg-black/40 px-3 py-2 text-sm"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Amount"
+                  value={payment.amount}
+                  onChange={(e) => {
+                    const next = [...payments];
+                    next[i] = { ...payment, amount: e.target.value };
+                    setPayments(next);
+                  }}
+                  required
+                  className="border border-white/15 bg-black/40 px-2 py-2 text-sm"
+                />
+                <input
+                  type="date"
+                  value={payment.dueDate}
+                  onChange={(e) => {
+                    const next = [...payments];
+                    next[i] = { ...payment, dueDate: e.target.value };
+                    setPayments(next);
+                  }}
+                  className="border border-white/15 bg-black/40 px-2 py-2 text-sm"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setPayments([...payments, { label: "", amount: "", dueDate: "" }])
+              }
+              className="text-xs text-[#fdf0d5]"
+            >
+              + Add payment
+            </button>
+            <p
+              className={`text-xs ${
+                paymentTotalCents === invoiceTotalCents ? "text-white/40" : "text-amber-400"
+              }`}
+            >
+              Scheduled ${(paymentTotalCents / 100).toFixed(2)} of invoice total $
+              {(invoiceTotalCents / 100).toFixed(2)}
+            </p>
+          </div>
+        )}
       </div>
 
       <label className="block text-xs uppercase tracking-wider text-white/40">

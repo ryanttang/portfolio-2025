@@ -79,6 +79,12 @@ export default async function ProjectOnboardingPage({
                   status: bundle.invoice.status,
                   payToken: bundle.invoice.payToken,
                   totalCents: bundle.invoice.totalCents,
+                  payments: bundle.invoicePayments.map((p) => ({
+                    label: p.label,
+                    amountCents: p.amountCents,
+                    status: p.status,
+                    payToken: p.payToken,
+                  })),
                 }
               : null
           }

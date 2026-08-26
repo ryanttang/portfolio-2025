@@ -4,6 +4,12 @@ import { db } from "@/db";
 import { invoices } from "@/db/schema";
 import { addActivity } from "@/lib/crm/clients";
 import { logAudit } from "@/lib/audit";
+import {
+  getPaymentById,
+  getPaymentByPayPalOrderId,
+  markPaymentPaid,
+  syncInvoiceStatusFromPayments,
+} from "@/lib/invoices/payments";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +17,6 @@ export async function POST(req: NextRequest) {
     const eventType = body?.event_type || body?.eventType;
     const resource = body?.resource || {};
 
-    // Capture completed or checkout order approved
     const orderId =
       resource?.id ||
       resource?.supplementary_data?.related_ids?.order_id ||
@@ -26,6 +31,31 @@ export async function POST(req: NextRequest) {
       eventType === "CHECKOUT.ORDER.APPROVED" ||
       eventType === "CHECKOUT.ORDER.COMPLETED"
     ) {
+      if (orderId) {
+        const payment = await getPaymentByPayPalOrderId(String(orderId));
+        if (payment && payment.status !== "paid") {
+          await markPaymentPaid(payment.id, "paypal");
+          const [inv] = await db
+            .select()
+            .from(invoices)
+            .where(eq(invoices.id, payment.invoiceId))
+            .limit(1);
+          if (inv) {
+            await addActivity(
+              inv.clientId,
+              "invoice",
+              `Paid via PayPal: ${inv.invoiceNumber} — ${payment.label}`,
+              inv.id,
+            );
+            await logAudit("paid", "invoice_payment", payment.id, {
+              via: "paypal_webhook",
+              eventType,
+            });
+          }
+          return NextResponse.json({ ok: true });
+        }
+      }
+
       let invoice = null as typeof invoices.$inferSelect | null;
 
       if (orderId) {
@@ -38,6 +68,29 @@ export async function POST(req: NextRequest) {
       }
 
       if (!invoice && referenceId) {
+        const paymentByRef = await getPaymentById(String(referenceId));
+        if (paymentByRef && paymentByRef.status !== "paid") {
+          await markPaymentPaid(paymentByRef.id, "paypal");
+          const [inv] = await db
+            .select()
+            .from(invoices)
+            .where(eq(invoices.id, paymentByRef.invoiceId))
+            .limit(1);
+          if (inv) {
+            await addActivity(
+              inv.clientId,
+              "invoice",
+              `Paid via PayPal: ${inv.invoiceNumber} — ${paymentByRef.label}`,
+              inv.id,
+            );
+            await logAudit("paid", "invoice_payment", paymentByRef.id, {
+              via: "paypal_webhook",
+              eventType,
+            });
+          }
+          return NextResponse.json({ ok: true });
+        }
+
         const [byId] = await db
           .select()
           .from(invoices)
@@ -51,6 +104,7 @@ export async function POST(req: NextRequest) {
           .update(invoices)
           .set({ status: "paid", paidAt: new Date(), updatedAt: new Date() })
           .where(eq(invoices.id, invoice.id));
+        await syncInvoiceStatusFromPayments(invoice.id);
         await addActivity(
           invoice.clientId,
           "invoice",

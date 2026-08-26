@@ -14,6 +14,7 @@ import { listPortalMeetings } from "@/lib/portal/meetings";
 import { listPortalFiles } from "@/lib/portal/files";
 import { getThreadForOnboarding, listThreadMessages } from "@/lib/portal/messages";
 import { readProjectInfo } from "@/lib/portal/project-info";
+import { listInvoicePayments, summarizePayments } from "@/lib/invoices/payments";
 import ProjectDashboard from "@/components/portal/ProjectDashboard";
 
 export default async function ProjectHubPage({
@@ -77,6 +78,23 @@ export default async function ProjectHubPage({
     ? clientInvoices
     : clientInvoices.slice(0, 5);
 
+  const invoicesWithPayments = await Promise.all(
+    linkedInvoices.map(async (inv) => {
+      const payments = await listInvoicePayments(inv.id);
+      const summary = summarizePayments(payments, inv.totalCents);
+      return {
+        id: inv.id,
+        invoiceNumber: inv.invoiceNumber,
+        status: inv.status,
+        payToken: inv.payToken,
+        totalCents: inv.totalCents,
+        paidCents: summary.paidCents,
+        remainingCents: summary.remainingCents,
+        hasSchedule: summary.hasSchedule,
+      };
+    }),
+  );
+
   const showWelcome = welcome === "1" || !onboarding.hubWelcomeSeenAt;
   const attentionSummary = onboarding.messagesEnabled
     ? attention
@@ -98,7 +116,7 @@ export default async function ProjectHubPage({
       files={files}
       messages={messages}
       contracts={linkedContracts}
-      invoices={linkedInvoices}
+      invoices={invoicesWithPayments}
     />
   );
 }

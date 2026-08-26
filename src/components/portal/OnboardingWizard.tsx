@@ -70,6 +70,12 @@ export default function OnboardingWizard({
     status: string;
     payToken: string;
     totalCents: number;
+    payments?: {
+      label: string;
+      amountCents: number;
+      status: string;
+      payToken: string;
+    }[];
   } | null;
 }) {
   const router = useRouter();
@@ -743,6 +749,12 @@ function DepositStep({
     status: string;
     payToken: string;
     totalCents: number;
+    payments?: {
+      label: string;
+      amountCents: number;
+      status: string;
+      payToken: string;
+    }[];
   } | null;
   onContinue: () => Promise<void>;
   onRefresh: () => void;
@@ -760,7 +772,14 @@ function DepositStep({
     );
   }
 
-  const paid = invoice.status === "paid";
+  const scheduled = invoice.payments?.filter((p) => p.status !== "void") || [];
+  const paid =
+    invoice.status === "paid" ||
+    (scheduled.length > 0 ? scheduled[0].status === "paid" : false);
+  const payHref =
+    scheduled.length > 0 && scheduled[0].status !== "paid"
+      ? `/pay/${scheduled[0].payToken}`
+      : `/pay/${invoice.payToken}`;
 
   return (
     <div>
@@ -769,9 +788,23 @@ function DepositStep({
         Invoice {invoice.invoiceNumber} — ${(invoice.totalCents / 100).toFixed(2)}
       </p>
       <p className="mt-1 text-sm capitalize text-white/40">Status: {invoice.status}</p>
+      {scheduled.length > 0 && (
+        <ul className="mt-4 space-y-2 border border-white/10 p-3 text-sm">
+          {scheduled.map((p) => (
+            <li key={p.payToken} className="flex items-center justify-between gap-3">
+              <span>
+                {p.label} — ${(p.amountCents / 100).toFixed(2)}
+              </span>
+              <span className={p.status === "paid" ? "text-green-400" : "text-white/45"}>
+                {p.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       {!paid ? (
         <Link
-          href={`/pay/${invoice.payToken}`}
+          href={payHref}
           target="_blank"
           className="mt-6 inline-block bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black"
         >

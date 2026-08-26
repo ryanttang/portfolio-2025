@@ -31,10 +31,15 @@ export async function createPayPalOrder(opts: {
   totalCents: number;
   currency?: string;
   payToken: string;
+  paymentId?: string;
+  paymentLabel?: string;
 }) {
   const token = await getAccessToken();
   const appUrl = getAppUrl();
   const value = (opts.totalCents / 100).toFixed(2);
+  const description = opts.paymentLabel
+    ? `${opts.invoiceNumber} — ${opts.paymentLabel}`
+    : `Invoice ${opts.invoiceNumber}`;
 
   const res = await fetch(`${paypalBase()}/v2/checkout/orders`, {
     method: "POST",
@@ -46,13 +51,13 @@ export async function createPayPalOrder(opts: {
       intent: "CAPTURE",
       purchase_units: [
         {
-          reference_id: opts.invoiceId,
+          reference_id: opts.paymentId || opts.invoiceId,
           invoice_id: opts.invoiceNumber,
           amount: {
             currency_code: opts.currency || "USD",
             value,
           },
-          description: `Invoice ${opts.invoiceNumber}`,
+          description,
         },
       ],
       application_context: {

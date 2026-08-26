@@ -10,6 +10,13 @@ import { invoiceLineItems, invoices } from "@/db/schema";
 import { nextInvoiceNumber } from "@/lib/invoices/numbering";
 import { buildInvoicePdfBuffer } from "@/lib/invoices/pdf";
 import { createPayPalOrder, isPayPalConfigured } from "@/lib/invoices/paypal";
+import {
+  createInvoicePayments,
+  listInvoicePayments,
+  markAllPaymentsPaid,
+  validatePaymentSchedule,
+  voidInvoicePayments,
+} from "@/lib/invoices/payments";
 import { getSetting } from "@/lib/content";
 import { addActivity, getClient } from "@/lib/crm/clients";
 import { sendEmail } from "@/lib/email/send";
@@ -28,6 +35,12 @@ const lineSchema = z.object({
   unitPriceCents: z.number().int(),
 });
 
+const paymentSchema = z.object({
+  label: z.string().min(1),
+  amountCents: z.number().int().positive(),
+  dueDate: z.string().nullable().optional(),
+});
+
 export async function createInvoiceAction(data: {
   clientId: string;
   contractId?: string | null;
@@ -38,6 +51,7 @@ export async function createInvoiceAction(data: {
   paypalEnabled?: boolean;
   discountCents?: number;
   taxCents?: number;
+  payments?: z.infer<typeof paymentSchema>[];
 }) {
   await requireAdmin();
   const client = await getClient(data.clientId);
@@ -56,6 +70,10 @@ export async function createInvoiceAction(data: {
   const discount = data.discountCents || 0;
   const tax = data.taxCents || 0;
   const total = Math.max(0, subtotal - discount + tax);
+  const paymentRows = (data.payments || []).map((p) => paymentSchema.parse(p));
+  const scheduleCheck = validatePaymentSchedule(paymentRows, total);
+  if (!scheduleCheck.ok) throw new Error(scheduleCheck.error);
+
   const number = await nextInvoiceNumber();
   const payToken = randomBytes(16).toString("hex");
 
@@ -98,6 +116,10 @@ export async function createInvoiceAction(data: {
     });
   }
 
+  if (paymentRows.length > 0) {
+    await createInvoicePayments(inv.id, paymentRows);
+  }
+
   await addActivity(client.id, "invoice", `Created ${number}`, inv.id);
   await logAudit("create", "invoice", inv.id);
   revalidatePath("/admin/invoices");
@@ -106,11 +128,17 @@ export async function createInvoiceAction(data: {
 
 export async function markInvoicePaidAction(id: string) {
   await requireAdmin();
-  const [inv] = await db
-    .update(invoices)
-    .set({ status: "paid", paidAt: new Date(), updatedAt: new Date() })
-    .where(eq(invoices.id, id))
-    .returning();
+  const payments = await listInvoicePayments(id);
+  if (payments.length > 0) {
+    await markAllPaymentsPaid(id, "manual");
+  } else {
+    await db
+      .update(invoices)
+      .set({ status: "paid", paidAt: new Date(), updatedAt: new Date() })
+      .where(eq(invoices.id, id));
+  }
+
+  const [inv] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
   if (inv) {
     await addActivity(inv.clientId, "invoice", `Marked paid: ${inv.invoiceNumber}`, id);
     await logAudit("paid", "invoice", id, { via: "manual" });
@@ -119,8 +147,35 @@ export async function markInvoicePaidAction(id: string) {
   return { ok: true };
 }
 
+export async function markInvoicePaymentPaidAction(paymentId: string) {
+  await requireAdmin();
+  const { markPaymentPaid } = await import("@/lib/invoices/payments");
+  const payment = await markPaymentPaid(paymentId, "manual");
+  if (!payment) throw new Error("Payment not found");
+
+  const [inv] = await db
+    .select()
+    .from(invoices)
+    .where(eq(invoices.id, payment.invoiceId))
+    .limit(1);
+  if (inv) {
+    await addActivity(
+      inv.clientId,
+      "invoice",
+      `Payment recorded: ${inv.invoiceNumber} — ${payment.label}`,
+      inv.id,
+    );
+    await logAudit("paid", "invoice_payment", paymentId, { via: "manual" });
+  }
+
+  revalidatePath("/admin/invoices");
+  revalidatePath(`/admin/invoices/${payment.invoiceId}`);
+  return { ok: true };
+}
+
 export async function voidInvoiceAction(id: string) {
   await requireAdmin();
+  await voidInvoicePayments(id);
   await db
     .update(invoices)
     .set({ status: "void", updatedAt: new Date() })
@@ -143,8 +198,14 @@ export async function sendInvoiceAction(id: string) {
 
   let payUrl: string | null = `${getAppUrl()}/pay/${inv.payToken}`;
   let paypalOrderId = inv.paypalOrderId;
+  const scheduledPayments = await listInvoicePayments(id);
 
-  if (inv.paypalEnabled && isPayPalConfigured() && !paypalOrderId) {
+  if (
+    inv.paypalEnabled &&
+    isPayPalConfigured() &&
+    !paypalOrderId &&
+    scheduledPayments.length === 0
+  ) {
     const order = await createPayPalOrder({
       invoiceId: inv.id,
       invoiceNumber: inv.invoiceNumber,

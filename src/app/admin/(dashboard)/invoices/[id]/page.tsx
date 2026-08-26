@@ -5,6 +5,8 @@ import { db } from "@/db";
 import { contracts, invoiceLineItems, invoices } from "@/db/schema";
 import { getAppUrl } from "@/lib/env";
 import InvoiceActions from "@/components/admin/InvoiceActions";
+import InvoicePaymentSchedule from "@/components/admin/InvoicePaymentSchedule";
+import { listInvoicePayments, summarizePayments } from "@/lib/invoices/payments";
 
 export default async function InvoiceDetailPage({
   params,
@@ -14,7 +16,7 @@ export default async function InvoiceDetailPage({
   const { id } = await params;
   const [inv] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
   if (!inv) notFound();
-  const [lines, linkedContract] = await Promise.all([
+  const [lines, linkedContract, payments] = await Promise.all([
     db.select().from(invoiceLineItems).where(eq(invoiceLineItems.invoiceId, id)),
     inv.contractId
       ? db
@@ -24,7 +26,9 @@ export default async function InvoiceDetailPage({
           .limit(1)
           .then((rows) => rows[0] || null)
       : Promise.resolve(null),
+    listInvoicePayments(id),
   ]);
+  const paymentSummary = summarizePayments(payments, inv.totalCents);
 
   return (
     <div>
@@ -54,6 +58,13 @@ export default async function InvoiceDetailPage({
         id={inv.id}
         status={inv.status}
         payUrl={`${getAppUrl()}/pay/${inv.payToken}`}
+      />
+
+      <InvoicePaymentSchedule
+        invoiceStatus={inv.status}
+        payments={payments}
+        paidCents={paymentSummary.paidCents}
+        remainingCents={paymentSummary.remainingCents}
       />
 
       {inv.notesPublic && (

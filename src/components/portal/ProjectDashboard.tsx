@@ -81,6 +81,9 @@ export default function ProjectDashboard({
     status: string;
     payToken: string;
     totalCents: number;
+    paidCents: number;
+    remainingCents: number;
+    hasSchedule: boolean;
   }[];
 }) {
   return (
@@ -235,6 +238,11 @@ export default function ProjectDashboard({
                         <span className="ml-1 text-white/50">
                           — ${(i.totalCents / 100).toFixed(2)}
                         </span>
+                        {i.hasSchedule && i.status === "partial" && (
+                          <span className="ml-1 text-white/45">
+                            (${(i.paidCents / 100).toFixed(2)} paid)
+                          </span>
+                        )}
                         <span className="ml-1 text-white/35">({i.status})</span>
                       </Link>
                     ) : (

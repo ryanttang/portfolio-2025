@@ -223,7 +223,7 @@ export const invoices = pgTable(
       .notNull()
       .references(() => clients.id, { onDelete: "restrict" }),
     contractId: uuid("contract_id").references(() => contracts.id, { onDelete: "set null" }),
-    status: text("status").notNull().default("draft"), // draft | saved | sent | paid | void
+    status: text("status").notNull().default("draft"), // draft | saved | sent | partial | paid | void
     issueDate: timestamp("issue_date", { withTimezone: true }).defaultNow().notNull(),
     dueDate: timestamp("due_date", { withTimezone: true }),
     currency: text("currency").notNull().default("USD"),
@@ -265,6 +265,31 @@ export const invoiceLineItems = pgTable("invoice_line_items", {
   unitPriceCents: integer("unit_price_cents").notNull().default(0),
   isTaxable: boolean("is_taxable").notNull().default(false),
 });
+
+export const invoicePayments = pgTable(
+  "invoice_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => invoices.id, { onDelete: "cascade" }),
+    sortOrder: integer("sort_order").notNull().default(0),
+    label: text("label").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    status: text("status").notNull().default("pending"), // pending | paid | void
+    payToken: text("pay_token").notNull().unique(),
+    paypalOrderId: text("paypal_order_id"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    paidVia: text("paid_via"), // paypal | manual
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("invoice_payments_invoice_idx").on(t.invoiceId),
+    index("invoice_payments_pay_token_idx").on(t.payToken),
+  ],
+);
 
 export const pageEvents = pgTable(
   "page_events",

@@ -68,6 +68,46 @@ async function projectInfoPresent(sql: postgres.Sql) {
   return Boolean(row);
 }
 
+async function invoicePaymentsPresent(sql: postgres.Sql) {
+  const [row] = await sql`
+    select 1
+    from information_schema.tables
+    where table_schema = 'public' and table_name = 'invoice_payments'
+    limit 1
+  `;
+  return Boolean(row);
+}
+
+async function ensureInvoicePayments(sql: postgres.Sql) {
+  if (await invoicePaymentsPresent(sql)) return;
+
+  console.log("Creating invoice_payments table");
+  await sql`
+    create table if not exists invoice_payments (
+      id uuid primary key default gen_random_uuid() not null,
+      invoice_id uuid not null references invoices(id) on delete cascade,
+      sort_order integer default 0 not null,
+      label text not null,
+      amount_cents integer not null,
+      due_date timestamp with time zone,
+      status text default 'pending' not null,
+      pay_token text not null unique,
+      paypal_order_id text,
+      paid_at timestamp with time zone,
+      paid_via text,
+      created_at timestamp with time zone default now() not null,
+      updated_at timestamp with time zone default now() not null
+    )
+  `;
+  await sql`
+    create index if not exists invoice_payments_invoice_idx on invoice_payments (invoice_id)
+  `;
+  await sql`
+    create index if not exists invoice_payments_pay_token_idx on invoice_payments (pay_token)
+  `;
+  await recordMigration(sql, "0014_invoice_payments.sql", 1787728500000);
+}
+
 async function ensureProjectInfo(sql: postgres.Sql) {
   if (await projectInfoPresent(sql)) return;
 
@@ -128,6 +168,7 @@ async function main() {
 
     await ensureMessagesEnabled(sql);
     await ensureProjectInfo(sql);
+    await ensureInvoicePayments(sql);
 
     execSync("drizzle-kit migrate", { stdio: "inherit" });
   } finally {

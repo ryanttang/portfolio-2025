@@ -99,6 +99,13 @@
       "when": 1787728400000,
       "tag": "0013_reslug_project_only",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1787728500000,
+      "tag": "0014_invoice_payments",
+      "breakpoints": true
     }
   ]
 }

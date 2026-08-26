@@ -12,6 +12,7 @@ import {
   questionTemplates,
 } from "@/db/schema";
 import { addActivity, getClient, updateClient } from "@/lib/crm/clients";
+import { listInvoicePayments } from "@/lib/invoices/payments";
 import { logAudit } from "@/lib/audit";
 import {
   CORE_ANSWER_KEYS,
@@ -744,7 +745,7 @@ export async function getOnboardingBundle(id: string) {
   const onboarding = await getOnboarding(id);
   if (!onboarding) return null;
 
-  const [questions, rawAnswers, contract, invoice] = await Promise.all([
+  const [questions, rawAnswers, contract, invoice, invoicePaymentsList] = await Promise.all([
     listOnboardingQuestions(id),
     listAnswers(id),
     onboarding.contractId
@@ -763,6 +764,9 @@ export async function getOnboardingBundle(id: string) {
           .limit(1)
           .then((r) => r[0] || null)
       : Promise.resolve(null),
+    onboarding.invoiceId
+      ? listInvoicePayments(onboarding.invoiceId)
+      : Promise.resolve([]),
   ]);
 
   const answers = rawAnswers.map((answer) => {
@@ -773,7 +777,7 @@ export async function getOnboardingBundle(id: string) {
     return answer;
   });
 
-  return { onboarding, questions, answers, contract, invoice };
+  return { onboarding, questions, answers, contract, invoice, invoicePayments: invoicePaymentsList };
 }
 
 export async function getDecryptedAnswer(answerId: string) {
