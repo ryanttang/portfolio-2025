@@ -26,9 +26,85 @@ export const QUESTION_TYPES = [
   "multi_select",
   "boolean",
   "file",
+  "login",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
+
+export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  short_text: "Short text",
+  long_text: "Long text",
+  single_select: "Single select",
+  multi_select: "Multi select",
+  boolean: "Yes / no",
+  file: "File upload",
+  login: "Login info",
+};
+
+export function questionIsSecret(q: { type: string; sensitive?: boolean | null }) {
+  return q.type === "login" || Boolean(q.sensitive);
+}
+
+export type LoginCredential = {
+  label: string;
+  username: string;
+  password: string;
+};
+
+export type LoginAnswerValue = {
+  entries: LoginCredential[];
+};
+
+function asCredential(value: unknown): LoginCredential | null {
+  if (!value || typeof value !== "object") return null;
+  const e = value as { label?: unknown; username?: unknown; password?: unknown };
+  return {
+    label: String(e.label || "").trim(),
+    username: String(e.username || ""),
+    password: String(e.password || ""),
+  };
+}
+
+export function isLoginAnswerValue(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const v = value as { entries?: unknown; username?: unknown; password?: unknown };
+  return Array.isArray(v.entries) || "username" in v || "password" in v;
+}
+
+export function normalizeLoginAnswer(value: unknown): LoginCredential[] {
+  if (!value || typeof value !== "object") return [];
+  const v = value as { entries?: unknown; label?: unknown; username?: unknown; password?: unknown };
+  if (Array.isArray(v.entries)) {
+    return v.entries.map(asCredential).filter((e): e is LoginCredential => Boolean(e));
+  }
+  if ("username" in v || "password" in v) {
+    const entry = asCredential(v);
+    return entry ? [entry] : [];
+  }
+  return [];
+}
+
+export function loginAnswerIsEmpty(value: unknown) {
+  return normalizeLoginAnswer(value).every(
+    (e) => !e.username.trim() && !e.password && !e.label,
+  );
+}
+
+export function mergeLoginAnswers(incoming: unknown, previous: unknown): LoginAnswerValue {
+  const next = normalizeLoginAnswer(incoming);
+  const prev = normalizeLoginAnswer(previous);
+  const merged = next.map((entry, i) => ({
+    label: entry.label || prev[i]?.label || "",
+    username: entry.username.trim() || prev[i]?.username || "",
+    password: entry.password || prev[i]?.password || "",
+  }));
+  const filled = merged.filter((e) => e.username.trim() || e.password || e.label);
+  return { entries: filled.length > 0 ? filled : prev };
+}
+
+export function emptyLoginCredential(): LoginCredential {
+  return { label: "", username: "", password: "" };
+}
 
 export const CORE_ANSWER_KEYS = ["goals", "timeline", "budget", "audience"] as const;
 

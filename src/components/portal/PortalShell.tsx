@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useTransition } from "react";
 import { stopViewAsClientAction } from "@/app/admin/actions/onboarding";
+import NotificationBell from "@/components/portal/NotificationBell";
 
 export default function PortalShell({
   children,
@@ -11,12 +12,26 @@ export default function PortalShell({
   email,
   impersonating,
   impersonatedClientId,
+  notifications = [],
+  unreadCount = 0,
+  projectSlugs = {},
 }: {
   children: React.ReactNode;
   showNav: boolean;
   email: string | null;
   impersonating?: boolean;
   impersonatedClientId?: string | null;
+  notifications?: {
+    id: string;
+    type: string;
+    title: string;
+    body: string;
+    createdAt: Date;
+    readAt: Date | null;
+    onboardingId: string | null;
+  }[];
+  unreadCount?: number;
+  projectSlugs?: Record<string, string>;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -52,6 +67,11 @@ export default function PortalShell({
               <Link href="/portal" className="text-white/70 hover:text-white">
                 Projects
               </Link>
+              <NotificationBell
+                notifications={notifications}
+                unreadCount={unreadCount}
+                projectSlugs={projectSlugs}
+              />
               {!impersonating && (
                 <Link href="/portal/account" className="text-white/70 hover:text-white">
                   Account

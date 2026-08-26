@@ -10,7 +10,13 @@ import {
   saveQuestionnaireAction,
   uploadQuestionnaireFileAction,
 } from "@/app/portal/actions/onboarding";
-import type { OnboardingStep } from "@/lib/onboarding/types";
+import {
+  emptyLoginCredential,
+  loginAnswerIsEmpty,
+  questionIsSecret,
+  type LoginCredential,
+  type OnboardingStep,
+} from "@/lib/onboarding/types";
 
 type Question = {
   id: string;
@@ -166,7 +172,7 @@ export default function OnboardingWizard({
             projectName={onboarding.projectName}
             onComplete={async () => {
               await completeHandoffAction(onboardingId);
-              router.push(`/portal/projects/${projectSlug}`);
+              router.push(`/portal/projects/${projectSlug}?welcome=1`);
               router.refresh();
             }}
           />
@@ -295,6 +301,108 @@ function InfoStep({
   );
 }
 
+function LoginFields({
+  question,
+  saved,
+  savedCount,
+  entries,
+  onChange,
+}: {
+  question: Question;
+  saved: boolean;
+  savedCount: number;
+  entries: LoginCredential[];
+  onChange: (entries: LoginCredential[]) => void;
+}) {
+  function update(index: number, patch: Partial<LoginCredential>) {
+    onChange(entries.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
+  }
+
+  return (
+    <fieldset className="space-y-3">
+      <legend className="text-xs uppercase tracking-wider text-white/40">
+        {question.label}
+        <span className="ml-2 normal-case tracking-normal text-[#fdf0d5]/70">
+          Encrypted — admin-only
+        </span>
+      </legend>
+      {question.helpText && (
+        <p className="text-xs normal-case tracking-normal text-white/30">{question.helpText}</p>
+      )}
+      {entries.map((entry, index) => {
+        const pairFilled = Boolean(entry.username.trim() || entry.password || entry.label);
+        const requirePair =
+          (question.required && !saved && index === 0) || (index > 0 && pairFilled);
+        const placeholder =
+          index < savedCount ? "Saved securely — type to replace" : undefined;
+        return (
+          <div key={index} className="space-y-2 border border-white/10 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] uppercase tracking-wider text-white/35">
+                Login {index + 1}
+              </p>
+              {entries.length > 1 && index >= savedCount && (
+                <button
+                  type="button"
+                  onClick={() => onChange(entries.filter((_, i) => i !== index))}
+                  className="text-[10px] uppercase tracking-wider text-white/40 hover:text-red-300"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <label className="block text-xs uppercase tracking-wider text-white/40">
+              Account / site
+              <input
+                type="text"
+                autoComplete="off"
+                spellCheck={false}
+                value={entry.label}
+                onChange={(e) => update(index, { label: e.target.value })}
+                placeholder="Optional — e.g. WordPress, hosting"
+                className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+              />
+            </label>
+            <label className="block text-xs uppercase tracking-wider text-white/40">
+              Username
+              <input
+                type="text"
+                autoComplete="off"
+                spellCheck={false}
+                required={requirePair}
+                value={entry.username}
+                onChange={(e) => update(index, { username: e.target.value })}
+                placeholder={placeholder}
+                className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+              />
+            </label>
+            <label className="block text-xs uppercase tracking-wider text-white/40">
+              Password
+              <input
+                type="password"
+                autoComplete="new-password"
+                spellCheck={false}
+                required={requirePair}
+                value={entry.password}
+                onChange={(e) => update(index, { password: e.target.value })}
+                placeholder={placeholder}
+                className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+              />
+            </label>
+          </div>
+        );
+      })}
+      <button
+        type="button"
+        onClick={() => onChange([...entries, emptyLoginCredential()])}
+        className="text-xs text-[#fdf0d5] hover:underline"
+      >
+        + Add another login
+      </button>
+    </fieldset>
+  );
+}
+
 function QuestionnaireStep({
   onboardingId,
   questions,
@@ -321,7 +429,7 @@ function QuestionnaireStep({
         redacted?: boolean;
         saved?: boolean;
       };
-      if (q.sensitive || v?.redacted) {
+      if (questionIsSecret(q) || v?.redacted) {
         init[q.id] = q.type === "file" ? v?.filename || (v?.saved ? "saved" : "") : "";
         continue;
       }
@@ -342,6 +450,16 @@ function QuestionnaireStep({
     }
     return init;
   });
+  const [loginFields, setLoginFields] = useState<Record<string, LoginCredential[]>>(() => {
+    const init: Record<string, LoginCredential[]> = {};
+    for (const q of questions) {
+      if (q.type !== "login") continue;
+      const v = answerMap[q.id] as { loginEntryCount?: number; saved?: boolean } | undefined;
+      const count = Math.max(1, v?.loginEntryCount || 1);
+      init[q.id] = Array.from({ length: count }, () => emptyLoginCredential());
+    }
+    return init;
+  });
 
   return (
     <form
@@ -351,9 +469,21 @@ function QuestionnaireStep({
         await onSave({
           answers: questions
             .filter((q) => q.type !== "file")
-            .filter((q) => !(q.sensitive && !(custom[q.id] || "").trim()))
+            .filter((q) => {
+              if (q.type === "login") {
+                return !loginAnswerIsEmpty({ entries: loginFields[q.id] || [] });
+              }
+              if (questionIsSecret(q) && !(custom[q.id] || "").trim()) return false;
+              return true;
+            })
             .map((q) => {
               const raw = custom[q.id] || "";
+              if (q.type === "login") {
+                return {
+                  questionId: q.id,
+                  value: { entries: loginFields[q.id] || [emptyLoginCredential()] },
+                };
+              }
               if (q.type === "boolean")
                 return { questionId: q.id, value: { bool: raw === "true" } };
               if (q.type === "multi_select")
@@ -382,8 +512,21 @@ function QuestionnaireStep({
             (answerMap[q.id] as { redacted?: boolean } | undefined)?.redacted ||
             fileNames[q.id],
         );
-        const isSecret = Boolean(q.sensitive);
+        const isSecret = questionIsSecret(q);
         return (
+        q.type === "login" ? (
+        <LoginFields
+          key={q.id}
+          question={q}
+          saved={saved}
+          savedCount={
+            (answerMap[q.id] as { loginEntryCount?: number } | undefined)?.loginEntryCount ||
+            (saved ? 1 : 0)
+          }
+          entries={loginFields[q.id] || [emptyLoginCredential()]}
+          onChange={(entries) => setLoginFields({ ...loginFields, [q.id]: entries })}
+        />
+        ) : (
         <label key={q.id} className="block text-xs uppercase tracking-wider text-white/40">
           {q.label}
           {isSecret && (
@@ -472,6 +615,7 @@ function QuestionnaireStep({
             />
           )}
         </label>
+        )
         );
       })}
 

@@ -15,8 +15,13 @@ import { getLatestUnusedInvite } from "@/lib/portal/auth";
 import { getAppUrl } from "@/lib/env";
 import OnboardingEditor from "@/components/admin/OnboardingEditor";
 import PortalContentEditor from "@/components/admin/PortalContentEditor";
+import PortalHubEditor from "@/components/admin/PortalHubEditor";
 import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
 import { restartOnboardingWizardAction } from "@/app/admin/actions/onboarding";
+import { listPortalTasks } from "@/lib/portal/tasks";
+import { listPortalMeetings } from "@/lib/portal/meetings";
+import { listPortalFiles } from "@/lib/portal/files";
+import { getThreadForOnboarding, listThreadMessages } from "@/lib/portal/messages";
 
 export default async function OnboardingDetailPage({
   params,
@@ -31,7 +36,7 @@ export default async function OnboardingDetailPage({
   const client = await getClient(onboarding.clientId);
   if (!client) notFound();
 
-  const [clientContracts, clientInvoices, templates, updates, milestones, invite, serviceCatalog] =
+  const [clientContracts, clientInvoices, templates, updates, milestones, invite, serviceCatalog, tasks, meetings, files, thread] =
     await Promise.all([
       db.select().from(contracts).where(eq(contracts.clientId, client.id)),
       db.select().from(invoices).where(eq(invoices.clientId, client.id)),
@@ -40,7 +45,13 @@ export default async function OnboardingDetailPage({
       listPortalMilestones(onboarding.id),
       getLatestUnusedInvite(client.id, onboarding.id),
       listAvailableServices(),
+      listPortalTasks(onboarding.id),
+      listPortalMeetings(onboarding.id),
+      listPortalFiles(onboarding.id),
+      getThreadForOnboarding(onboarding.id),
     ]);
+
+  const messages = thread ? await listThreadMessages(thread.id) : [];
 
   async function restartWizard() {
     "use server";
@@ -133,6 +144,22 @@ export default async function OnboardingDetailPage({
           onboardingId={onboarding.id}
           updates={updates}
           milestones={milestones}
+        />
+      </div>
+
+      <div className="mt-8">
+        <h2 className="font-[family-name:var(--font-syne)] text-lg font-bold">Portal hub</h2>
+        <p className="mt-1 text-sm text-white/40">
+          Tasks, meetings, deliverables, messages, and dashboard welcome for clients.
+        </p>
+        <PortalHubEditor
+          clientId={client.id}
+          onboardingId={onboarding.id}
+          hubWelcomeMessage={onboarding.hubWelcomeMessage}
+          tasks={tasks}
+          meetings={meetings}
+          files={files}
+          messages={messages}
         />
       </div>
     </div>

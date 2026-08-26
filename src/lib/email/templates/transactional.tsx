@@ -79,10 +79,10 @@ export async function renderPortalInviteEmail(opts: {
         </Text>
       ) : null}
       <Text style={{ margin: "0 0 12px" }}>
-        Use the button below to set your password and get started. This link expires in{" "}
-        {opts.expiresDays} days.
+        Use the button below to access your portal — set your password if this is your first time,
+        or sign in directly if you already have one. This link expires in {opts.expiresDays} days.
       </Text>
-      <CtaButton href={opts.inviteUrl} label="Set up portal" accentColor={brand.accentColor} />
+      <CtaButton href={opts.inviteUrl} label="Access portal" accentColor={brand.accentColor} />
     </>,
     {
       preheader: opts.projectName
@@ -120,4 +120,96 @@ export async function renderPortalMessageEmail(opts: {
       includeSignature: false,
     },
   );
+}
+
+export async function renderPortalPasswordResetEmail(opts: {
+  clientName: string;
+  resetUrl: string;
+  expiresHours: number;
+}) {
+  const brand = await getEmailBrandContext();
+  return renderBrandedComponent(
+    <>
+      <Text style={{ margin: "0 0 12px" }}>Hi {opts.clientName},</Text>
+      <Text style={{ margin: "0 0 12px" }}>
+        We received a request to reset your client portal password. This link expires in{" "}
+        {opts.expiresHours} hour{opts.expiresHours === 1 ? "" : "s"}.
+      </Text>
+      <CtaButton href={opts.resetUrl} label="Reset password" accentColor={brand.accentColor} />
+      <Text style={{ color: "#6b6560", fontSize: "13px", margin: "16px 0 0" }}>
+        If you didn&apos;t request this, you can ignore this email.
+      </Text>
+    </>,
+    { preheader: "Reset your portal password" },
+  );
+}
+
+export async function renderPortalNotificationEmail(opts: {
+  clientName: string;
+  projectName: string;
+  title: string;
+  body: string;
+  portalUrl: string;
+}) {
+  const brand = await getEmailBrandContext();
+  return renderBrandedComponent(
+    <>
+      <Text style={{ margin: "0 0 12px" }}>Hi {opts.clientName},</Text>
+      <Text style={{ margin: "0 0 12px" }}>
+        <strong>{opts.title}</strong>
+        {opts.projectName ? (
+          <>
+            {" "}
+            — <strong>{opts.projectName}</strong>
+          </>
+        ) : null}
+      </Text>
+      {opts.body ? <Text style={{ margin: "0 0 12px" }}>{opts.body}</Text> : null}
+      <CtaButton href={opts.portalUrl} label="Open portal" accentColor={brand.accentColor} />
+    </>,
+    { preheader: opts.title },
+  );
+}
+
+type PortalEventEmailOpts = {
+  clientName: string;
+  projectName: string;
+  title: string;
+  body: string;
+  portalUrl: string;
+};
+
+export async function renderPortalUpdateEmail(opts: PortalEventEmailOpts) {
+  return renderPortalNotificationEmail({
+    ...opts,
+    title: opts.title || "New project update",
+  });
+}
+
+export async function renderPortalTaskEmail(opts: PortalEventEmailOpts) {
+  return renderPortalNotificationEmail({
+    ...opts,
+    title: opts.title || "New action item",
+  });
+}
+
+export async function renderPortalMeetingEmail(opts: PortalEventEmailOpts) {
+  return renderPortalNotificationEmail({
+    ...opts,
+    title: opts.title || "Meeting scheduled",
+  });
+}
+
+export async function renderPortalFileEmail(opts: PortalEventEmailOpts) {
+  return renderPortalNotificationEmail({
+    ...opts,
+    title: opts.title || "New deliverable",
+  });
+}
+
+export async function renderPortalAdminMessageEmail(opts: PortalEventEmailOpts) {
+  return renderPortalNotificationEmail({
+    ...opts,
+    title: opts.title || "New message from Ryan",
+  });
 }

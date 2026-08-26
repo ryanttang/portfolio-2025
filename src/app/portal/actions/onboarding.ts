@@ -7,7 +7,6 @@ import { getClient, updateClient } from "@/lib/crm/clients";
 import {
   advanceStep,
   completeOnboarding,
-  getOnboarding,
   getOnboardingForClient,
   listOnboardingQuestions,
   portalProjectPath,
@@ -17,14 +16,11 @@ import {
 } from "@/lib/onboarding";
 import {
   changeClientPassword,
-  getInviteByToken,
-  setPasswordFromInvite,
 } from "@/lib/portal/auth";
-import { sendEmail } from "@/lib/email/send";
-import { getSetting } from "@/lib/content";
 import { logAudit } from "@/lib/audit";
 import { storeFile } from "@/lib/storage";
 import type { OnboardingStep } from "@/lib/onboarding/types";
+import { loginAnswerIsEmpty, questionIsSecret } from "@/lib/onboarding/types";
 import { randomBytes } from "crypto";
 import { encryptBytes } from "@/lib/crypto/sensitive";
 
@@ -47,23 +43,6 @@ function auditImpersonation(
     });
   }
   return Promise.resolve();
-}
-
-export async function setPasswordFromInviteAction(token: string, password: string) {
-  const invite = await getInviteByToken(token);
-  const account = await setPasswordFromInvite(token, password);
-  let projectSlug: string | null = null;
-  if (invite?.onboardingId) {
-    const onboarding = await getOnboarding(invite.onboardingId);
-    projectSlug = onboarding?.slug || null;
-  }
-  return {
-    ok: true,
-    email: account.email,
-    clientId: account.clientId,
-    onboardingId: invite?.onboardingId || null,
-    projectSlug,
-  };
 }
 
 export async function saveClientInfoAction(
@@ -121,12 +100,16 @@ export async function saveQuestionnaireAction(
 
   for (const a of data.answers) {
     const question = byId.get(a.questionId);
-    if (question?.sensitive) {
-      const text =
-        a.value && typeof a.value === "object" && "text" in a.value
-          ? String((a.value as { text?: unknown }).text || "")
-          : "";
-      if (!text.trim()) continue;
+    if (question && (questionIsSecret(question) || question.type === "login")) {
+      if (question.type === "login") {
+        if (loginAnswerIsEmpty(a.value)) continue;
+      } else {
+        const text =
+          a.value && typeof a.value === "object" && "text" in a.value
+            ? String((a.value as { text?: unknown }).text || "")
+            : "";
+        if (!text.trim()) continue;
+      }
     }
     await upsertAnswer({
       onboardingId: onboarding.id,
@@ -232,48 +215,6 @@ export async function changePasswordAction(currentPassword: string, newPassword:
   const session = await requireClient();
   if (session.impersonating) throw new Error("Cannot change password while viewing as client");
   await changeClientPassword(session.user.clientId!, currentPassword, newPassword);
-  return { ok: true };
-}
-
-export async function sendPortalMessageAction(
-  onboardingId: string,
-  data: { subject: string; body: string },
-) {
-  const { actor, onboarding } = await ownedOnboarding(onboardingId);
-  const client = await getClient(actor.clientId);
-  if (!client) throw new Error("Client not found");
-
-  const parsed = z
-    .object({
-      subject: z.string().min(1),
-      body: z.string().min(1),
-    })
-    .parse(data);
-
-  const emailSettings = await getSetting<{ fromEmail?: string }>("email");
-  const to =
-    emailSettings?.fromEmail ||
-    process.env.RESEND_FROM_EMAIL ||
-    process.env.ADMIN_EMAIL;
-  if (!to) throw new Error("No admin inbox email configured");
-
-  const { renderPortalMessageEmail } = await import("@/lib/email/templates/transactional");
-  const branded = await renderPortalMessageEmail({
-    clientName: client.name,
-    clientEmail: client.email,
-    projectName: onboarding.projectName || "Project",
-    body: parsed.body,
-  });
-
-  await sendEmail({
-    to: [to],
-    subject: `[Portal] ${onboarding.projectName || "Project"}: ${parsed.subject}`,
-    text: branded.text,
-    html: branded.html,
-    clientId: actor.clientId,
-  });
-
-  await auditImpersonation(actor, "portal_message", onboardingId);
   return { ok: true };
 }
 

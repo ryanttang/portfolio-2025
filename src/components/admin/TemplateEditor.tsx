@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { saveTemplateItemsAction, updateTemplateAction } from "@/app/admin/actions/onboarding";
-import { QUESTION_TYPES, type QuestionInput, type QuestionType } from "@/lib/onboarding/types";
+import { QUESTION_TYPES, QUESTION_TYPE_LABELS, type QuestionInput, type QuestionType } from "@/lib/onboarding/types";
 
 export default function TemplateEditor({
   template,
@@ -80,13 +80,14 @@ export default function TemplateEditor({
               className="flex-1 border border-white/15 bg-black/40 px-2 py-1 text-sm"
             />
             <span className="self-center text-[10px] uppercase text-white/30">
-              {q.type}
-              {q.sensitive ? " · encrypted" : ""}
+              {QUESTION_TYPE_LABELS[q.type] || q.type}
+              {q.sensitive || q.type === "login" ? " · encrypted" : ""}
             </span>
             <label className="flex items-center gap-1 self-center text-[10px] uppercase text-white/40">
               <input
                 type="checkbox"
-                checked={Boolean(q.sensitive)}
+                checked={Boolean(q.sensitive) || q.type === "login"}
+                disabled={q.type === "login"}
                 onChange={(e) => {
                   const next = [...questions];
                   next[idx] = { ...q, sensitive: e.target.checked };
@@ -115,19 +116,24 @@ export default function TemplateEditor({
         />
         <select
           value={newType}
-          onChange={(e) => setNewType(e.target.value as QuestionType)}
+          onChange={(e) => {
+            const next = e.target.value as QuestionType;
+            setNewType(next);
+            if (next === "login") setNewSensitive(true);
+          }}
           className="border border-white/15 bg-black/40 px-3 py-2 text-sm"
         >
           {QUESTION_TYPES.map((t) => (
             <option key={t} value={t}>
-              {t}
+              {QUESTION_TYPE_LABELS[t]}
             </option>
           ))}
         </select>
         <label className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-white/40">
           <input
             type="checkbox"
-            checked={newSensitive}
+            checked={newType === "login" || newSensitive}
+            disabled={newType === "login"}
             onChange={(e) => setNewSensitive(e.target.checked)}
           />
           Encrypt
@@ -143,7 +149,7 @@ export default function TemplateEditor({
                 type: newType,
                 required: true,
                 options: [],
-                sensitive: newSensitive,
+                sensitive: newType === "login" || newSensitive,
               },
             ]);
             setNewLabel("");
@@ -153,6 +159,11 @@ export default function TemplateEditor({
         >
           Add
         </button>
+        {newType === "login" && (
+          <p className="w-full text-xs text-white/40">
+            Login info shows username and password fields (clients can add more than one) and is always encrypted.
+          </p>
+        )}
       </div>
 
       <button

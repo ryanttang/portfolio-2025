@@ -8,7 +8,7 @@ export type EncryptedPayload = {
   iv: string;
   tag: string;
   data: string;
-  meta?: { filename?: string };
+  meta?: { filename?: string; loginEntryCount?: number };
 };
 
 function encryptionKey() {
@@ -27,7 +27,7 @@ export function isEncryptedPayload(value: unknown): value is EncryptedPayload {
 
 export function encryptJson(
   value: unknown,
-  meta?: { filename?: string },
+  meta?: { filename?: string; loginEntryCount?: number },
 ): EncryptedPayload {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", encryptionKey(), iv);
@@ -42,7 +42,12 @@ export function encryptJson(
     tag: cipher.getAuthTag().toString("base64"),
     data: encrypted.toString("base64"),
   };
-  if (meta?.filename) payload.meta = { filename: meta.filename };
+  if (meta?.filename || meta?.loginEntryCount) {
+    payload.meta = {
+      ...(meta.filename ? { filename: meta.filename } : {}),
+      ...(meta.loginEntryCount ? { loginEntryCount: meta.loginEntryCount } : {}),
+    };
+  }
   return payload;
 }
 

@@ -333,6 +333,10 @@ export const onboardings = pgTable(
     invoiceId: uuid("invoice_id").references(() => invoices.id, { onDelete: "set null" }),
     currentStep: text("current_step").notNull().default("welcome"), // welcome | info | questionnaire | contract | deposit | handoff
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    /** Optional welcome copy shown once on the completed project dashboard. */
+    hubWelcomeMessage: text("hub_welcome_message"),
+    /** When the client dismissed the dashboard welcome modal. */
+    hubWelcomeSeenAt: timestamp("hub_welcome_seen_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -365,6 +369,165 @@ export const portalInvites = pgTable(
   ],
 );
 
+export const portalPasswordResets = pgTable(
+  "portal_password_resets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("portal_password_resets_client_idx").on(t.clientId),
+    uniqueIndex("portal_password_resets_token_uidx").on(t.token),
+  ],
+);
+
+export const portalTasks = pgTable(
+  "portal_tasks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id")
+      .notNull()
+      .references(() => onboardings.id, { onDelete: "cascade" }),
+    type: text("type").notNull().default("general"), // general | approval | review | upload
+    status: text("status").notNull().default("pending"), // pending | completed | cancelled
+    title: text("title").notNull(),
+    description: text("description"),
+    linkUrl: text("link_url"),
+    dueAt: timestamp("due_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    sortOrder: integer("sort_order").notNull().default(0),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("portal_tasks_client_idx").on(t.clientId),
+    index("portal_tasks_onboarding_idx").on(t.onboardingId),
+  ],
+);
+
+export const portalMeetings = pgTable(
+  "portal_meetings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id")
+      .notNull()
+      .references(() => onboardings.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    timezone: text("timezone").notNull().default("America/Los_Angeles"),
+    location: text("location"),
+    icsUid: text("ics_uid").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("portal_meetings_client_idx").on(t.clientId),
+    index("portal_meetings_onboarding_idx").on(t.onboardingId),
+  ],
+);
+
+export const portalMessageThreads = pgTable(
+  "portal_message_threads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id")
+      .notNull()
+      .references(() => onboardings.id, { onDelete: "cascade" })
+      .unique(),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("portal_message_threads_client_idx").on(t.clientId)],
+);
+
+export const portalMessages = pgTable(
+  "portal_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    threadId: uuid("thread_id")
+      .notNull()
+      .references(() => portalMessageThreads.id, { onDelete: "cascade" }),
+    senderType: text("sender_type").notNull(), // admin | client
+    subject: text("subject"),
+    body: text("body").notNull(),
+    createdByAdminId: uuid("created_by_admin_id").references(() => admins.id, {
+      onDelete: "set null",
+    }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("portal_messages_thread_idx").on(t.threadId)],
+);
+
+export const portalFiles = pgTable(
+  "portal_files",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id")
+      .notNull()
+      .references(() => onboardings.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    blobUrl: text("blob_url").notNull(),
+    mimeType: text("mime_type"),
+    sizeBytes: integer("size_bytes"),
+    uploadedByAdminId: uuid("uploaded_by_admin_id").references(() => admins.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("portal_files_client_idx").on(t.clientId),
+    index("portal_files_onboarding_idx").on(t.onboardingId),
+  ],
+);
+
+export const portalNotifications = pgTable(
+  "portal_notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    onboardingId: uuid("onboarding_id").references(() => onboardings.id, {
+      onDelete: "cascade",
+    }),
+    type: text("type").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull().default(""),
+    refType: text("ref_type"),
+    refId: text("ref_id"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("portal_notifications_client_idx").on(t.clientId),
+    index("portal_notifications_onboarding_idx").on(t.onboardingId),
+  ],
+);
+
 export const questionTemplates = pgTable("question_templates", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
@@ -383,7 +546,7 @@ export const questionTemplateItems = pgTable(
     sortOrder: integer("sort_order").notNull().default(0),
     label: text("label").notNull(),
     helpText: text("help_text"),
-    type: text("type").notNull().default("short_text"), // short_text | long_text | single_select | multi_select | boolean
+    type: text("type").notNull().default("short_text"), // short_text | long_text | single_select | multi_select | boolean | file | login
     options: jsonb("options").$type<string[]>().notNull().default([]),
     required: boolean("required").notNull().default(true),
     /** Encrypt answers at rest; only admin can reveal. */
@@ -402,7 +565,7 @@ export const onboardingQuestions = pgTable(
     sortOrder: integer("sort_order").notNull().default(0),
     label: text("label").notNull(),
     helpText: text("help_text"),
-    type: text("type").notNull().default("short_text"),
+    type: text("type").notNull().default("short_text"), // short_text | long_text | single_select | multi_select | boolean | file | login
     options: jsonb("options").$type<string[]>().notNull().default([]),
     required: boolean("required").notNull().default(true),
     /** Optional starter identity: goals | timeline | budget | audience */

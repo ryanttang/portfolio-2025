@@ -4,14 +4,19 @@ import { compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { admins, clients } from "@/db/schema";
-import { verifyClientPassword } from "@/lib/portal/auth";
+import { verifyClientPassword, consumeInviteForSignIn } from "@/lib/portal/auth";
 import { getViewAsPayload } from "@/lib/portal/view-as";
 import { z } from "zod";
 
-const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+const credentialsSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string().optional(),
+    magicToken: z.string().optional(),
+  })
+  .refine((data) => Boolean(data.password?.length || data.magicToken?.length), {
+    message: "Password or magic token required",
+  });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -20,13 +25,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        magicToken: { label: "Magic Token", type: "text" },
       },
       async authorize(credentials) {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const { email, password } = parsed.data;
+        const { email, password, magicToken } = parsed.data;
         const normalized = email.toLowerCase();
+
+        if (magicToken) {
+          const account = await consumeInviteForSignIn(magicToken, normalized);
+          if (!account) return null;
+          return {
+            id: account.id,
+            email: account.email,
+            name: "Client",
+            role: "client" as const,
+            clientId: account.clientId,
+          };
+        }
+
+        if (!password) return null;
 
         const [admin] = await db
           .select()

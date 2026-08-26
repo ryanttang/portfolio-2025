@@ -9,6 +9,7 @@ import { listThreadsForClient } from "@/lib/email/threads";
 import { listOnboardingsForClient } from "@/lib/onboarding";
 import { createOnboardingAction } from "@/app/admin/actions/onboarding";
 import ClientDetail from "@/components/admin/ClientDetail";
+import CrmPortalActions from "@/components/admin/CrmPortalActions";
 import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
 
 export default async function ClientDetailPage({
@@ -62,6 +63,10 @@ export default async function ClientDetailPage({
           New invoice
         </Link>
         <PreviewPortalButton clientId={clientId} label="Preview portal" />
+        <CrmPortalActions
+          clientId={clientId}
+          projects={projects.map((p) => ({ id: p.id, projectName: p.projectName }))}
+        />
       </div>
 
       <section className="mt-8 border border-white/10 bg-[#141414] p-4">

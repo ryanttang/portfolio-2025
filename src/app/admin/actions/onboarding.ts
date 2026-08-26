@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/db";
-import { contracts, invoices } from "@/db/schema";
+import { contracts, invoices, portalMilestones } from "@/db/schema";
 import {
   addOnboardingQuestion,
   addStarterOnboardingQuestions,
@@ -346,10 +346,42 @@ export async function updateMilestoneAction(
   id: string,
   clientId: string,
   onboardingId: string,
-  data: Partial<{ title: string; description: string | null; status: string }>,
+  data: Partial<{
+    title: string;
+    description: string | null;
+    status: string;
+    notifyClient?: boolean;
+  }>,
 ) {
   await requireAdmin();
-  await updatePortalMilestone(id, data);
+  const [existing] = await db
+    .select()
+    .from(portalMilestones)
+    .where(eq(portalMilestones.id, id))
+    .limit(1);
+  const { notifyClient, ...patch } = data;
+  const row = await updatePortalMilestone(id, patch);
+
+  if (
+    row &&
+    patch.status &&
+    existing &&
+    existing.status !== patch.status &&
+    notifyClient !== false
+  ) {
+    const { createPortalNotification } = await import("@/lib/portal/notifications");
+    await createPortalNotification({
+      clientId,
+      onboardingId,
+      type: "milestone",
+      title: `Milestone updated: ${row.title}`,
+      body: `Status is now ${patch.status.replace("_", " ")}.`,
+      refType: "milestone",
+      refId: row.id,
+      sendEmail: true,
+    });
+  }
+
   await revalidateOnboarding(onboardingId, clientId);
   return { ok: true };
 }

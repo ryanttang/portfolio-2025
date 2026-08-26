@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   createMilestoneAction,
-  createUpdateAction,
   deleteMilestoneAction,
   deleteUpdateAction,
   updateMilestoneAction,
   updateUpdateAction,
 } from "@/app/admin/actions/onboarding";
+import { createUpdateWithNotifyAction } from "@/app/admin/actions/portal-hub";
 import { MILESTONE_STATUSES } from "@/lib/onboarding/types";
 
 export default function PortalContentEditor({
@@ -37,6 +37,7 @@ export default function PortalContentEditor({
   const router = useRouter();
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateBody, setUpdateBody] = useState("");
+  const [notifyClient, setNotifyClient] = useState(false);
   const [milestoneTitle, setMilestoneTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -60,18 +61,28 @@ export default function PortalContentEditor({
             rows={3}
             className="w-full border border-white/15 bg-black/40 px-3 py-2 text-sm"
           />
+          <label className="flex items-center gap-2 text-xs text-white/60">
+            <input
+              type="checkbox"
+              checked={notifyClient}
+              onChange={(e) => setNotifyClient(e.target.checked)}
+            />
+            Notify client by email
+          </label>
           <button
             type="button"
             onClick={async () => {
               if (!updateTitle.trim()) return;
-              await createUpdateAction(
+              await createUpdateWithNotifyAction(
                 clientId,
                 onboardingId,
                 updateTitle.trim(),
                 updateBody,
+                notifyClient,
               );
               setUpdateTitle("");
               setUpdateBody("");
+              setNotifyClient(false);
               router.refresh();
             }}
             className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
@@ -211,6 +222,7 @@ export default function PortalContentEditor({
                 onChange={async (e) => {
                   await updateMilestoneAction(m.id, clientId, onboardingId, {
                     status: e.target.value,
+                    notifyClient: true,
                   });
                   router.refresh();
                 }}

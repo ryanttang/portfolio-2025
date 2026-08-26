@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { revealSensitiveAnswerAction } from "@/app/admin/actions/onboarding";
 import { adminUpsertAnswerAction } from "@/app/admin/actions/onboarding";
+import {
+  emptyLoginCredential,
+  isLoginAnswerValue,
+  normalizeLoginAnswer,
+  type LoginCredential,
+} from "@/lib/onboarding/types";
 
 export default function SensitiveAnswerReveal({
   answerId,
@@ -27,7 +33,8 @@ export default function SensitiveAnswerReveal({
     setError("");
     try {
       const result = await revealSensitiveAnswerAction(answerId);
-      setRevealed(result.value);
+      const value = result.value;
+      setRevealed(isLoginAnswerValue(value) ? { entries: normalizeLoginAnswer(value) } : value);
       setVisible(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not decrypt.");
@@ -43,7 +50,23 @@ export default function SensitiveAnswerReveal({
     encryptedFile?: boolean;
     bool?: boolean;
     selected?: string[];
+    entries?: LoginCredential[];
+    username?: string;
+    password?: string;
   } | null;
+
+  const loginEntries = revealed && isLoginAnswerValue(revealed) ? normalizeLoginAnswer(revealed) : [];
+  const isLogin = loginEntries.length > 0 || (revealed !== null && isLoginAnswerValue(revealed));
+
+  async function saveEntries(entries: LoginCredential[]) {
+    setRevealed({ entries });
+    await adminUpsertAnswerAction({
+      onboardingId,
+      questionId,
+      key: answerKey,
+      value: { entries },
+    });
+  }
 
   return (
     <div className="mt-1">
@@ -84,6 +107,116 @@ export default function SensitiveAnswerReveal({
             >
               Download {value.filename || filename || "file"}
             </a>
+          ) : isLogin ? (
+            visible ? (
+              <div className="space-y-3">
+                {loginEntries.map((entry, index) => (
+                  <div key={index} className="space-y-2 border border-white/10 p-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[10px] uppercase tracking-wider text-white/35">
+                        {entry.label || `Login ${index + 1}`}
+                      </p>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(entry.username)}
+                          className="text-xs text-white/50 hover:text-white/80"
+                        >
+                          Copy username
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(entry.password)}
+                          className="text-xs text-white/50 hover:text-white/80"
+                        >
+                          Copy password
+                        </button>
+                        {loginEntries.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              saveEntries(loginEntries.filter((_, i) => i !== index))
+                            }
+                            className="text-xs text-red-300 hover:text-red-200"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <label className="block text-[10px] uppercase tracking-wider text-white/40">
+                      Account / site
+                      <input
+                        value={entry.label}
+                        onChange={(e) => {
+                          const next = loginEntries.map((item, i) =>
+                            i === index ? { ...item, label: e.target.value } : item,
+                          );
+                          setRevealed({ entries: next });
+                        }}
+                        onBlur={(e) => {
+                          const next = loginEntries.map((item, i) =>
+                            i === index ? { ...item, label: e.target.value } : item,
+                          );
+                          saveEntries(next);
+                        }}
+                        className="mt-1 w-full border border-white/15 bg-black/40 px-2 py-1 text-sm normal-case"
+                      />
+                    </label>
+                    <label className="block text-[10px] uppercase tracking-wider text-white/40">
+                      Username
+                      <input
+                        value={entry.username}
+                        onChange={(e) => {
+                          const next = loginEntries.map((item, i) =>
+                            i === index ? { ...item, username: e.target.value } : item,
+                          );
+                          setRevealed({ entries: next });
+                        }}
+                        onBlur={(e) => {
+                          const next = loginEntries.map((item, i) =>
+                            i === index ? { ...item, username: e.target.value } : item,
+                          );
+                          saveEntries(next);
+                        }}
+                        className="mt-1 w-full border border-white/15 bg-black/40 px-2 py-1 text-sm normal-case"
+                      />
+                    </label>
+                    <label className="block text-[10px] uppercase tracking-wider text-white/40">
+                      Password
+                      <input
+                        type="text"
+                        value={entry.password}
+                        onChange={(e) => {
+                          const next = loginEntries.map((item, i) =>
+                            i === index ? { ...item, password: e.target.value } : item,
+                          );
+                          setRevealed({ entries: next });
+                        }}
+                        onBlur={(e) => {
+                          const next = loginEntries.map((item, i) =>
+                            i === index ? { ...item, password: e.target.value } : item,
+                          );
+                          saveEntries(next);
+                        }}
+                        className="mt-1 w-full border border-white/15 bg-black/40 px-2 py-1 text-sm normal-case"
+                      />
+                    </label>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => saveEntries([...loginEntries, emptyLoginCredential()])}
+                  className="text-xs text-[#fdf0d5] hover:underline"
+                >
+                  + Add another login
+                </button>
+              </div>
+            ) : (
+              <p className="font-mono text-sm tracking-widest text-white/50">
+                {loginEntries.map(() => "••••••••").join("  ")}
+              </p>
+            )
           ) : typeof value?.text === "string" ? (
             visible ? (
               <textarea

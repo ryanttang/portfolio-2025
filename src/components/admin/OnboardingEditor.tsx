@@ -20,6 +20,7 @@ import SensitiveAnswerReveal from "@/components/admin/SensitiveAnswerReveal";
 import {
   ONBOARDING_STEPS,
   QUESTION_TYPES,
+  QUESTION_TYPE_LABELS,
   type OnboardingStep,
   type QuestionType,
 } from "@/lib/onboarding/types";
@@ -239,7 +240,7 @@ export default function OnboardingEditor({
       type: newType,
       required: true,
       options: [],
-      sensitive: newSensitive,
+      sensitive: newType === "login" || newSensitive,
     });
     setNewLabel("");
     setNewSensitive(false);
@@ -578,9 +579,9 @@ export default function OnboardingEditor({
                         className="w-full border border-white/15 bg-black/40 px-2 py-1 text-sm"
                       />
                       <p className="mt-1 text-[10px] uppercase tracking-wider text-white/30">
-                        {q.type}
+                        {QUESTION_TYPE_LABELS[q.type as QuestionType] || q.type}
                         {q.required ? " · required" : " · optional"}
-                        {q.sensitive ? " · encrypted" : ""}
+                        {q.sensitive || q.type === "login" ? " · encrypted" : ""}
                       </p>
                     </div>
                     <label className="flex items-center gap-1 self-center text-[10px] uppercase tracking-wider text-white/40">
@@ -599,7 +600,8 @@ export default function OnboardingEditor({
                     <label className="flex items-center gap-1 self-center text-[10px] uppercase tracking-wider text-white/40">
                       <input
                         type="checkbox"
-                        checked={Boolean(q.sensitive)}
+                        checked={Boolean(q.sensitive) || q.type === "login"}
+                        disabled={q.type === "login"}
                         onChange={async (e) => {
                           await updateQuestionAction(q.id, onboarding.id, {
                             sensitive: e.target.checked,
@@ -642,19 +644,24 @@ export default function OnboardingEditor({
                 />
                 <select
                   value={newType}
-                  onChange={(e) => setNewType(e.target.value as QuestionType)}
+                  onChange={(e) => {
+                    const next = e.target.value as QuestionType;
+                    setNewType(next);
+                    if (next === "login") setNewSensitive(true);
+                  }}
                   className="border border-white/15 bg-black/40 px-3 py-2 text-sm"
                 >
                   {QUESTION_TYPES.map((t) => (
                     <option key={t} value={t}>
-                      {t}
+                      {QUESTION_TYPE_LABELS[t]}
                     </option>
                   ))}
                 </select>
                 <label className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-white/40">
                   <input
                     type="checkbox"
-                    checked={newSensitive}
+                    checked={newType === "login" || newSensitive}
+                    disabled={newType === "login"}
                     onChange={(e) => setNewSensitive(e.target.checked)}
                   />
                   Encrypt
@@ -666,6 +673,11 @@ export default function OnboardingEditor({
                 >
                   Add question
                 </button>
+                {newType === "login" && (
+                  <p className="w-full text-xs text-white/40">
+                    Login info shows username and password fields (clients can add more than one) and is always encrypted.
+                  </p>
+                )}
               </div>
 
               {answers.length > 0 && (
@@ -697,7 +709,7 @@ export default function OnboardingEditor({
                           <span className="text-[10px] uppercase tracking-wider text-[#fdf0d5]/80">
                             {label}
                           </span>
-                          {encrypted ? (
+                          {encrypted || question?.type === "login" ? (
                             <SensitiveAnswerReveal
                               answerId={a.id}
                               onboardingId={onboarding.id}

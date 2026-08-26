@@ -27,7 +27,9 @@ export async function middleware(req: NextRequest) {
 
   if (
     pathname.startsWith("/portal/login") ||
-    pathname.startsWith("/portal/invite/")
+    pathname.startsWith("/portal/invite/") ||
+    pathname.startsWith("/portal/forgot-password") ||
+    pathname.startsWith("/portal/reset-password/")
   ) {
     return NextResponse.next();
   }

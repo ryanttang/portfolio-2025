@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, Suspense, useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
@@ -70,6 +71,12 @@ function LoginForm() {
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>
+      <Link
+        href="/portal/forgot-password"
+        className="mt-4 inline-block text-sm text-white/50 hover:text-white/70"
+      >
+        Forgot password?
+      </Link>
     </form>
   );
 }

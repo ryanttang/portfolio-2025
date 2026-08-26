@@ -20,6 +20,11 @@ import {
   type OnboardingStep,
   type QuestionInput,
   type QuestionType,
+  isLoginAnswerValue,
+  loginAnswerIsEmpty,
+  mergeLoginAnswers,
+  normalizeLoginAnswer,
+  questionIsSecret,
 } from "@/lib/onboarding/types";
 import {
   decryptJson,
@@ -258,7 +263,7 @@ export async function replaceOnboardingQuestions(
         options: q.options || [],
         required: q.required ?? true,
         key: q.key ?? null,
-        sensitive: q.sensitive ?? false,
+        sensitive: q.type === "login" ? true : (q.sensitive ?? false),
       })),
     )
     .returning();
@@ -286,7 +291,7 @@ export async function addOnboardingQuestion(
       options: question.options || [],
       required: question.required ?? true,
       key: question.key ?? null,
-      sensitive: question.sensitive ?? false,
+      sensitive: question.type === "login" ? true : (question.sensitive ?? false),
     })
     .returning();
   return row;
@@ -328,12 +333,20 @@ export async function updateOnboardingQuestion(
     sensitive: boolean;
   }>,
 ) {
+  const [current] = await db
+    .select({ type: onboardingQuestions.type })
+    .from(onboardingQuestions)
+    .where(eq(onboardingQuestions.id, id))
+    .limit(1);
+  const nextType = data.type ?? current?.type;
+  const payload = nextType === "login" ? { ...data, sensitive: true } : data;
+
   const [row] = await db
     .update(onboardingQuestions)
-    .set(data)
+    .set(payload)
     .where(eq(onboardingQuestions.id, id))
     .returning();
-  if (row && data.sensitive === true) {
+  if (row && (payload.sensitive === true || nextType === "login")) {
     await encryptExistingAnswersForQuestion(id);
   }
   return row;
@@ -349,7 +362,7 @@ export async function encryptExistingAnswersForQuestion(questionId: string) {
     await db
       .update(onboardingAnswers)
       .set({
-        value: encryptJson(answer.value, { filename: filenameFromValue(answer.value) }),
+        value: encryptJson(answer.value, encryptionMeta(answer.value)),
         updatedAt: new Date(),
       })
       .where(eq(onboardingAnswers.id, answer.id));
@@ -367,8 +380,20 @@ export async function listAnswers(onboardingId: string) {
     .where(eq(onboardingAnswers.onboardingId, onboardingId));
 }
 
+function encryptionMeta(value: unknown) {
+  const filename = filenameFromValue(value);
+  const loginEntryCount = isLoginAnswerValue(value)
+    ? normalizeLoginAnswer(value).filter((e) => e.username.trim() || e.password).length
+    : 0;
+  return {
+    filename,
+    ...(loginEntryCount > 0 ? { loginEntryCount } : {}),
+  };
+}
+
 function isEmptyAnswerValue(value: unknown) {
   if (!value || typeof value !== "object") return true;
+  if (isLoginAnswerValue(value)) return loginAnswerIsEmpty(value);
   const v = value as { text?: string; selected?: string[] };
   if (typeof v.text === "string") return v.text.trim() === "";
   if (Array.isArray(v.selected)) return v.selected.length === 0;
@@ -381,6 +406,9 @@ export function redactAnswerValue(value: unknown) {
       redacted: true as const,
       saved: true as const,
       ...(value.meta?.filename ? { filename: value.meta.filename } : {}),
+      ...(value.meta?.loginEntryCount
+        ? { loginEntryCount: value.meta.loginEntryCount }
+        : {}),
     };
   }
   return value;
@@ -398,12 +426,15 @@ async function valueForStorage(opts: {
   if (isEncryptedPayload(opts.value)) return opts.value;
   if (!opts.questionId) return opts.value;
   const [question] = await db
-    .select({ sensitive: onboardingQuestions.sensitive })
+    .select({
+      sensitive: onboardingQuestions.sensitive,
+      type: onboardingQuestions.type,
+    })
     .from(onboardingQuestions)
     .where(eq(onboardingQuestions.id, opts.questionId))
     .limit(1);
-  if (!question?.sensitive) return opts.value;
-  return encryptJson(opts.value, { filename: filenameFromValue(opts.value) });
+  if (!question || !questionIsSecret(question)) return opts.value;
+  return encryptJson(opts.value, encryptionMeta(opts.value));
 }
 
 export async function upsertAnswer(opts: {
@@ -427,6 +458,13 @@ export async function upsertAnswer(opts: {
         ),
       )
       .limit(1);
+
+    if (existing && isLoginAnswerValue(opts.value)) {
+      opts = {
+        ...opts,
+        value: mergeLoginAnswers(opts.value, decryptAnswerValue(existing.value)),
+      };
+    }
 
     if (existing && isEmptyAnswerValue(opts.value) && isEncryptedPayload(existing.value)) {
       return existing;
@@ -573,7 +611,7 @@ export async function replaceTemplateItems(templateId: string, questions: Questi
         type: q.type,
         options: q.options || [],
         required: q.required ?? true,
-        sensitive: q.sensitive ?? false,
+        sensitive: q.type === "login" ? true : (q.sensitive ?? false),
       })),
     )
     .returning();
@@ -682,7 +720,7 @@ export async function getOnboardingBundle(id: string) {
 
   const answers = rawAnswers.map((answer) => {
     const question = questions.find((q) => q.id === answer.questionId);
-    if (question?.sensitive || isEncryptedPayload(answer.value)) {
+    if ((question && questionIsSecret(question)) || isEncryptedPayload(answer.value)) {
       return { ...answer, value: redactAnswerValue(answer.value) };
     }
     return answer;
@@ -701,14 +739,15 @@ export async function getDecryptedAnswer(answerId: string) {
 
   if (answer.questionId) {
     const [question] = await db
-      .select({ sensitive: onboardingQuestions.sensitive })
+      .select({
+        sensitive: onboardingQuestions.sensitive,
+        type: onboardingQuestions.type,
+      })
       .from(onboardingQuestions)
       .where(eq(onboardingQuestions.id, answer.questionId))
       .limit(1);
-    if (question?.sensitive && !isEncryptedPayload(answer.value)) {
-      const encrypted = encryptJson(answer.value, {
-        filename: filenameFromValue(answer.value),
-      });
+    if (question && questionIsSecret(question) && !isEncryptedPayload(answer.value)) {
+      const encrypted = encryptJson(answer.value, encryptionMeta(answer.value));
       await db
         .update(onboardingAnswers)
         .set({ value: encrypted, updatedAt: new Date() })

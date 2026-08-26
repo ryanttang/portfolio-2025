@@ -1,20 +1,25 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { setPasswordFromInviteAction } from "@/app/portal/actions/onboarding";
+import {
+  setPasswordFromInviteAction,
+  signInFromInviteAction,
+} from "@/app/portal/actions/auth";
 
 export default function InviteClient({
   token,
   email,
   valid,
+  hasPassword,
   errorMessage,
 }: {
   token: string;
   email: string | null;
   valid: boolean;
+  hasPassword?: boolean;
   errorMessage?: string;
 }) {
   const router = useRouter();
@@ -22,19 +27,70 @@ export default function InviteClient({
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState(errorMessage || "");
   const [loading, setLoading] = useState(false);
+  const [signingIn, setSigningIn] = useState(hasPassword === true);
+
+  useEffect(() => {
+    if (!valid || !hasPassword) return;
+
+    let cancelled = false;
+    (async () => {
+      setSigningIn(true);
+      setError("");
+      try {
+        const result = await signInFromInviteAction(token);
+        const signInResult = await signIn("credentials", {
+          email: result.email,
+          magicToken: token,
+          redirect: false,
+        });
+        if (cancelled) return;
+        if (signInResult?.error) {
+          setError("Could not sign in automatically. Try logging in with your password.");
+          setSigningIn(false);
+          return;
+        }
+        router.push(result.redirectTo);
+        router.refresh();
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Something went wrong.");
+          setSigningIn(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [valid, hasPassword, token, router]);
 
   if (!valid) {
     return (
       <div className="mx-auto max-w-sm border border-white/10 bg-[#141414] p-8">
         <h1 className="font-[family-name:var(--font-syne)] text-xl font-bold">
-          Invite unavailable
+          Link unavailable
         </h1>
         <p className="mt-2 text-sm text-white/50">
-          {error || "This invite link is invalid or has expired. Ask for a new invite."}
+          {error || "This link is invalid or has expired. Ask for a new one or reset your password."}
         </p>
-        <Link href="/portal/login" className="mt-4 inline-block text-sm text-[#fdf0d5]">
-          Go to login
-        </Link>
+        <div className="mt-4 flex gap-4 text-sm">
+          <Link href="/portal/login" className="text-[#fdf0d5]">
+            Go to login
+          </Link>
+          <Link href="/portal/forgot-password" className="text-white/50 hover:text-white/70">
+            Forgot password
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (signingIn) {
+    return (
+      <div className="mx-auto max-w-sm border border-white/10 bg-[#141414] p-8 text-center">
+        <p className="font-[family-name:var(--font-syne)] text-lg font-bold">Signing you in…</p>
+        <p className="mt-2 text-sm text-white/50">Taking you to your project.</p>
+        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
       </div>
     );
   }
@@ -63,10 +119,7 @@ export default function InviteClient({
         setLoading(false);
         return;
       }
-      const dest = result.projectSlug
-        ? `/portal/projects/${result.projectSlug}/onboarding`
-        : "/portal";
-      router.push(dest);
+      router.push(result.redirectTo);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -86,7 +139,7 @@ export default function InviteClient({
         Set your password
       </h1>
       <p className="mt-2 text-sm text-white/50">
-        Your username is your email. Choose a password to access your portal.
+        Choose a password to access your portal. Your username is your email.
       </p>
 
       <label className="mt-6 block text-xs uppercase tracking-wider text-white/40">
