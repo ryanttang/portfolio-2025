@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
@@ -36,6 +36,31 @@ export default function NotificationBell({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+
+    function onPointerDown(e: MouseEvent | TouchEvent) {
+      const target = e.target as Node;
+      if (panelRef.current && !panelRef.current.contains(target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+    };
+  }, [open]);
 
   function hrefFor(n: (typeof notifications)[0]) {
     if (!n.onboardingId) return "/portal";
@@ -46,11 +71,13 @@ export default function NotificationBell({
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={panelRef}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative text-white/70 hover:text-white"
+        className="relative rounded-sm border border-transparent px-2 py-1 text-white/70 transition hover:border-white/10 hover:bg-white/[0.03] hover:text-white"
+        aria-expanded={open}
+        aria-haspopup="true"
         aria-label="Notifications"
       >
         Notifications
@@ -61,7 +88,7 @@ export default function NotificationBell({
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-72 border border-white/15 bg-[#141414] shadow-lg">
+        <div className="absolute right-0 z-[70] mt-2 w-72 overflow-hidden rounded-sm border border-white/15 bg-[#141414] shadow-2xl">
           <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-white/50">Alerts</p>
             {unreadCount > 0 && (

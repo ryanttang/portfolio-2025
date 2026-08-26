@@ -42,7 +42,7 @@ export default function PortalShell({
         aria-hidden
       />
       {impersonating && (
-        <div className="relative border-b border-[#fdf0d5]/40 bg-[#fdf0d5]/15 px-4 py-2 text-center text-sm text-[#fdf0d5]">
+        <div className="relative z-[60] border-b border-[#fdf0d5]/40 bg-[#fdf0d5]/15 px-4 py-2 text-center text-sm text-[#fdf0d5]">
           Previewing as {email || "client"} · edits save to this client{" "}
           <button
             type="button"
@@ -59,7 +59,7 @@ export default function PortalShell({
         </div>
       )}
       {showNav && (
-        <header className="relative border-b border-white/10 bg-[#0a0a0a]/80 backdrop-blur-sm">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-6">
             <Link href="/portal" className="group">
               <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
@@ -103,7 +103,7 @@ export default function PortalShell({
           </div>
         </header>
       )}
-      <main className="relative mx-auto max-w-6xl px-4 py-8 lg:px-6">{children}</main>
+      <main className="relative z-0 mx-auto max-w-6xl px-4 py-8 lg:px-6">{children}</main>
     </div>
   );
 }
