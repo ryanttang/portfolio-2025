@@ -24,6 +24,7 @@ import type { OnboardingStep } from "@/lib/onboarding/types";
 import { loginAnswerIsEmpty, questionIsSecret } from "@/lib/onboarding/types";
 import { randomBytes } from "crypto";
 import { encryptBytes } from "@/lib/crypto/sensitive";
+import { getSessionByToken } from "@/lib/contracts/sign";
 
 async function ownedOnboarding(onboardingId: string) {
   const actor = await requirePortalActor();
@@ -236,4 +237,25 @@ export async function changePasswordAction(currentPassword: string, newPassword:
 export async function getPortalClientAction() {
   const actor = await requirePortalActor();
   return getClient(actor.clientId);
+}
+
+export async function getContractSigningSessionAction(token: string) {
+  const actor = await requirePortalActor();
+  const result = await getSessionByToken(token);
+  if (!result) {
+    return { error: "not_found" as const, message: "Contract not found." };
+  }
+  if (result.contract.clientId !== actor.clientId) {
+    throw new Error("Unauthorized");
+  }
+  if (result.error === "void") {
+    return { error: "void" as const, message: "This contract has been voided." };
+  }
+  if (result.error === "already_signed") {
+    return { error: "already_signed" as const, message: "This agreement has already been signed." };
+  }
+  if (!result.session) {
+    return { error: "unavailable" as const, message: "Unable to start signing session." };
+  }
+  return { session: result.session };
 }

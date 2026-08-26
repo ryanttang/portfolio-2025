@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ContractSignModal from "@/components/portal/ContractSignModal";
 import {
   advanceOnboardingAction,
   completeHandoffAction,
@@ -230,11 +231,16 @@ function WelcomeStep({
           <p className="text-xs uppercase tracking-wider text-white/40">Services included</p>
           <ul className="mt-2 space-y-1">
             {services.map((s) => (
-              <li key={s.id} className="text-sm text-white/75">
-                {s.label}
-                <span className="ml-2 text-[10px] uppercase tracking-wider text-white/30">
-                  {s.group}
+              <li key={s.id} className="flex items-baseline justify-between gap-3 text-sm text-white/75">
+                <span>
+                  {s.label}
+                  <span className="ml-2 text-[10px] uppercase tracking-wider text-white/30">
+                    {s.group}
+                  </span>
                 </span>
+                {s.price?.trim() ? (
+                  <span className="shrink-0 text-white/50">{s.price.trim()}</span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -668,6 +674,7 @@ function ContractStep({
   onRefresh: () => void;
 }) {
   const [loading, setLoading] = useState(false);
+  const [signModalOpen, setSignModalOpen] = useState(false);
   if (!contract) {
     return (
       <div>
@@ -686,17 +693,23 @@ function ContractStep({
 
   return (
     <div>
+      <ContractSignModal
+        token={contract.token}
+        open={signModalOpen}
+        onClose={() => setSignModalOpen(false)}
+        onSigned={onRefresh}
+      />
       <h2 className="font-[family-name:var(--font-syne)] text-xl font-bold">Agreement</h2>
       <p className="mt-3 text-white/70">{contract.title}</p>
       <p className="mt-1 text-sm capitalize text-white/40">Status: {contract.status}</p>
       {!signed ? (
-        <Link
-          href={`/sign/${contract.token}`}
-          target="_blank"
-          className="mt-6 inline-block bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black"
+        <button
+          type="button"
+          onClick={() => setSignModalOpen(true)}
+          className="mt-6 bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black"
         >
           Review & sign
-        </Link>
+        </button>
       ) : (
         <p className="mt-4 text-sm text-green-400">Signed. You can continue.</p>
       )}

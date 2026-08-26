@@ -36,7 +36,7 @@ export default function PortalShell({
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#f2efe8]">
+    <div className="portal-root min-h-screen bg-[#0a0a0a] text-[#f2efe8]">
       <div
         className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)]"
         aria-hidden

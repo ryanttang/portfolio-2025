@@ -92,6 +92,23 @@ body {
   color: #fdf0d5;
 }
 
+/* Dark admin + portal form fields */
+.admin-root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+.admin-root textarea,
+.admin-root select,
+.portal-root input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]),
+.portal-root textarea,
+.portal-root select {
+  color: #fff;
+}
+
+.admin-root input::placeholder,
+.admin-root textarea::placeholder,
+.portal-root input::placeholder,
+.portal-root textarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
 /* Hamburger animation (for fallback, mostly handled by Tailwind) */
 .hamburger span {
   transition: all 0.3s cubic-bezier(0.4,0,0.2,1);

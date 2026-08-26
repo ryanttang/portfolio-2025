@@ -13,7 +13,15 @@ type Session = {
   signer_email?: string;
 };
 
-export default function AgreementSigningStep({ session }: { session: Session }) {
+export default function AgreementSigningStep({
+  session,
+  embedded = false,
+  onComplete,
+}: {
+  session: Session;
+  embedded?: boolean;
+  onComplete?: () => void;
+}) {
   const sigPadRef = useRef<SignatureCanvas | null>(null);
   const [consentChecked, setConsentChecked] = useState(false);
   const [signatureTab, setSignatureTab] = useState<"draw" | "type">("draw");
@@ -68,19 +76,28 @@ export default function AgreementSigningStep({ session }: { session: Session }) 
 
   if (status === "done") {
     return (
-      <div className="py-16 text-center">
+      <div className={embedded ? "py-8 text-center" : "py-16 text-center"}>
         <p className="font-[family-name:var(--font-syne)] text-2xl font-bold text-[#fdf0d5]">
           Agreement signed
         </p>
         <p className="mt-2 text-sm text-white/60">
           Thank you. Your signed copy has been recorded.
         </p>
+        {onComplete && (
+          <button
+            type="button"
+            onClick={onComplete}
+            className="mt-6 bg-[#fdf0d5] px-5 py-2.5 text-sm font-semibold text-black"
+          >
+            Continue
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
+    <div className={embedded ? "space-y-6" : "mx-auto max-w-2xl space-y-6 px-4 py-10"}>
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-[#fdf0d5]">Ryan Tang</p>
         <h1 className="mt-2 font-[family-name:var(--font-syne)] text-2xl font-bold">

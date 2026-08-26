@@ -37,7 +37,7 @@ export default function DashboardWelcomeModal({
         <h2 className="mt-2 font-[family-name:var(--font-syne)] text-2xl font-bold">
           {projectName || "Your project hub"}
         </h2>
-        <p className="mt-4 text-sm leading-relaxed text-white/70">{message}</p>
+        <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-white/70">{message}</p>
         <ul className="mt-6 space-y-2 text-sm text-white/60">
           <li>• Track milestones and project progress</li>
           <li>• Complete action items when something needs your input</li>
