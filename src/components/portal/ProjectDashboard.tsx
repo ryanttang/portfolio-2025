@@ -205,7 +205,7 @@ export default function ProjectDashboard({
                     key={c.id}
                     className="rounded-sm border border-white/5 bg-white/[0.02] px-3 py-2"
                   >
-                    {c.status === "signed" || c.status === "sent" ? (
+                    {c.status === "signed" || c.status === "sent" || c.status === "ready" ? (
                       <Link href={`/sign/${c.token}`} className="text-[#fdf0d5] hover:underline">
                         {c.title}
                         <span className="ml-1 text-white/40">({c.status})</span>

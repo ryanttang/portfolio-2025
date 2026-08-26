@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
       const [r] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(contracts)
-        .where(sql`${contracts.status} in ('draft', 'sent')`);
+        .where(sql`${contracts.status} in ('draft', 'ready', 'sent')`);
       return r?.count ?? 0;
     }),
     safeCount(async () => {

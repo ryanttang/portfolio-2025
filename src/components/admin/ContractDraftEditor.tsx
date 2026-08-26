@@ -6,12 +6,14 @@ import { updateContractAction } from "@/app/admin/actions/contracts";
 
 export default function ContractDraftEditor({
   id,
+  contractStatus,
   initialTitle,
   initialBody,
   initialAmountCents,
   initialPaymentNotes,
 }: {
   id: string;
+  contractStatus: string;
   initialTitle: string;
   initialBody: string;
   initialAmountCents: number | null;
@@ -38,7 +40,7 @@ export default function ContractDraftEditor({
         amountCents: Number.isFinite(amountCents as number) ? amountCents : null,
         paymentNotes: paymentNotes.trim() || null,
       });
-      setMsg("Draft saved.");
+      setMsg(contractStatus === "draft" ? "Saved and ready for signature." : "Saved.");
       router.refresh();
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Save failed");
@@ -50,14 +52,16 @@ export default function ContractDraftEditor({
   return (
     <div className="mt-6 space-y-4 border border-white/10 bg-[#141414] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">Edit draft</h2>
+        <h2 className="text-sm font-semibold">
+          {contractStatus === "draft" ? "Edit draft" : "Edit agreement"}
+        </h2>
         <button
           type="button"
           onClick={save}
           disabled={saving}
           className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-60"
         >
-          {saving ? "Saving…" : "Save draft"}
+          {saving ? "Saving…" : contractStatus === "draft" ? "Save & mark ready" : "Save"}
         </button>
       </div>
       <label className="block text-xs uppercase tracking-wider text-white/40">

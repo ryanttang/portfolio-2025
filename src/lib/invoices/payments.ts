@@ -198,7 +198,7 @@ export async function syncLinkedAgreementFromInvoice(invoiceId: string) {
     updatedAt: now,
   };
 
-  if (contract.status === "draft") {
+  if (contract.status === "draft" || contract.status === "ready") {
     contractUpdate.bodyText = replacePaymentScheduleInContractBody(
       contract.bodyText,
       notes,

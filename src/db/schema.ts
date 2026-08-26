@@ -170,7 +170,7 @@ export const contracts = pgTable(
       .references(() => clients.id, { onDelete: "restrict" }),
     title: text("title").notNull(),
     bodyText: text("body_text").notNull().default(""),
-    status: text("status").notNull().default("draft"), // draft | sent | signed | void
+    status: text("status").notNull().default("draft"), // draft | ready | sent | signed | void
     token: text("token").notNull().unique(),
     amountCents: integer("amount_cents"),
     /** Payment schedule snapshot from template/terms at create time (for invoices). */

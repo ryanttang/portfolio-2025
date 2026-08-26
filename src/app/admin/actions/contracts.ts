@@ -54,12 +54,20 @@ export async function updateContractAction(
   data: Partial<z.infer<typeof schema>> & { status?: string },
 ) {
   await requireAdmin();
+  const [existing] = await db.select().from(contracts).where(eq(contracts.id, id)).limit(1);
+  if (!existing) throw new Error("Not found");
+
+  const payload: Partial<z.infer<typeof schema>> & { status?: string; updatedAt: Date } = {
+    ...data,
+    updatedAt: new Date(),
+  };
+  if (!data.status && existing.status === "draft") {
+    payload.status = "ready";
+  }
+
   const [row] = await db
     .update(contracts)
-    .set({
-      ...data,
-      updatedAt: new Date(),
-    })
+    .set(payload)
     .where(eq(contracts.id, id))
     .returning();
   revalidatePath("/admin/contracts");

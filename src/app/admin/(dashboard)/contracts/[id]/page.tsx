@@ -24,7 +24,7 @@ export default async function ContractDetailPage({
     .limit(1);
 
   const signUrl = `${getAppUrl()}/sign/${contract.token}`;
-  const isDraft = contract.status === "draft";
+  const isEditable = contract.status === "draft" || contract.status === "ready";
 
   return (
     <div>
@@ -55,9 +55,10 @@ export default async function ContractDetailPage({
         signedPdfUrl={sig?.signedPdfUrl || null}
       />
 
-      {isDraft ? (
+      {isEditable ? (
         <ContractDraftEditor
           id={contract.id}
+          contractStatus={contract.status}
           initialTitle={contract.title}
           initialBody={contract.bodyText}
           initialAmountCents={contract.amountCents}
