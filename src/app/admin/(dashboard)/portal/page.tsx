@@ -35,6 +35,18 @@ export default async function AdminPortalPreviewPage() {
     await startViewAsClientAction(clientId, { returnPath: PORTAL_RETURN });
   }
 
+  async function previewProjectHub(formData: FormData) {
+    "use server";
+    const clientId = String(formData.get("clientId") || "");
+    const onboardingId = String(formData.get("onboardingId") || "");
+    if (!clientId || !onboardingId) return;
+    await startViewAsClientAction(clientId, {
+      onboardingId,
+      returnPath: PORTAL_RETURN,
+      previewHub: true,
+    });
+  }
+
   async function previewProject(formData: FormData) {
     "use server";
     const clientId = String(formData.get("clientId") || "");
@@ -206,16 +218,26 @@ export default async function AdminPortalPreviewPage() {
                   </td>
                   <td className="py-3">
                     <div className="flex flex-wrap gap-2">
-                      <form action={previewProject}>
+                      {onboarding.status !== "completed" && (
+                        <form action={previewProject}>
+                          <input type="hidden" name="clientId" value={clientId} />
+                          <input type="hidden" name="onboardingId" value={onboarding.id} />
+                          <button
+                            type="submit"
+                            className="border border-white/20 px-2.5 py-1 text-[11px] text-white/70 hover:border-white/40"
+                          >
+                            Preview onboarding
+                          </button>
+                        </form>
+                      )}
+                      <form action={previewProjectHub}>
                         <input type="hidden" name="clientId" value={clientId} />
                         <input type="hidden" name="onboardingId" value={onboarding.id} />
                         <button
                           type="submit"
                           className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5]"
                         >
-                          {onboarding.status === "completed"
-                            ? "Preview hub"
-                            : "Preview onboarding"}
+                          Preview Client Portal
                         </button>
                       </form>
                       <PreviewPortalButton

@@ -317,7 +317,7 @@ export const onboardings = pgTable(
       .references(() => clients.id, { onDelete: "cascade" }),
     status: text("status").notNull().default("draft"), // draft | sent | in_progress | completed | cancelled
     projectName: text("project_name").notNull().default(""),
-    /** URL segment: `{project-name}-{client-name}` (unique). */
+    /** URL segment: slugified project name (unique). */
     slug: text("slug").notNull(),
     welcomeMessage: text("welcome_message").notNull().default(
       "Welcome! Let's get your project set up. This short flow collects what I need to kick things off.",

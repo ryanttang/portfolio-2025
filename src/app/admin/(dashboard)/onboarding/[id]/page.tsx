@@ -59,8 +59,8 @@ export default async function OnboardingDetailPage({
     await restartOnboardingWizardAction(id);
   }
 
-  const previewLabel =
-    onboarding.status === "completed" ? "Preview portal hub" : "Preview onboarding";
+  const returnPath = `/admin/onboarding/${id}`;
+  const isCompleted = onboarding.status === "completed";
 
   return (
     <div>
@@ -89,10 +89,21 @@ export default async function OnboardingDetailPage({
               Restart wizard
             </button>
           </form>
+          {!isCompleted && (
+            <PreviewPortalButton
+              clientId={client.id}
+              onboardingId={onboarding.id}
+              returnPath={returnPath}
+              label="Preview onboarding"
+              className="border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:border-white/40"
+            />
+          )}
           <PreviewPortalButton
             clientId={client.id}
             onboardingId={onboarding.id}
-            label={previewLabel}
+            returnPath={returnPath}
+            previewHub
+            label="Preview Client Portal"
           />
         </div>
       </div>
@@ -149,10 +160,21 @@ export default async function OnboardingDetailPage({
       </div>
 
       <div className="mt-8">
-        <h2 className="font-[family-name:var(--font-syne)] text-lg font-bold">Portal hub</h2>
-        <p className="mt-1 text-sm text-white/40">
-          Project info, tasks, meetings, deliverables, messages, and dashboard welcome for clients.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-[family-name:var(--font-syne)] text-lg font-bold">Portal hub</h2>
+            <p className="mt-1 text-sm text-white/40">
+              Project info, tasks, meetings, deliverables, messages, and dashboard welcome for clients.
+            </p>
+          </div>
+          <PreviewPortalButton
+            clientId={client.id}
+            onboardingId={onboarding.id}
+            returnPath={returnPath}
+            previewHub
+            label="Preview Client Portal"
+          />
+        </div>
         <PortalHubEditor
           clientId={client.id}
           onboardingId={onboarding.id}

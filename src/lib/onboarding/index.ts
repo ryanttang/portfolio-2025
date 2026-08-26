@@ -32,7 +32,7 @@ import {
   filenameFromValue,
   isEncryptedPayload,
 } from "@/lib/crypto/sensitive";
-import { isUuid, onboardingSlugBase } from "@/lib/onboarding/slug";
+import { isUuid, matchesLegacyOnboardingSlug, onboardingSlugBase } from "@/lib/onboarding/slug";
 
 export { portalProjectPath } from "@/lib/onboarding/slug";
 
@@ -54,17 +54,33 @@ export async function getOnboarding(id: string) {
 }
 
 export async function getOnboardingForClient(clientId: string, idOrSlug: string) {
+  if (isUuid(idOrSlug)) {
+    const [row] = await db
+      .select()
+      .from(onboardings)
+      .where(and(eq(onboardings.clientId, clientId), eq(onboardings.id, idOrSlug)))
+      .limit(1);
+    return row || null;
+  }
+
   const [row] = await db
     .select()
     .from(onboardings)
-    .where(
-      and(
-        eq(onboardings.clientId, clientId),
-        isUuid(idOrSlug) ? eq(onboardings.id, idOrSlug) : eq(onboardings.slug, idOrSlug),
-      ),
-    )
+    .where(and(eq(onboardings.clientId, clientId), eq(onboardings.slug, idOrSlug)))
     .limit(1);
-  return row || null;
+  if (row) return row;
+
+  const client = await getClient(clientId);
+  if (!client) return null;
+
+  const projects = await listOnboardingsForClient(clientId);
+  for (const project of projects) {
+    if (matchesLegacyOnboardingSlug(idOrSlug, project.projectName, client.name)) {
+      return project;
+    }
+  }
+
+  return null;
 }
 
 async function allocateUniqueSlug(projectName: string, excludeId?: string) {

@@ -39,7 +39,7 @@ export default async function ProjectHubPage({
     redirect(portalProjectPath(onboarding));
   }
 
-  if (onboarding.status !== "completed") {
+  if (onboarding.status !== "completed" && !actor.impersonating) {
     redirect(portalProjectPath(onboarding, "onboarding"));
   }
 

@@ -19,6 +19,22 @@ export function onboardingSlugBase(projectName: string) {
   return slugifyName(projectName) || "project";
 }
 
+/** Pre-migration slug format: `{project-name}-{client-name}`. */
+export function legacyOnboardingSlug(projectName: string, clientName: string) {
+  return slugifyName(`${projectName || "project"}-${clientName || "client"}`) || "project";
+}
+
+export function matchesLegacyOnboardingSlug(
+  slug: string,
+  projectName: string,
+  clientName: string,
+) {
+  const base = legacyOnboardingSlug(projectName, clientName);
+  if (slug === base) return true;
+  if (!slug.startsWith(`${base}-`)) return false;
+  return /^\d+$/.test(slug.slice(base.length + 1));
+}
+
 export function portalProjectPath(
   onboarding: { slug: string },
   page?: "onboarding",

@@ -423,16 +423,18 @@ export async function previewPortalAction(formData: FormData) {
   const clientId = String(formData.get("clientId") || "");
   const onboardingId = String(formData.get("onboardingId") || "");
   const returnPath = String(formData.get("returnPath") || "");
+  const previewHub = formData.get("previewHub") === "1";
   if (!clientId) throw new Error("Missing client");
   await startViewAsClientAction(clientId, {
     ...(onboardingId ? { onboardingId } : {}),
     ...(returnPath ? { returnPath } : {}),
+    ...(previewHub ? { previewHub: true } : {}),
   });
 }
 
 export async function startViewAsClientAction(
   clientId: string,
-  opts?: { onboardingId?: string; returnPath?: string },
+  opts?: { onboardingId?: string; returnPath?: string; previewHub?: boolean },
 ) {
   const session = await requireAdmin();
   await ensureClientAccount(clientId);
@@ -446,7 +448,9 @@ export async function startViewAsClientAction(
       throw new Error("Project not found for this client");
     }
     returnOnboardingId = onboarding.id;
-    if (onboarding.status === "completed") {
+    if (opts.previewHub) {
+      redirectTo = portalProjectPath(onboarding);
+    } else if (onboarding.status === "completed") {
       redirectTo = portalProjectPath(onboarding);
     } else if (onboarding.status !== "cancelled") {
       redirectTo = portalProjectPath(onboarding, "onboarding");
