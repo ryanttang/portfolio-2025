@@ -1,4 +1,4 @@
-ALTER TABLE "onboardings" ADD COLUMN "messages_enabled" boolean DEFAULT false NOT NULL;
+ALTER TABLE "onboardings" ADD COLUMN IF NOT EXISTS "messages_enabled" boolean DEFAULT false NOT NULL;
 --> statement-breakpoint
 UPDATE "onboardings" o
 SET "messages_enabled" = true
