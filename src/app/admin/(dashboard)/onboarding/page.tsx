@@ -5,7 +5,7 @@ import { clients, onboardings } from "@/db/schema";
 import { listClients } from "@/lib/crm/clients";
 import { createOnboardingAction } from "@/app/admin/actions/onboarding";
 import { redirect } from "next/navigation";
-import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
+import ProjectRowActions from "@/components/admin/ProjectRowActions";
 
 export default async function OnboardingListPage() {
   const rows = await db
@@ -119,20 +119,11 @@ export default async function OnboardingListPage() {
                   {new Date(onboarding.updatedAt).toLocaleString()}
                 </td>
                 <td className="py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={`/admin/onboarding/${onboarding.id}`}
-                      className="border border-white/20 px-2.5 py-1 text-[11px] text-white/70 hover:border-white/40"
-                    >
-                      Edit
-                    </Link>
-                    <PreviewPortalButton
-                      clientId={clientId}
-                      onboardingId={onboarding.id}
-                      label="Preview"
-                      className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5]"
-                    />
-                  </div>
+                  <ProjectRowActions
+                    projectId={onboarding.id}
+                    projectName={onboarding.projectName || "Untitled"}
+                    clientId={clientId}
+                  />
                 </td>
               </tr>
             ))}

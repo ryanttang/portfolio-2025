@@ -156,6 +156,7 @@ export default async function OnboardingDetailPage({
           clientId={client.id}
           onboardingId={onboarding.id}
           hubWelcomeMessage={onboarding.hubWelcomeMessage}
+          messagesEnabled={onboarding.messagesEnabled}
           tasks={tasks}
           meetings={meetings}
           files={files}

@@ -2,8 +2,10 @@ import type { ProjectAttentionSummary } from "@/lib/portal/types";
 
 export default function AttentionBanner({
   summary,
+  messagesEnabled = false,
 }: {
   summary: ProjectAttentionSummary;
+  messagesEnabled?: boolean;
 }) {
   const items: { label: string; href: string }[] = [];
 
@@ -13,7 +15,7 @@ export default function AttentionBanner({
       href: "#tasks",
     });
   }
-  if (summary.unreadMessages > 0) {
+  if (messagesEnabled && summary.unreadMessages > 0) {
     items.push({
       label: `${summary.unreadMessages} unread message${summary.unreadMessages === 1 ? "" : "s"}`,
       href: "#messages",
@@ -29,14 +31,17 @@ export default function AttentionBanner({
   if (items.length === 0) return null;
 
   return (
-    <div className="border border-[#fdf0d5]/30 bg-[#fdf0d5]/10 p-4">
+    <div className="rounded-sm border border-[#fdf0d5]/30 bg-[#fdf0d5]/8 p-4">
       <p className="text-xs font-semibold uppercase tracking-wider text-[#fdf0d5]">
         Needs your attention
       </p>
-      <ul className="mt-2 space-y-1">
+      <ul className="mt-3 flex flex-wrap gap-2">
         {items.map((item) => (
           <li key={item.href}>
-            <a href={item.href} className="text-sm text-white/80 hover:text-white hover:underline">
+            <a
+              href={item.href}
+              className="inline-block rounded-sm border border-[#fdf0d5]/20 bg-[#fdf0d5]/10 px-3 py-1.5 text-sm text-white/85 transition hover:border-[#fdf0d5]/40 hover:text-white"
+            >
               {item.label}
             </a>
           </li>

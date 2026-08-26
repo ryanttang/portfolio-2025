@@ -8,17 +8,22 @@ import { listPortalFiles } from "@/lib/portal/files";
 import { getThreadForOnboarding, listThreadMessages } from "@/lib/portal/messages";
 import type { PortalTimelineEvent } from "@/lib/portal/types";
 
-export async function buildProjectTimeline(onboardingId: string): Promise<PortalTimelineEvent[]> {
+export async function buildProjectTimeline(
+  onboardingId: string,
+  options?: { messagesEnabled?: boolean },
+): Promise<PortalTimelineEvent[]> {
+  const messagesEnabled = options?.messagesEnabled ?? false;
   const [updates, milestones, tasks, meetings, files, thread] = await Promise.all([
     listPortalUpdates(onboardingId),
     listPortalMilestones(onboardingId),
     listPortalTasks(onboardingId),
     listPortalMeetings(onboardingId),
     listPortalFiles(onboardingId),
-    getThreadForOnboarding(onboardingId),
+    messagesEnabled ? getThreadForOnboarding(onboardingId) : Promise.resolve(null),
   ]);
 
-  const messages = thread ? await listThreadMessages(thread.id) : [];
+  const messages =
+    messagesEnabled && thread ? await listThreadMessages(thread.id) : [];
 
   const events: PortalTimelineEvent[] = [
     ...updates.map((u) => ({

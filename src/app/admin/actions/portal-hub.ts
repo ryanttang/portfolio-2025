@@ -281,6 +281,16 @@ export async function updateHubWelcomeMessageAction(
   return { ok: true };
 }
 
+export async function updateMessagesEnabledAction(onboardingId: string, enabled: boolean) {
+  await requireAdmin();
+  await db
+    .update(onboardings)
+    .set({ messagesEnabled: enabled, updatedAt: new Date() })
+    .where(eq(onboardings.id, onboardingId));
+  await revalidateHub(onboardingId);
+  return { ok: true };
+}
+
 export async function getAdminThreadMessagesAction(onboardingId: string) {
   await requireAdmin();
   const onboarding = await getOnboarding(onboardingId);

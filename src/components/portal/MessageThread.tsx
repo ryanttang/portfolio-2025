@@ -51,7 +51,7 @@ export default function MessageThread({
         )}
       </ul>
       <form
-        className="mt-4 space-y-3 border border-white/10 bg-[#141414] p-4"
+        className="mt-4 space-y-3 rounded-sm border border-white/5 bg-white/[0.02] p-4"
         onSubmit={async (e) => {
           e.preventDefault();
           setLoading(true);

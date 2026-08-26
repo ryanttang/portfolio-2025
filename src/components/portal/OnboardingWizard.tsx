@@ -86,24 +86,30 @@ export default function OnboardingWizard({
   }
 
   return (
-    <div>
-      <p className="font-[family-name:var(--font-syne)] text-xs uppercase tracking-[0.25em] text-[#fdf0d5]">
-        Onboarding
-      </p>
-      <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">
-        {onboarding.projectName || "Your project"}
-      </h1>
+    <div className="space-y-6">
+      <Link href="/portal" className="text-xs text-white/40 transition hover:text-white/70">
+        ← Dashboard
+      </Link>
 
-      <ol className="mt-6 flex flex-wrap gap-2">
+      <div className="rounded-sm border border-white/10 bg-[#121212] p-6">
+        <p className="font-[family-name:var(--font-syne)] text-[10px] uppercase tracking-[0.25em] text-[#fdf0d5]">
+          Onboarding
+        </p>
+        <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">
+          {onboarding.projectName || "Your project"}
+        </h1>
+      </div>
+
+      <ol className="flex flex-wrap gap-2">
         {enabledSteps.map((s, i) => (
           <li
             key={s}
-            className={`rounded px-2.5 py-1 text-[11px] uppercase tracking-wider ${
+            className={`rounded-sm px-2.5 py-1 text-[11px] uppercase tracking-wider ${
               i === stepIndex
                 ? "bg-[#fdf0d5] text-black"
                 : i < stepIndex
-                  ? "bg-white/15 text-white/80"
-                  : "bg-white/5 text-white/40"
+                  ? "border border-white/15 bg-white/10 text-white/80"
+                  : "border border-white/10 bg-white/[0.02] text-white/40"
             }`}
           >
             {s}
@@ -111,7 +117,7 @@ export default function OnboardingWizard({
         ))}
       </ol>
 
-      <div className="mt-8 border border-white/10 bg-[#141414] p-6">
+      <div className="rounded-sm border border-white/10 bg-[#121212] p-6">
         {step === "welcome" && (
           <WelcomeStep
             message={onboarding.welcomeMessage}
@@ -203,7 +209,6 @@ function WelcomeStep({
             {services.map((s) => (
               <li key={s.id} className="text-sm text-white/75">
                 {s.label}
-                {s.price ? <span className="ml-2 text-white/35">{s.price}</span> : null}
                 <span className="ml-2 text-[10px] uppercase tracking-wider text-white/30">
                   {s.group}
                 </span>

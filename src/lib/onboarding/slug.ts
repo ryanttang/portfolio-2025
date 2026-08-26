@@ -15,10 +15,8 @@ export function slugifyName(value: string) {
     .slice(0, 48);
 }
 
-export function onboardingSlugBase(projectName: string, clientName: string) {
-  const project = slugifyName(projectName) || "project";
-  const client = slugifyName(clientName) || "client";
-  return `${project}-${client}`.slice(0, 80);
+export function onboardingSlugBase(projectName: string) {
+  return slugifyName(projectName) || "project";
 }
 
 export function portalProjectPath(

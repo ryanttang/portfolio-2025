@@ -17,7 +17,7 @@ export default function FileList({
   return (
     <ul className="space-y-3">
       {files.map((f) => (
-        <li key={f.id} className="border border-white/10 bg-[#141414] p-4">
+        <li key={f.id} className="rounded-sm border border-white/5 bg-white/[0.02] p-4">
           <a
             href={f.blobUrl}
             target="_blank"

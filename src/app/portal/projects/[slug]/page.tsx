@@ -59,7 +59,7 @@ export default async function ProjectHubPage({
     listPortalMeetings(onboarding.id),
     listPortalFiles(onboarding.id),
     getProjectAttentionSummary(onboarding.id, actor.clientId),
-    buildProjectTimeline(onboarding.id),
+    buildProjectTimeline(onboarding.id, { messagesEnabled: onboarding.messagesEnabled }),
     onboarding.contractId
       ? db.select().from(contracts).where(eq(contracts.id, onboarding.contractId))
       : db.select().from(contracts).where(eq(contracts.clientId, actor.clientId)),
@@ -69,7 +69,8 @@ export default async function ProjectHubPage({
     getThreadForOnboarding(onboarding.id),
   ]);
 
-  const messages = thread ? await listThreadMessages(thread.id) : [];
+  const messages =
+    onboarding.messagesEnabled && thread ? await listThreadMessages(thread.id) : [];
 
   const linkedContracts = onboarding.contractId
     ? clientContracts
@@ -79,6 +80,9 @@ export default async function ProjectHubPage({
     : clientInvoices.slice(0, 5);
 
   const showWelcome = welcome === "1" || !onboarding.hubWelcomeSeenAt;
+  const attentionSummary = onboarding.messagesEnabled
+    ? attention
+    : { ...attention, unreadMessages: 0 };
 
   return (
     <ProjectDashboard
@@ -87,7 +91,8 @@ export default async function ProjectHubPage({
       services={onboarding.services || []}
       hubWelcomeMessage={onboarding.hubWelcomeMessage}
       showWelcome={showWelcome}
-      attention={attention}
+      messagesEnabled={onboarding.messagesEnabled}
+      attention={attentionSummary}
       milestones={milestones}
       tasks={tasks}
       meetings={meetings}

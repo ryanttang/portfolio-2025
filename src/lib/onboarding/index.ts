@@ -67,12 +67,8 @@ export async function getOnboardingForClient(clientId: string, idOrSlug: string)
   return row || null;
 }
 
-async function allocateUniqueSlug(
-  projectName: string,
-  clientName: string,
-  excludeId?: string,
-) {
-  const base = onboardingSlugBase(projectName, clientName);
+async function allocateUniqueSlug(projectName: string, excludeId?: string) {
+  const base = onboardingSlugBase(projectName);
   let candidate = base;
   let n = 2;
   while (true) {
@@ -94,8 +90,7 @@ async function allocateUniqueSlug(
 export async function refreshOnboardingSlug(id: string) {
   const row = await getOnboarding(id);
   if (!row) return null;
-  const client = await getClient(row.clientId);
-  const slug = await allocateUniqueSlug(row.projectName, client?.name || "client", id);
+  const slug = await allocateUniqueSlug(row.projectName, id);
   if (slug === row.slug) return row;
   const [updated] = await db
     .update(onboardings)
@@ -141,8 +136,7 @@ export async function getActiveOnboardingForClient(clientId: string) {
 
 export async function createOnboarding(clientId: string, projectName = "") {
   const name = projectName || "New project";
-  const client = await getClient(clientId);
-  const slug = await allocateUniqueSlug(name, client?.name || "client");
+  const slug = await allocateUniqueSlug(name);
 
   const [row] = await db
     .insert(onboardings)
@@ -180,15 +174,7 @@ export async function updateOnboarding(
     updatedAt: new Date(),
   };
   if (data.projectName !== undefined) {
-    const existing = await getOnboarding(id);
-    if (existing) {
-      const client = await getClient(existing.clientId);
-      patch.slug = await allocateUniqueSlug(
-        data.projectName,
-        client?.name || "client",
-        id,
-      );
-    }
+    patch.slug = await allocateUniqueSlug(data.projectName, id);
   }
   const [row] = await db
     .update(onboardings)
@@ -203,6 +189,23 @@ export async function cancelOnboarding(id: string) {
   if (row) {
     await addActivity(row.clientId, "onboarding", "Onboarding cancelled", row.id);
   }
+  return row;
+}
+
+export async function deleteOnboarding(id: string) {
+  const row = await getOnboarding(id);
+  if (!row) return null;
+  await addActivity(
+    row.clientId,
+    "onboarding",
+    `Project deleted: ${row.projectName || "Untitled"}`,
+    row.id,
+  );
+  await db.delete(onboardings).where(eq(onboardings.id, id));
+  await logAudit("delete", "onboarding", id, {
+    clientId: row.clientId,
+    projectName: row.projectName,
+  });
   return row;
 }
 

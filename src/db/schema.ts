@@ -337,6 +337,8 @@ export const onboardings = pgTable(
     hubWelcomeMessage: text("hub_welcome_message"),
     /** When the client dismissed the dashboard welcome modal. */
     hubWelcomeSeenAt: timestamp("hub_welcome_seen_at", { withTimezone: true }),
+    /** When true, clients see the messages thread on the project hub. */
+    messagesEnabled: boolean("messages_enabled").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

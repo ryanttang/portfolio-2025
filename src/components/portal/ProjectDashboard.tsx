@@ -1,11 +1,13 @@
 import Link from "next/link";
 import AttentionBanner from "@/components/portal/AttentionBanner";
+import DashboardCard from "@/components/portal/DashboardCard";
 import DashboardWelcomeModal from "@/components/portal/DashboardWelcomeModal";
 import FileList from "@/components/portal/FileList";
 import MeetingList from "@/components/portal/MeetingList";
 import MessageThread from "@/components/portal/MessageThread";
 import MilestoneProgress from "@/components/portal/MilestoneProgress";
 import ProjectTimeline from "@/components/portal/ProjectTimeline";
+import StatCard from "@/components/portal/StatCard";
 import TaskList from "@/components/portal/TaskList";
 import type { PortalTimelineEvent } from "@/lib/portal/types";
 import type { ProjectAttentionSummary } from "@/lib/portal/types";
@@ -16,6 +18,7 @@ export default function ProjectDashboard({
   services,
   hubWelcomeMessage,
   showWelcome,
+  messagesEnabled,
   attention,
   milestones,
   tasks,
@@ -31,6 +34,7 @@ export default function ProjectDashboard({
   services: { id: string; label: string; group: string; price?: string }[];
   hubWelcomeMessage: string | null;
   showWelcome: boolean;
+  messagesEnabled: boolean;
   attention: ProjectAttentionSummary;
   milestones: {
     id: string;
@@ -80,13 +84,14 @@ export default function ProjectDashboard({
     totalCents: number;
   }[];
 }) {
-  const upcomingTasks = tasks.filter((t) => t.status === "pending").slice(0, 3);
-  const upcomingMeetings = meetings
-    .filter((m) => m.startsAt.getTime() >= Date.now())
-    .slice(0, 2);
+  const pendingTasks = tasks.filter((t) => t.status === "pending");
+  const upcomingMeetings = meetings.filter((m) => m.startsAt.getTime() >= Date.now());
+  const milestoneDone = milestones.filter((m) => m.status === "done").length;
+  const progressPct =
+    milestones.length > 0 ? Math.round((milestoneDone / milestones.length) * 100) : 0;
 
   return (
-    <div>
+    <div className="space-y-6">
       <DashboardWelcomeModal
         onboardingId={onboardingId}
         projectName={projectName}
@@ -94,161 +99,191 @@ export default function ProjectDashboard({
         show={showWelcome}
       />
 
-      <Link href="/portal" className="text-xs text-white/40 hover:text-white/70">
-        ← Projects
-      </Link>
-      <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">
-        {projectName || "Your project"}
-      </h1>
-      {services.length > 0 && (
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {services.map((s) => (
-            <li
-              key={s.id}
-              className="border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/70"
-            >
-              {s.label}
-              {s.price ? <span className="ml-1.5 text-white/40">{s.price}</span> : null}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-8">
-        <AttentionBanner summary={attention} />
+      <div className="flex flex-wrap items-center gap-3">
+        <Link
+          href="/portal"
+          className="text-xs text-white/40 transition hover:text-white/70"
+        >
+          ← All projects
+        </Link>
       </div>
 
-      <section className="mt-10">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">Progress</h2>
-        <div className="mt-4">
+      <div className="rounded-sm border border-white/10 bg-[#121212] p-6">
+        <p className="font-[family-name:var(--font-syne)] text-[10px] uppercase tracking-[0.25em] text-[#fdf0d5]">
+          Project hub
+        </p>
+        <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">
+          {projectName || "Your project"}
+        </h1>
+        {services.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {services.map((s) => (
+              <li
+                key={s.id}
+                className="rounded-sm border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-white/65"
+              >
+                {s.label}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Action items"
+          value={pendingTasks.length}
+          hint={pendingTasks.length === 1 ? "needs you" : pendingTasks.length > 0 ? "need you" : "all clear"}
+          href={pendingTasks.length > 0 ? "#tasks" : undefined}
+          accent={pendingTasks.length > 0}
+        />
+        <StatCard
+          label="Meetings"
+          value={upcomingMeetings.length}
+          hint="upcoming"
+          href={upcomingMeetings.length > 0 ? "#meetings" : undefined}
+        />
+        <StatCard
+          label="Progress"
+          value={`${progressPct}%`}
+          hint={
+            milestones.length > 0
+              ? `${milestoneDone} of ${milestones.length} milestones`
+              : "milestones pending"
+          }
+        />
+        <StatCard
+          label="Deliverables"
+          value={files.length}
+          hint="shared files"
+          href={files.length > 0 ? "#files" : undefined}
+        />
+      </div>
+
+      <AttentionBanner summary={attention} messagesEnabled={messagesEnabled} />
+
+      <div className="grid gap-4 lg:grid-cols-12">
+        <DashboardCard
+          title="Progress"
+          description="Milestone timeline"
+          className="lg:col-span-4"
+        >
           <MilestoneProgress milestones={milestones} />
-        </div>
-      </section>
+        </DashboardCard>
 
-      {(upcomingTasks.length > 0 || upcomingMeetings.length > 0) && (
-        <section className="mt-10 grid gap-4 sm:grid-cols-2">
-          {upcomingTasks.length > 0 && (
-            <div className="border border-white/10 bg-[#141414] p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-                Due soon
-              </h3>
-              <ul className="mt-2 space-y-1 text-sm">
-                {upcomingTasks.map((t) => (
-                  <li key={t.id}>
-                    <a href="#tasks" className="text-white/75 hover:text-white">
-                      {t.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {upcomingMeetings.length > 0 && (
-            <div className="border border-white/10 bg-[#141414] p-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-white/40">
-                Upcoming meetings
-              </h3>
-              <ul className="mt-2 space-y-1 text-sm">
-                {upcomingMeetings.map((m) => (
-                  <li key={m.id}>
-                    <a href="#meetings" className="text-white/75 hover:text-white">
-                      {m.title} · {m.startsAt.toLocaleDateString()}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      <section id="timeline" className="mt-10 scroll-mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">Timeline</h2>
-        <div className="mt-4">
-          <ProjectTimeline events={timeline} />
-        </div>
-      </section>
-
-      <section id="tasks" className="mt-10 scroll-mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-          Action items
-        </h2>
-        <div className="mt-4">
+        <DashboardCard
+          id="tasks"
+          title="Action items"
+          description="Tasks waiting on you"
+          className="lg:col-span-8"
+        >
           <TaskList onboardingId={onboardingId} tasks={tasks} />
-        </div>
-      </section>
+        </DashboardCard>
 
-      <section id="meetings" className="mt-10 scroll-mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">Meetings</h2>
-        <div className="mt-4">
+        <DashboardCard
+          id="timeline"
+          title="Activity"
+          description="Updates, tasks, meetings, and files"
+          className="lg:col-span-12"
+        >
+          <ProjectTimeline events={timeline} messagesEnabled={messagesEnabled} />
+        </DashboardCard>
+
+        <DashboardCard
+          id="meetings"
+          title="Meetings"
+          description="Scheduled calls and sessions"
+          className="lg:col-span-6"
+        >
           <MeetingList meetings={meetings} />
-        </div>
-      </section>
+        </DashboardCard>
 
-      <section id="messages" className="mt-10 scroll-mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">Messages</h2>
-        <div className="mt-4">
-          <MessageThread onboardingId={onboardingId} messages={messages} />
-        </div>
-      </section>
+        {messagesEnabled ? (
+          <DashboardCard
+            id="messages"
+            title="Messages"
+            description="Direct thread with Ryan"
+            className="lg:col-span-6"
+          >
+            <MessageThread onboardingId={onboardingId} messages={messages} />
+          </DashboardCard>
+        ) : null}
 
-      <section id="files" className="mt-10 scroll-mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-          Deliverables
-        </h2>
-        <div className="mt-4">
+        <DashboardCard
+          id="files"
+          title="Deliverables"
+          description="Shared files and assets"
+          className={messagesEnabled ? "lg:col-span-6" : "lg:col-span-6"}
+        >
           <FileList files={files} />
-        </div>
-      </section>
+        </DashboardCard>
 
-      <section className="mt-10 grid gap-6 sm:grid-cols-2">
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-            Agreements
-          </h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {contracts.map((c) => (
-              <li key={c.id}>
-                {c.status === "signed" || c.status === "sent" ? (
-                  <Link href={`/sign/${c.token}`} className="text-[#fdf0d5] hover:underline">
-                    {c.title} ({c.status})
-                  </Link>
-                ) : (
-                  <span className="text-white/50">
-                    {c.title} ({c.status})
-                  </span>
+        <DashboardCard
+          title="Agreements & billing"
+          description="Contracts and invoices"
+          className={messagesEnabled ? "lg:col-span-6" : "lg:col-span-6"}
+        >
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div>
+              <h3 className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                Agreements
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm">
+                {contracts.map((c) => (
+                  <li
+                    key={c.id}
+                    className="rounded-sm border border-white/5 bg-white/[0.02] px-3 py-2"
+                  >
+                    {c.status === "signed" || c.status === "sent" ? (
+                      <Link href={`/sign/${c.token}`} className="text-[#fdf0d5] hover:underline">
+                        {c.title}
+                        <span className="ml-1 text-white/40">({c.status})</span>
+                      </Link>
+                    ) : (
+                      <span className="text-white/60">
+                        {c.title} <span className="text-white/35">({c.status})</span>
+                      </span>
+                    )}
+                  </li>
+                ))}
+                {contracts.length === 0 && (
+                  <li className="text-sm text-white/40">No agreements yet.</li>
                 )}
-              </li>
-            ))}
-            {contracts.length === 0 && (
-              <li className="text-white/40">No agreements yet.</li>
-            )}
-          </ul>
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-            Invoices
-          </h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            {invoices.map((i) => (
-              <li key={i.id}>
-                {i.status !== "void" && i.status !== "draft" ? (
-                  <Link href={`/pay/${i.payToken}`} className="text-[#fdf0d5] hover:underline">
-                    {i.invoiceNumber} — ${(i.totalCents / 100).toFixed(2)} ({i.status})
-                  </Link>
-                ) : (
-                  <span className="text-white/50">
-                    {i.invoiceNumber} ({i.status})
-                  </span>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+                Invoices
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm">
+                {invoices.map((i) => (
+                  <li
+                    key={i.id}
+                    className="rounded-sm border border-white/5 bg-white/[0.02] px-3 py-2"
+                  >
+                    {i.status !== "void" && i.status !== "draft" ? (
+                      <Link href={`/pay/${i.payToken}`} className="text-[#fdf0d5] hover:underline">
+                        {i.invoiceNumber}
+                        <span className="ml-1 text-white/50">
+                          — ${(i.totalCents / 100).toFixed(2)}
+                        </span>
+                        <span className="ml-1 text-white/35">({i.status})</span>
+                      </Link>
+                    ) : (
+                      <span className="text-white/60">
+                        {i.invoiceNumber} <span className="text-white/35">({i.status})</span>
+                      </span>
+                    )}
+                  </li>
+                ))}
+                {invoices.length === 0 && (
+                  <li className="text-sm text-white/40">No invoices yet.</li>
                 )}
-              </li>
-            ))}
-            {invoices.length === 0 && (
-              <li className="text-white/40">No invoices yet.</li>
-            )}
-          </ul>
-        </div>
-      </section>
+              </ul>
+            </div>
+          </div>
+        </DashboardCard>
+      </div>
     </div>
   );
 }

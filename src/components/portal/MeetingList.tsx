@@ -19,7 +19,7 @@ export default function MeetingList({
   return (
     <ul className="space-y-3">
       {upcoming.map((m) => (
-        <li key={m.id} className="border border-white/10 bg-[#141414] p-4">
+        <li key={m.id} className="rounded-sm border border-white/5 bg-white/[0.02] p-4">
           <p className="font-medium">{m.title}</p>
           <p className="mt-1 text-sm text-white/60">
             {m.startsAt.toLocaleString()} – {m.endsAt.toLocaleTimeString()}

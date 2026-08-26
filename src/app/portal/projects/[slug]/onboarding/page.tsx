@@ -9,7 +9,6 @@ import {
 } from "@/lib/onboarding";
 import OnboardingWizard from "@/components/portal/OnboardingWizard";
 import type { OnboardingStep } from "@/lib/onboarding/types";
-import Link from "next/link";
 
 export default async function ProjectOnboardingPage({
   params,
@@ -52,11 +51,7 @@ export default async function ProjectOnboardingPage({
 
   return (
     <div>
-      <Link href="/portal" className="text-xs text-white/40 hover:text-white/70">
-        ← Projects
-      </Link>
-      <div className="mt-4">
-        <OnboardingWizard
+      <OnboardingWizard
           onboardingId={onboarding.id}
           projectSlug={onboarding.slug}
           onboarding={{
@@ -88,7 +83,6 @@ export default async function ProjectOnboardingPage({
               : null
           }
         />
-      </div>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
   createPortalMilestone,
   createPortalUpdate,
   createTemplate,
+  deleteOnboarding,
   deleteOnboardingQuestion,
   deletePortalMilestone,
   deletePortalUpdate,
@@ -171,6 +172,27 @@ export async function cancelOnboardingAction(id: string) {
   const row = await cancelOnboarding(id);
   if (row) await revalidateOnboarding(id, row.clientId);
   return { ok: true };
+}
+
+export async function deleteOnboardingAction(id: string) {
+  await requireAdmin();
+  try {
+    const row = await deleteOnboarding(id);
+    if (!row) return { ok: false as const, error: "Project not found" };
+    revalidatePath("/admin/onboarding");
+    revalidatePath("/admin/portal");
+    if (row.clientId) revalidatePath(`/admin/crm/${row.clientId}`);
+    if (row.slug) {
+      revalidatePath(portalProjectPath({ slug: row.slug }));
+      revalidatePath(portalProjectPath({ slug: row.slug }, "onboarding"));
+    }
+    return { ok: true as const };
+  } catch (err) {
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Delete failed",
+    };
+  }
 }
 
 export async function addStarterQuestionsAction(onboardingId: string) {

@@ -12,15 +12,24 @@ const FILTERS: { id: "all" | PortalTimelineEventType; label: string }[] = [
   { id: "message", label: "Messages" },
 ];
 
-export default function ProjectTimeline({ events }: { events: PortalTimelineEvent[] }) {
+export default function ProjectTimeline({
+  events,
+  messagesEnabled = false,
+}: {
+  events: PortalTimelineEvent[];
+  messagesEnabled?: boolean;
+}) {
   const [filter, setFilter] = useState<"all" | PortalTimelineEventType>("all");
+  const filters = messagesEnabled
+    ? FILTERS
+    : FILTERS.filter((f) => f.id !== "message");
   const visible =
     filter === "all" ? events : events.filter((e) => e.type === filter || e.type === "milestone");
 
   return (
     <div>
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <button
             key={f.id}
             type="button"
@@ -37,7 +46,7 @@ export default function ProjectTimeline({ events }: { events: PortalTimelineEven
       </div>
       <ul className="mt-4 space-y-3">
         {visible.map((e) => (
-          <li key={`${e.type}-${e.id}`} className="border border-white/10 bg-[#141414] p-4">
+          <li key={`${e.type}-${e.id}`} className="rounded-sm border border-white/5 bg-white/[0.02] p-4">
             <div className="flex flex-wrap items-baseline gap-2">
               <p className="font-medium">{e.title}</p>
               <span className="text-[10px] uppercase tracking-wider text-white/30">{e.type}</span>

@@ -11,6 +11,7 @@ import {
   postAdminMessageAction,
   uploadPortalFileAction,
   updateHubWelcomeMessageAction,
+  updateMessagesEnabledAction,
 } from "@/app/admin/actions/portal-hub";
 import { resetHubWelcomeAction } from "@/app/portal/actions/auth";
 
@@ -18,6 +19,7 @@ export default function PortalHubEditor({
   clientId,
   onboardingId,
   hubWelcomeMessage,
+  messagesEnabled,
   tasks,
   meetings,
   files,
@@ -26,6 +28,7 @@ export default function PortalHubEditor({
   clientId: string;
   onboardingId: string;
   hubWelcomeMessage: string | null;
+  messagesEnabled: boolean;
   tasks: {
     id: string;
     type: string;
@@ -57,6 +60,7 @@ export default function PortalHubEditor({
 }) {
   const router = useRouter();
   const [welcomeMsg, setWelcomeMsg] = useState(hubWelcomeMessage || "");
+  const [messagesOn, setMessagesOn] = useState(messagesEnabled);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskType, setTaskType] = useState("general");
   const [taskDueAt, setTaskDueAt] = useState("");
@@ -297,7 +301,22 @@ export default function PortalHubEditor({
       </section>
 
       <section className="border border-white/10 bg-[#141414] p-4">
-        <h3 className="text-sm font-semibold">Messages</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold">Messages</h3>
+          <label className="flex items-center gap-2 text-xs text-white/60">
+            <input
+              type="checkbox"
+              checked={messagesOn}
+              onChange={async (e) => {
+                const enabled = e.target.checked;
+                setMessagesOn(enabled);
+                await updateMessagesEnabledAction(onboardingId, enabled);
+                router.refresh();
+              }}
+            />
+            Show in client portal
+          </label>
+        </div>
         <ul className="mt-3 max-h-40 space-y-2 overflow-y-auto text-sm">
           {messages.map((m) => (
             <li key={m.id} className="border-t border-white/10 pt-2">

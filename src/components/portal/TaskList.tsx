@@ -32,7 +32,7 @@ export default function TaskList({
   return (
     <ul className="space-y-3">
       {pending.map((task) => (
-        <li key={task.id} className="border border-white/10 bg-[#141414] p-4">
+        <li key={task.id} className="rounded-sm border border-white/5 bg-white/[0.02] p-4">
           <div className="flex flex-wrap items-baseline gap-2">
             <p className="font-medium">{task.title}</p>
             <span className="text-[10px] uppercase tracking-wider text-white/40">{task.type}</span>

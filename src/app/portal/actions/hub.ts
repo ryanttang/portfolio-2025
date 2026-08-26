@@ -91,6 +91,7 @@ export async function postMessageAction(
   data: { subject?: string; body: string },
 ) {
   const { actor, onboarding } = await ownedOnboarding(onboardingId);
+  if (!onboarding.messagesEnabled) throw new Error("Messages are not enabled for this project");
   const parsed = z.object({ subject: z.string().optional(), body: z.string().min(1) }).parse(data);
 
   const client = await getClient(actor.clientId);
@@ -138,6 +139,7 @@ export async function postMessageAction(
 
 export async function markThreadReadAction(onboardingId: string) {
   const { actor, onboarding } = await ownedOnboarding(onboardingId);
+  if (!onboarding.messagesEnabled) return { ok: true };
   const thread = await getOrCreateThread(actor.clientId, onboardingId);
   await markMessagesReadForClient(thread.id);
   revalidatePath(portalProjectPath(onboarding));

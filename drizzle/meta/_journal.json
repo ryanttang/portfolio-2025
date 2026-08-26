@@ -71,6 +71,20 @@
       "when": 1787727777872,
       "tag": "0009_watery_blonde_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787728000000,
+      "tag": "0010_project_slug_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1787728200000,
+      "tag": "0011_messages_enabled",
+      "breakpoints": true
     }
   ]
 }
