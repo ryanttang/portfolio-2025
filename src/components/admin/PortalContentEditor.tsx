@@ -222,7 +222,6 @@ export default function PortalContentEditor({
                 onChange={async (e) => {
                   await updateMilestoneAction(m.id, clientId, onboardingId, {
                     status: e.target.value,
-                    notifyClient: true,
                   });
                   router.refresh();
                 }}

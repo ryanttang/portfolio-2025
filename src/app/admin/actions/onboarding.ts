@@ -400,7 +400,6 @@ export async function updateMilestoneAction(
       body: `Status is now ${patch.status.replace("_", " ")}.`,
       refType: "milestone",
       refId: row.id,
-      sendEmail: true,
     });
   }
 
