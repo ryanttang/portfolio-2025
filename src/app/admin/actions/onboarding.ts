@@ -419,6 +419,17 @@ export async function deleteMilestoneAction(
   return { ok: true };
 }
 
+export async function previewPortalAction(formData: FormData) {
+  const clientId = String(formData.get("clientId") || "");
+  const onboardingId = String(formData.get("onboardingId") || "");
+  const returnPath = String(formData.get("returnPath") || "");
+  if (!clientId) throw new Error("Missing client");
+  await startViewAsClientAction(clientId, {
+    ...(onboardingId ? { onboardingId } : {}),
+    ...(returnPath ? { returnPath } : {}),
+  });
+}
+
 export async function startViewAsClientAction(
   clientId: string,
   opts?: { onboardingId?: string; returnPath?: string },

@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { deleteOnboardingAction } from "@/app/admin/actions/onboarding";
-import PreviewPortalButton from "@/components/admin/PreviewPortalButton";
+import {
+  deleteOnboardingAction,
+  startViewAsClientAction,
+} from "@/app/admin/actions/onboarding";
 
 export default function ProjectRowActions({
   projectId,
@@ -17,6 +19,7 @@ export default function ProjectRowActions({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [previewPending, startPreview] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   return (
@@ -28,12 +31,18 @@ export default function ProjectRowActions({
         >
           Edit
         </Link>
-        <PreviewPortalButton
-          clientId={clientId}
-          onboardingId={projectId}
-          label="Preview"
-          className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5]"
-        />
+        <button
+          type="button"
+          disabled={previewPending}
+          onClick={() => {
+            startPreview(async () => {
+              await startViewAsClientAction(clientId, { onboardingId: projectId });
+            });
+          }}
+          className="border border-[#fdf0d5]/50 px-2.5 py-1 text-[11px] text-[#fdf0d5] disabled:opacity-50"
+        >
+          {previewPending ? "…" : "Preview"}
+        </button>
         <button
           type="button"
           disabled={pending}
