@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import StatCard from "@/components/portal/StatCard";
 import { requirePortalActor } from "@/lib/auth";
+import { getClient } from "@/lib/crm/clients";
+import { firstNameFrom } from "@/lib/email/merge";
 import { listOnboardingsForClient, portalProjectPath } from "@/lib/onboarding";
 import { getPortalHomeProjectSummaries } from "@/lib/portal/summaries";
 
@@ -13,15 +14,14 @@ export default async function PortalHomePage() {
     redirect("/portal/login");
   }
 
-  const [projects, summaries] = await Promise.all([
+  const [projects, summaries, client] = await Promise.all([
     listOnboardingsForClient(actor.clientId),
     getPortalHomeProjectSummaries(actor.clientId),
+    getClient(actor.clientId),
   ]);
 
   const summaryById = new Map(summaries.map((s) => [s.onboardingId, s]));
-  const activeProjects = projects.filter((p) => p.status === "completed");
-  const inProgress = projects.filter((p) => p.status !== "completed");
-  const needsAttention = summaries.filter((s) => s.hasAttention).length;
+  const firstName = firstNameFrom(client?.name);
 
   return (
     <div className="space-y-6">
@@ -29,26 +29,12 @@ export default async function PortalHomePage() {
         <p className="font-[family-name:var(--font-syne)] text-[10px] uppercase tracking-[0.25em] text-[#fdf0d5]">
           Client portal
         </p>
-        <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">Dashboard</h1>
+        <h1 className="mt-2 font-[family-name:var(--font-syne)] text-3xl font-bold">
+          {firstName ? `Hello ${firstName}!` : "Hello!"}
+        </h1>
         <p className="mt-2 max-w-xl text-sm text-white/50">
           Your projects, action items, and updates in one place.
         </p>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Total projects" value={projects.length} hint={`${activeProjects.length} active hubs`} />
-        <StatCard
-          label="In onboarding"
-          value={inProgress.length}
-          hint={inProgress.length === 1 ? "project in setup" : "projects in setup"}
-          accent={inProgress.length > 0}
-        />
-        <StatCard
-          label="Needs attention"
-          value={needsAttention}
-          hint={needsAttention === 0 ? "you're all caught up" : "projects with open items"}
-          accent={needsAttention > 0}
-        />
       </div>
 
       <div>

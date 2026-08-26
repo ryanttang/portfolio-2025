@@ -8,8 +8,7 @@ import { sendEmail } from "@/lib/email/send";
 import { portalProjectPath } from "@/lib/onboarding/slug";
 
 const NOTIFICATION_SECTION_HASH: Record<string, string> = {
-  update: "#timeline",
-  milestone: "#timeline",
+  milestone: "#progress",
   task: "#tasks",
   meeting: "#meetings",
   file: "#files",

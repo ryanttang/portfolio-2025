@@ -12,13 +12,16 @@ import {
   uploadPortalFileAction,
   updateHubWelcomeMessageAction,
   updateMessagesEnabledAction,
+  updateProjectInfoAction,
 } from "@/app/admin/actions/portal-hub";
 import { resetHubWelcomeAction } from "@/app/portal/actions/auth";
+import type { ProjectInfo } from "@/lib/portal/project-info";
 
 export default function PortalHubEditor({
   clientId,
   onboardingId,
   hubWelcomeMessage,
+  projectInfo,
   messagesEnabled,
   tasks,
   meetings,
@@ -28,6 +31,7 @@ export default function PortalHubEditor({
   clientId: string;
   onboardingId: string;
   hubWelcomeMessage: string | null;
+  projectInfo: ProjectInfo;
   messagesEnabled: boolean;
   tasks: {
     id: string;
@@ -60,6 +64,9 @@ export default function PortalHubEditor({
 }) {
   const router = useRouter();
   const [welcomeMsg, setWelcomeMsg] = useState(hubWelcomeMessage || "");
+  const [info, setInfo] = useState(projectInfo);
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [infoSaved, setInfoSaved] = useState(false);
   const [messagesOn, setMessagesOn] = useState(messagesEnabled);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskType, setTaskType] = useState("general");
@@ -103,6 +110,67 @@ export default function PortalHubEditor({
         >
           Reset welcome modal
         </button>
+      </section>
+
+      <section className="border border-white/10 bg-[#141414] p-4 lg:col-span-2">
+        <h3 className="text-sm font-semibold">Project info</h3>
+        <p className="mt-1 text-xs text-white/40">
+          Shown on the client portal so they can open the site and sign in.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="block text-xs uppercase tracking-wider text-white/40">
+            Project URL
+            <input
+              value={info.projectUrl}
+              onChange={(e) => setInfo({ ...info, projectUrl: e.target.value })}
+              placeholder="https://example.com"
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+            />
+          </label>
+          <label className="block text-xs uppercase tracking-wider text-white/40">
+            Client Login URL
+            <input
+              value={info.clientLoginUrl}
+              onChange={(e) => setInfo({ ...info, clientLoginUrl: e.target.value })}
+              placeholder="https://example.com/wp-admin"
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+            />
+          </label>
+          <label className="block text-xs uppercase tracking-wider text-white/40">
+            Client Username
+            <input
+              value={info.clientUsername}
+              onChange={(e) => setInfo({ ...info, clientUsername: e.target.value })}
+              autoComplete="off"
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+            />
+          </label>
+          <label className="block text-xs uppercase tracking-wider text-white/40">
+            Client Password
+            <input
+              value={info.clientPassword}
+              onChange={(e) => setInfo({ ...info, clientPassword: e.target.value })}
+              autoComplete="new-password"
+              className="mt-1 w-full border border-white/15 bg-black/40 px-3 py-2 text-sm normal-case tracking-normal"
+            />
+          </label>
+        </div>
+        <button
+          type="button"
+          disabled={savingInfo}
+          onClick={async () => {
+            setSavingInfo(true);
+            setInfoSaved(false);
+            await updateProjectInfoAction(onboardingId, info);
+            setSavingInfo(false);
+            setInfoSaved(true);
+            router.refresh();
+          }}
+          className="mt-3 bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black disabled:opacity-50"
+        >
+          {savingInfo ? "Saving…" : "Save project info"}
+        </button>
+        {infoSaved && <span className="ml-3 text-xs text-white/40">Saved</span>}
       </section>
 
       <section className="border border-white/10 bg-[#141414] p-4">

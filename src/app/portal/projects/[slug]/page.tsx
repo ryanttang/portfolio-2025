@@ -13,7 +13,7 @@ import { listPortalTasks } from "@/lib/portal/tasks";
 import { listPortalMeetings } from "@/lib/portal/meetings";
 import { listPortalFiles } from "@/lib/portal/files";
 import { getThreadForOnboarding, listThreadMessages } from "@/lib/portal/messages";
-import { buildProjectTimeline } from "@/lib/portal/timeline";
+import { readProjectInfo } from "@/lib/portal/project-info";
 import ProjectDashboard from "@/components/portal/ProjectDashboard";
 
 export default async function ProjectHubPage({
@@ -49,7 +49,6 @@ export default async function ProjectHubPage({
     meetings,
     files,
     attention,
-    timeline,
     clientContracts,
     clientInvoices,
     thread,
@@ -59,7 +58,6 @@ export default async function ProjectHubPage({
     listPortalMeetings(onboarding.id),
     listPortalFiles(onboarding.id),
     getProjectAttentionSummary(onboarding.id, actor.clientId),
-    buildProjectTimeline(onboarding.id, { messagesEnabled: onboarding.messagesEnabled }),
     onboarding.contractId
       ? db.select().from(contracts).where(eq(contracts.id, onboarding.contractId))
       : db.select().from(contracts).where(eq(contracts.clientId, actor.clientId)),
@@ -92,13 +90,13 @@ export default async function ProjectHubPage({
       hubWelcomeMessage={onboarding.hubWelcomeMessage}
       showWelcome={showWelcome}
       messagesEnabled={onboarding.messagesEnabled}
+      projectInfo={readProjectInfo(onboarding)}
       attention={attentionSummary}
       milestones={milestones}
       tasks={tasks}
       meetings={meetings}
       files={files}
       messages={messages}
-      timeline={timeline}
       contracts={linkedContracts}
       invoices={linkedInvoices}
     />

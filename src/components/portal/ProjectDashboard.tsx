@@ -6,11 +6,10 @@ import FileList from "@/components/portal/FileList";
 import MeetingList from "@/components/portal/MeetingList";
 import MessageThread from "@/components/portal/MessageThread";
 import MilestoneProgress from "@/components/portal/MilestoneProgress";
-import ProjectTimeline from "@/components/portal/ProjectTimeline";
-import StatCard from "@/components/portal/StatCard";
+import ProjectInfoCard from "@/components/portal/ProjectInfoCard";
 import TaskList from "@/components/portal/TaskList";
-import type { PortalTimelineEvent } from "@/lib/portal/types";
 import type { ProjectAttentionSummary } from "@/lib/portal/types";
+import { type ProjectInfo } from "@/lib/portal/project-info";
 
 export default function ProjectDashboard({
   onboardingId,
@@ -19,13 +18,13 @@ export default function ProjectDashboard({
   hubWelcomeMessage,
   showWelcome,
   messagesEnabled,
+  projectInfo,
   attention,
   milestones,
   tasks,
   meetings,
   files,
   messages,
-  timeline,
   contracts,
   invoices,
 }: {
@@ -35,6 +34,7 @@ export default function ProjectDashboard({
   hubWelcomeMessage: string | null;
   showWelcome: boolean;
   messagesEnabled: boolean;
+  projectInfo: ProjectInfo;
   attention: ProjectAttentionSummary;
   milestones: {
     id: string;
@@ -74,7 +74,6 @@ export default function ProjectDashboard({
     body: string;
     createdAt: Date;
   }[];
-  timeline: PortalTimelineEvent[];
   contracts: { id: string; title: string; status: string; token: string }[];
   invoices: {
     id: string;
@@ -84,12 +83,6 @@ export default function ProjectDashboard({
     totalCents: number;
   }[];
 }) {
-  const pendingTasks = tasks.filter((t) => t.status === "pending");
-  const upcomingMeetings = meetings.filter((m) => m.startsAt.getTime() >= Date.now());
-  const milestoneDone = milestones.filter((m) => m.status === "done").length;
-  const progressPct =
-    milestones.length > 0 ? Math.round((milestoneDone / milestones.length) * 100) : 0;
-
   return (
     <div className="space-y-6">
       <DashboardWelcomeModal
@@ -129,41 +122,25 @@ export default function ProjectDashboard({
         )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Action items"
-          value={pendingTasks.length}
-          hint={pendingTasks.length === 1 ? "needs you" : pendingTasks.length > 0 ? "need you" : "all clear"}
-          href={pendingTasks.length > 0 ? "#tasks" : undefined}
-          accent={pendingTasks.length > 0}
-        />
-        <StatCard
-          label="Meetings"
-          value={upcomingMeetings.length}
-          hint="upcoming"
-          href={upcomingMeetings.length > 0 ? "#meetings" : undefined}
-        />
-        <StatCard
-          label="Progress"
-          value={`${progressPct}%`}
-          hint={
-            milestones.length > 0
-              ? `${milestoneDone} of ${milestones.length} milestones`
-              : "milestones pending"
-          }
-        />
-        <StatCard
-          label="Deliverables"
-          value={files.length}
-          hint="shared files"
-          href={files.length > 0 ? "#files" : undefined}
-        />
-      </div>
-
       <AttentionBanner summary={attention} messagesEnabled={messagesEnabled} />
 
       <div className="grid gap-4 lg:grid-cols-12">
+        {(projectInfo.projectUrl.trim() ||
+          projectInfo.clientLoginUrl.trim() ||
+          projectInfo.clientUsername.trim() ||
+          projectInfo.clientPassword) && (
+          <DashboardCard
+            id="project-info"
+            title="Project info"
+            description="Site and login details for this project"
+            className="lg:col-span-12"
+          >
+            <ProjectInfoCard info={projectInfo} />
+          </DashboardCard>
+        )}
+
         <DashboardCard
+          id="progress"
           title="Progress"
           description="Milestone timeline"
           className="lg:col-span-4"
@@ -178,15 +155,6 @@ export default function ProjectDashboard({
           className="lg:col-span-8"
         >
           <TaskList onboardingId={onboardingId} tasks={tasks} />
-        </DashboardCard>
-
-        <DashboardCard
-          id="timeline"
-          title="Activity"
-          description="Updates, tasks, meetings, and files"
-          className="lg:col-span-12"
-        >
-          <ProjectTimeline events={timeline} messagesEnabled={messagesEnabled} />
         </DashboardCard>
 
         <DashboardCard

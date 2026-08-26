@@ -339,6 +339,13 @@ export const onboardings = pgTable(
     hubWelcomeSeenAt: timestamp("hub_welcome_seen_at", { withTimezone: true }),
     /** When true, clients see the messages thread on the project hub. */
     messagesEnabled: boolean("messages_enabled").notNull().default(false),
+    /** Live site URL shown in the client portal Project Info section. */
+    projectUrl: text("project_url"),
+    /** CMS / admin login URL for the client. */
+    clientLoginUrl: text("client_login_url"),
+    clientUsername: text("client_username"),
+    /** Encrypted CMS password payload (AES-GCM JSON). */
+    clientPasswordEnc: jsonb("client_password_enc"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

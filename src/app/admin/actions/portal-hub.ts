@@ -12,6 +12,7 @@ import {
 import { createPortalFile, deletePortalFile } from "@/lib/portal/files";
 import { postPortalMessage, getOrCreateThread, listThreadMessages } from "@/lib/portal/messages";
 import { createPortalNotification } from "@/lib/portal/notifications";
+import { saveProjectInfo, type ProjectInfo } from "@/lib/portal/project-info";
 import { createPortalUpdate } from "@/lib/onboarding";
 import { storeFile } from "@/lib/storage";
 import { db } from "@/db";
@@ -278,6 +279,21 @@ export async function updateHubWelcomeMessageAction(
     .where(eq(onboardings.id, onboardingId));
   const onboarding = await getOnboarding(onboardingId);
   if (onboarding) revalidatePath(portalProjectPath(onboarding));
+  return { ok: true };
+}
+
+export async function updateProjectInfoAction(onboardingId: string, data: ProjectInfo) {
+  await requireAdmin();
+  const parsed = z
+    .object({
+      projectUrl: z.string(),
+      clientLoginUrl: z.string(),
+      clientUsername: z.string(),
+      clientPassword: z.string(),
+    })
+    .parse(data);
+  await saveProjectInfo(onboardingId, parsed);
+  await revalidateHub(onboardingId);
   return { ok: true };
 }
 

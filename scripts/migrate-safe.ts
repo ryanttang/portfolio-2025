@@ -56,6 +56,41 @@ async function messagesEnabledPresent(sql: postgres.Sql) {
   return Boolean(row);
 }
 
+async function projectInfoPresent(sql: postgres.Sql) {
+  const [row] = await sql`
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'onboardings'
+      and column_name = 'project_url'
+    limit 1
+  `;
+  return Boolean(row);
+}
+
+async function ensureProjectInfo(sql: postgres.Sql) {
+  if (await projectInfoPresent(sql)) return;
+
+  console.log("Adding onboardings project info columns");
+  await sql`
+    alter table onboardings
+    add column if not exists project_url text
+  `;
+  await sql`
+    alter table onboardings
+    add column if not exists client_login_url text
+  `;
+  await sql`
+    alter table onboardings
+    add column if not exists client_username text
+  `;
+  await sql`
+    alter table onboardings
+    add column if not exists client_password_enc jsonb
+  `;
+  await recordMigration(sql, "0012_project_info.sql", 1787728300000);
+}
+
 async function ensureMessagesEnabled(sql: postgres.Sql) {
   if (await messagesEnabledPresent(sql)) return;
 
@@ -92,6 +127,7 @@ async function main() {
     }
 
     await ensureMessagesEnabled(sql);
+    await ensureProjectInfo(sql);
 
     execSync("drizzle-kit migrate", { stdio: "inherit" });
   } finally {

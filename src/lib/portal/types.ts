@@ -1,23 +1,6 @@
 export type PortalTaskType = "general" | "approval" | "review" | "upload";
 export type PortalTaskStatus = "pending" | "completed" | "cancelled";
 
-export type PortalTimelineEventType =
-  | "update"
-  | "milestone"
-  | "task"
-  | "meeting"
-  | "file"
-  | "message";
-
-export type PortalTimelineEvent = {
-  id: string;
-  type: PortalTimelineEventType;
-  title: string;
-  body?: string | null;
-  at: Date;
-  meta?: Record<string, unknown>;
-};
-
 export type ProjectAttentionSummary = {
   pendingTasks: number;
   unreadMessages: number;

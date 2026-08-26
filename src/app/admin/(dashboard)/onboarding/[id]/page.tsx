@@ -22,6 +22,7 @@ import { listPortalTasks } from "@/lib/portal/tasks";
 import { listPortalMeetings } from "@/lib/portal/meetings";
 import { listPortalFiles } from "@/lib/portal/files";
 import { getThreadForOnboarding, listThreadMessages } from "@/lib/portal/messages";
+import { readProjectInfo } from "@/lib/portal/project-info";
 
 export default async function OnboardingDetailPage({
   params,
@@ -150,12 +151,13 @@ export default async function OnboardingDetailPage({
       <div className="mt-8">
         <h2 className="font-[family-name:var(--font-syne)] text-lg font-bold">Portal hub</h2>
         <p className="mt-1 text-sm text-white/40">
-          Tasks, meetings, deliverables, messages, and dashboard welcome for clients.
+          Project info, tasks, meetings, deliverables, messages, and dashboard welcome for clients.
         </p>
         <PortalHubEditor
           clientId={client.id}
           onboardingId={onboarding.id}
           hubWelcomeMessage={onboarding.hubWelcomeMessage}
+          projectInfo={readProjectInfo(onboarding)}
           messagesEnabled={onboarding.messagesEnabled}
           tasks={tasks}
           meetings={meetings}

@@ -9,8 +9,7 @@ import {
 } from "@/app/portal/actions/hub";
 
 const SECTION_HASH: Record<string, string> = {
-  update: "#timeline",
-  milestone: "#timeline",
+  milestone: "#progress",
   task: "#tasks",
   meeting: "#meetings",
   file: "#files",
