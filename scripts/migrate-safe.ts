@@ -44,28 +44,38 @@ async function portalHubSchemaPresent(sql: postgres.Sql) {
   return Boolean(row);
 }
 
-async function messagesEnabledPresent(sql: postgres.Sql) {
+async function columnPresent(
+  sql: postgres.Sql,
+  tableName: string,
+  columnName: string,
+) {
   const [row] = await sql`
     select 1
     from information_schema.columns
     where table_schema = 'public'
-      and table_name = 'onboardings'
-      and column_name = 'messages_enabled'
+      and table_name = ${tableName}
+      and column_name = ${columnName}
     limit 1
   `;
   return Boolean(row);
 }
 
-async function projectInfoPresent(sql: postgres.Sql) {
+async function tablePresent(sql: postgres.Sql, tableName: string) {
   const [row] = await sql`
     select 1
-    from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'onboardings'
-      and column_name = 'project_url'
+    from information_schema.tables
+    where table_schema = 'public' and table_name = ${tableName}
     limit 1
   `;
   return Boolean(row);
+}
+
+async function messagesEnabledPresent(sql: postgres.Sql) {
+  return columnPresent(sql, "onboardings", "messages_enabled");
+}
+
+async function projectInfoPresent(sql: postgres.Sql) {
+  return columnPresent(sql, "onboardings", "project_url");
 }
 
 async function invoicePaymentsPresent(sql: postgres.Sql) {
@@ -139,14 +149,56 @@ async function ensureMessagesEnabled(sql: postgres.Sql) {
     alter table onboardings
     add column if not exists messages_enabled boolean default false not null
   `;
-  await sql`
-    update onboardings o
-    set messages_enabled = true
-    where exists (
-      select 1 from portal_message_threads t where t.onboarding_id = o.id
-    )
-  `;
+
+  if (await tablePresent(sql, "portal_message_threads")) {
+    await sql`
+      update onboardings o
+      set messages_enabled = true
+      where exists (
+        select 1 from portal_message_threads t where t.onboarding_id = o.id
+      )
+    `;
+  }
+
   await recordMigration(sql, "0011_messages_enabled.sql", 1787728200000);
+}
+
+async function ensureSchema(sql: postgres.Sql) {
+  if (await portalHubSchemaPresent(sql)) {
+    const hash = migrationHash("0009_watery_blonde_phantom.sql");
+    if (!(await migrationRecorded(sql, hash))) {
+      console.log("Portal hub schema present without migration 0009; reconciling");
+      await recordMigration(sql, "0009_watery_blonde_phantom.sql", 1787727777872);
+    }
+  }
+
+  await ensureMessagesEnabled(sql);
+  await ensureProjectInfo(sql);
+  await ensureInvoicePayments(sql);
+}
+
+async function verifySchema(sql: postgres.Sql) {
+  const required: { table: string; column?: string }[] = [
+    { table: "onboardings", column: "messages_enabled" },
+    { table: "onboardings", column: "project_url" },
+    { table: "onboardings", column: "client_login_url" },
+    { table: "onboardings", column: "client_username" },
+    { table: "onboardings", column: "client_password_enc" },
+  ];
+
+  const missing: string[] = [];
+  for (const item of required) {
+    if (item.column && !(await columnPresent(sql, item.table, item.column))) {
+      missing.push(`${item.table}.${item.column}`);
+    }
+  }
+  if (!(await invoicePaymentsPresent(sql))) {
+    missing.push("invoice_payments");
+  }
+
+  if (missing.length) {
+    throw new Error(`Database schema is missing required objects: ${missing.join(", ")}`);
+  }
 }
 
 async function main() {
@@ -158,19 +210,11 @@ async function main() {
 
   const sql = postgres(url, { max: 1 });
   try {
-    if (await portalHubSchemaPresent(sql)) {
-      const hash = migrationHash("0009_watery_blonde_phantom.sql");
-      if (!(await migrationRecorded(sql, hash))) {
-        console.log("Portal hub schema present without migration 0009; reconciling");
-        await recordMigration(sql, "0009_watery_blonde_phantom.sql", 1787727777872);
-      }
-    }
-
-    await ensureMessagesEnabled(sql);
-    await ensureProjectInfo(sql);
-    await ensureInvoicePayments(sql);
-
+    await ensureSchema(sql);
     execSync("drizzle-kit migrate", { stdio: "inherit" });
+    await ensureSchema(sql);
+    await verifySchema(sql);
+    console.log("Schema verified");
   } finally {
     await sql.end();
   }
