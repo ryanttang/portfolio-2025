@@ -119,14 +119,25 @@ async function ensureInvoicePayments(sql: postgres.Sql) {
 }
 
 async function ensureMilestoneCompletedAt(sql: postgres.Sql) {
-  if (await columnPresent(sql, "portal_milestones", "completed_at")) return;
+  const hadColumn = await columnPresent(sql, "portal_milestones", "completed_at");
+  if (!hadColumn) {
+    console.log("Adding portal_milestones.completed_at");
+    await sql`
+      alter table portal_milestones
+      add column if not exists completed_at timestamp with time zone
+    `;
+    await recordMigration(sql, "0015_milestone_completed_at.sql", 1787728600000);
+  }
 
-  console.log("Adding portal_milestones.completed_at");
-  await sql`
-    alter table portal_milestones
-    add column if not exists completed_at timestamp with time zone
+  const backfilled = await sql`
+    update portal_milestones
+    set completed_at = updated_at
+    where status = 'done' and completed_at is null
+    returning id
   `;
-  await recordMigration(sql, "0015_milestone_completed_at.sql", 1787728600000);
+  if (backfilled.length) {
+    console.log(`Backfilled completed_at on ${backfilled.length} done milestone(s)`);
+  }
 }
 
 async function ensureProjectInfo(sql: postgres.Sql) {
