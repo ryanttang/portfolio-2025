@@ -23,6 +23,16 @@ function statusStyle(status: string) {
   return STATUS_STYLES[status] ?? STATUS_STYLES.upcoming;
 }
 
+function formatDoneAt(date: Date) {
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export default function MilestoneProgress({
   milestones,
 }: {
@@ -31,6 +41,7 @@ export default function MilestoneProgress({
     title: string;
     status: string;
     dueAt: Date | null;
+    completedAt: Date | null;
   }[];
 }) {
   if (milestones.length === 0) {
@@ -78,11 +89,15 @@ export default function MilestoneProgress({
                 <span className={`text-[10px] uppercase tracking-wider ${style.badge}`}>
                   {style.label}
                 </span>
-                {m.dueAt && (
+                {isDone && m.completedAt ? (
+                  <span className="text-[10px] text-emerald-400/60">
+                    {formatDoneAt(m.completedAt)}
+                  </span>
+                ) : m.dueAt ? (
                   <span className="text-[10px] text-white/30">
                     Due {m.dueAt.toLocaleDateString()}
                   </span>
-                )}
+                ) : null}
               </div>
             </li>
           );

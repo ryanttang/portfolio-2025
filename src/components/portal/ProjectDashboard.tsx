@@ -41,6 +41,7 @@ export default function ProjectDashboard({
     title: string;
     status: string;
     dueAt: Date | null;
+    completedAt: Date | null;
   }[];
   tasks: {
     id: string;

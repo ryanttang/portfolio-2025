@@ -878,6 +878,7 @@ export async function createPortalMilestone(data: {
     .orderBy(desc(portalMilestones.sortOrder))
     .limit(1);
 
+  const status = data.status || "upcoming";
   const [row] = await db
     .insert(portalMilestones)
     .values({
@@ -885,8 +886,9 @@ export async function createPortalMilestone(data: {
       onboardingId: data.onboardingId,
       title: data.title,
       description: data.description ?? null,
-      status: data.status || "upcoming",
+      status,
       dueAt: data.dueAt ?? null,
+      completedAt: status === "done" ? new Date() : null,
       sortOrder: (last?.sortOrder ?? -1) + 1,
     })
     .returning();
@@ -902,11 +904,32 @@ export async function updatePortalMilestone(
     status: string;
     sortOrder: number;
     dueAt: Date | null;
+    completedAt: Date | null;
   }>,
 ) {
+  const patch: typeof data & { updatedAt: Date; completedAt?: Date | null } = {
+    ...data,
+    updatedAt: new Date(),
+  };
+
+  if (data.status !== undefined && data.completedAt === undefined) {
+    if (data.status === "done") {
+      const [existing] = await db
+        .select({ status: portalMilestones.status, completedAt: portalMilestones.completedAt })
+        .from(portalMilestones)
+        .where(eq(portalMilestones.id, id))
+        .limit(1);
+      if (existing?.status !== "done" || !existing.completedAt) {
+        patch.completedAt = new Date();
+      }
+    } else {
+      patch.completedAt = null;
+    }
+  }
+
   const [row] = await db
     .update(portalMilestones)
-    .set({ ...data, updatedAt: new Date() })
+    .set(patch)
     .where(eq(portalMilestones.id, id))
     .returning();
   return row;

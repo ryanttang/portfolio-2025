@@ -118,6 +118,17 @@ async function ensureInvoicePayments(sql: postgres.Sql) {
   await recordMigration(sql, "0014_invoice_payments.sql", 1787728500000);
 }
 
+async function ensureMilestoneCompletedAt(sql: postgres.Sql) {
+  if (await columnPresent(sql, "portal_milestones", "completed_at")) return;
+
+  console.log("Adding portal_milestones.completed_at");
+  await sql`
+    alter table portal_milestones
+    add column if not exists completed_at timestamp with time zone
+  `;
+  await recordMigration(sql, "0015_milestone_completed_at.sql", 1787728600000);
+}
+
 async function ensureProjectInfo(sql: postgres.Sql) {
   if (await projectInfoPresent(sql)) return;
 
@@ -175,6 +186,7 @@ async function ensureSchema(sql: postgres.Sql) {
   await ensureMessagesEnabled(sql);
   await ensureProjectInfo(sql);
   await ensureInvoicePayments(sql);
+  await ensureMilestoneCompletedAt(sql);
 }
 
 async function verifySchema(sql: postgres.Sql) {
@@ -184,6 +196,7 @@ async function verifySchema(sql: postgres.Sql) {
     { table: "onboardings", column: "client_login_url" },
     { table: "onboardings", column: "client_username" },
     { table: "onboardings", column: "client_password_enc" },
+    { table: "portal_milestones", column: "completed_at" },
   ];
 
   const missing: string[] = [];

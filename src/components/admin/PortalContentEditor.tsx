@@ -32,6 +32,7 @@ export default function PortalContentEditor({
     description: string | null;
     status: string;
     sortOrder: number;
+    completedAt?: Date | string | null;
   }[];
 }) {
   const router = useRouter();
@@ -233,6 +234,17 @@ export default function PortalContentEditor({
                   </option>
                 ))}
               </select>
+              {m.status === "done" && m.completedAt && (
+                <span className="text-[10px] text-emerald-400/70">
+                  {new Date(m.completedAt).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={async () => {

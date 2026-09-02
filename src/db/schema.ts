@@ -675,6 +675,7 @@ export const portalMilestones = pgTable(
     status: text("status").notNull().default("upcoming"), // upcoming | in_progress | done
     sortOrder: integer("sort_order").notNull().default(0),
     dueAt: timestamp("due_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
