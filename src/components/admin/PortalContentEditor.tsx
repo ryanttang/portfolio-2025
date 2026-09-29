@@ -236,12 +236,11 @@ export default function PortalContentEditor({
               </select>
               {m.status === "done" && m.completedAt && (
                 <span className="text-[10px] text-emerald-400/70">
-                  {new Date(m.completedAt).toLocaleString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
+                  {new Date(m.completedAt).toLocaleDateString("en-US", {
+                    timeZone: "America/Los_Angeles",
+                    month: "2-digit",
+                    day: "2-digit",
+                    year: "2-digit",
                   })}
                 </span>
               )}

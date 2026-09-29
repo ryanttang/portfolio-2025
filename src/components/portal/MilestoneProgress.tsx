@@ -24,12 +24,11 @@ function statusStyle(status: string) {
 }
 
 function formatDoneAt(date: Date) {
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleDateString("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "2-digit",
+    day: "2-digit",
+    year: "2-digit",
   });
 }
 

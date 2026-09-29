@@ -29,16 +29,16 @@ const overviewGroups = [
   {
     title: "Services",
     items: [
-      { label: "Web & Marketing Strategy", price: "$1,250" },
-      { label: "Web & Marketing Projects", price: "$2,500" },
-      { label: "Website Design & Development", price: "$5,000" },
+      { label: "Web & Marketing Strategy", price: "$2,250" },
+      { label: "Web & Marketing Projects", price: "$3,500" },
+      { label: "Website Design & Development", price: "$6,000" },
     ],
   },
   {
     title: "Retainers",
     items: [
-      { label: "Consulting", price: "$500" },
-      { label: "Monthly Support", price: "$5,000/mo" },
+      { label: "Consulting", price: "$1,500" },
+      { label: "Monthly Support", price: "$6,000/mo" },
     ],
   },
 ];
@@ -69,7 +69,7 @@ const intensiveDeliverables = [
 const retainers = [
   {
     name: "Digital Advisor",
-    price: "$2,500",
+    price: "$3,500",
     positioning: "Strategy, consulting, analytics, and optimization",
     bestFor: "Teams with internal staff who need senior guidance",
     capacity: "~16 hours of access",
@@ -86,7 +86,7 @@ const retainers = [
   },
   {
     name: "Monthly Support",
-    price: "$5,000",
+    price: "$6,000",
     positioning: "Strategy plus ongoing marketing execution",
     bestFor: "Businesses ready for consistent campaign and channel support",
     capacity: "~20–25 hours allocated",
@@ -109,40 +109,40 @@ const projectSections = [
     id: "strategy",
     label: "Marketing Strategy & Branding",
     items: [
-      { project: "Digital Marketing Audit", range: "$1,500" },
-      { project: "Full Marketing Strategy", range: "$3,500" },
-      { project: "Brand Identity Package", range: "$3,500" },
+      { project: "Digital Marketing Audit", range: "$2,500" },
+      { project: "Full Marketing Strategy", range: "$4,500" },
+      { project: "Brand Identity Package", range: "$4,500" },
     ],
   },
   {
     id: "websites",
     label: "Websites",
     items: [
-      { project: "Landing Page", range: "$2,000" },
-      { project: "Small Business Website", range: "$5,000" },
-      { project: "Custom Marketing Website", range: "$8,000" },
-      { project: "E-Commerce Website", range: "$10,000" },
-      { project: "Website Redesign", range: "$7,500" },
-      { project: "SEO Optimization", range: "$1,500" },
+      { project: "Landing Page", range: "$3,000" },
+      { project: "Small Business Website", range: "$6,000" },
+      { project: "Custom Marketing Website", range: "$9,000" },
+      { project: "E-Commerce Website", range: "$11,000" },
+      { project: "Website Redesign", range: "$8,500" },
+      { project: "SEO Optimization", range: "$2,500" },
     ],
   },
   {
     id: "systems",
     label: "Marketing Systems & Campaigns",
     items: [
-      { project: "SEO Foundation Project", range: "$2,500" },
-      { project: "Email/SMS Automation Setup", range: "$2,500" },
-      { project: "Marketing Dashboard", range: "$2,500" },
+      { project: "SEO Foundation Project", range: "$3,500" },
+      { project: "Email/SMS Automation Setup", range: "$3,500" },
+      { project: "Marketing Dashboard", range: "$3,500" },
     ],
   },
   {
     id: "custom",
     label: "Custom Build",
     items: [
-      { project: "Custom Web Application", range: "$20,000" },
-      { project: "Custom Built Internal Tools", range: "$20,000" },
-      { project: "Project Management Tools", range: "$10,000" },
-      { project: "Data Dashboards", range: "$8,000" },
+      { project: "Custom Web Application", range: "$21,000" },
+      { project: "Custom Built Internal Tools", range: "$21,000" },
+      { project: "Project Management Tools", range: "$11,000" },
+      { project: "Data Dashboards", range: "$9,000" },
     ],
   },
 ] as const;
@@ -489,7 +489,7 @@ export default function ServicesPageClient({
                         Web & Digital Marketing Consulting
                       </h2>
                       <p className="text-[#fdf0d5] text-3xl font-extrabold shrink-0">
-                        $1,250
+                        $2,250
                       </p>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-4">
@@ -691,7 +691,7 @@ export default function ServicesPageClient({
                             Design & Development
                           </h3>
                           <p className="text-[#fdf0d5] text-3xl font-extrabold mb-2">
-                            $6,000
+                            $7,000
                           </p>
                           <p className="text-[#a1a1aa] text-sm leading-relaxed">
                             Website design and development as a standalone deliverable.
@@ -703,7 +703,7 @@ export default function ServicesPageClient({
                             Business Growth System
                           </h3>
                           <p className="text-[#fdf0d5] text-3xl font-extrabold mb-2">
-                            $10,000
+                            $11,000
                           </p>
                           <p className="text-[#a1a1aa] text-sm leading-relaxed">
                             Strategy, custom site, SEO, analytics, lead gen, and launch support.

@@ -90,16 +90,16 @@ export const defaultContent: Record<string, unknown> = {
       {
         title: "Services",
         items: [
-          { label: "Web & Marketing Strategy", price: "$1,250" },
-          { label: "Web & Marketing Projects", price: "$2,500" },
-          { label: "Website Design & Development", price: "$5,000" },
+          { label: "Web & Marketing Strategy", price: "$2,250" },
+          { label: "Web & Marketing Projects", price: "$3,500" },
+          { label: "Website Design & Development", price: "$6,000" },
         ],
       },
       {
         title: "Retainers",
         items: [
-          { label: "Consulting", price: "$500" },
-          { label: "Monthly Support", price: "$5,000/mo" },
+          { label: "Consulting", price: "$1,500" },
+          { label: "Monthly Support", price: "$6,000/mo" },
         ],
       },
     ],
@@ -110,21 +110,21 @@ export const defaultContent: Record<string, unknown> = {
         id: "strategy",
         label: "Marketing Strategy & Branding",
         items: [
-          { project: "Digital Marketing Audit", range: "$1,500" },
-          { project: "Full Marketing Strategy", range: "$3,500" },
-          { project: "Brand Identity Package", range: "$3,500" },
+          { project: "Digital Marketing Audit", range: "$2,500" },
+          { project: "Full Marketing Strategy", range: "$4,500" },
+          { project: "Brand Identity Package", range: "$4,500" },
         ],
       },
       {
         id: "websites",
         label: "Websites",
         items: [
-          { project: "Landing Page", range: "$2,000" },
-          { project: "Small Business Website", range: "$5,000" },
-          { project: "Custom Marketing Website", range: "$8,000" },
-          { project: "E-Commerce Website", range: "$10,000" },
-          { project: "Website Redesign", range: "$7,500" },
-          { project: "SEO Optimization", range: "$1,500" },
+          { project: "Landing Page", range: "$3,000" },
+          { project: "Small Business Website", range: "$6,000" },
+          { project: "Custom Marketing Website", range: "$9,000" },
+          { project: "E-Commerce Website", range: "$11,000" },
+          { project: "Website Redesign", range: "$8,500" },
+          { project: "SEO Optimization", range: "$2,500" },
         ],
       },
     ],
@@ -133,12 +133,12 @@ export const defaultContent: Record<string, unknown> = {
     items: [
       {
         name: "Digital Advisor",
-        price: "$2,500",
+        price: "$3,500",
         positioning: "Strategy, consulting, analytics, and optimization",
       },
       {
         name: "Monthly Support",
-        price: "$5,000",
+        price: "$6,000",
         positioning: "Strategy plus ongoing marketing execution",
       },
     ],
