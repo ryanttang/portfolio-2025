@@ -22,5 +22,12 @@ export function isPayPalConfigured() {
 }
 
 export function isBlobConfigured() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN?.trim() || process.env.BLOB_STORE_ID?.trim(),
+  );
+}
+
+/** Vercel/Lambda: never write to disk; Blob SDK uses OIDC or BLOB_READ_WRITE_TOKEN. */
+export function isServerlessDeploy() {
+  return Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 }
