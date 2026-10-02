@@ -41,24 +41,27 @@ export default function InvoicePaymentSchedule({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
-  const [label, setLabel] = useState("Deposit");
+  const [label, setLabel] = useState("Payment");
   const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [paidDate, setPaidDate] = useState("");
   const [alreadyReceived, setAlreadyReceived] = useState(true);
-  const [addBalanceDue, setAddBalanceDue] = useState(true);
+  const [addBalanceDue, setAddBalanceDue] = useState(payments.length === 0);
 
   const amountCents = useMemo(
     () => Math.round(Number(amount || 0) * 100),
     [amount],
   );
 
+  const maxCents = alreadyReceived ? remainingCents : unscheduledRemainingCents;
+  const hasPending = payments.some((p) => p.status === "pending");
+
   const canAdd =
     invoiceStatus !== "void" &&
     amountCents > 0 &&
     label.trim().length > 0 &&
-    unscheduledRemainingCents > 0 &&
-    amountCents <= unscheduledRemainingCents;
+    maxCents > 0 &&
+    amountCents <= maxCents;
 
   async function markPaid(paymentId: string) {
     setBusyId(paymentId);
@@ -72,7 +75,13 @@ export default function InvoicePaymentSchedule({
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!canAdd) return;
+    if (!canAdd) {
+      if (amountCents <= 0) setError("Enter the amount received.");
+      else if (amountCents > maxCents) {
+        setError(`Amount exceeds the unpaid balance of $${(maxCents / 100).toFixed(2)}.`);
+      } else setError("Enter a label.");
+      return;
+    }
     setAdding(true);
     setError("");
     try {
@@ -182,13 +191,19 @@ export default function InvoicePaymentSchedule({
         </table>
       )}
 
-      {invoiceStatus !== "void" && unscheduledRemainingCents > 0 && (
-        <form onSubmit={onAdd} className="mt-5 border-t border-white/10 pt-4">
-          <p className="text-xs uppercase tracking-wider text-white/40">Add payment</p>
+      {invoiceStatus !== "void" && remainingCents > 0 && (
+        <form id="record-payment" onSubmit={onAdd} className="mt-5 border-t border-white/10 pt-4">
+          <p className="text-xs uppercase tracking-wider text-white/40">Record payment</p>
           <p className="mt-1 text-xs text-white/35">
-            Record a payment already received or schedule an upcoming installment. Up to $
-            {(unscheduledRemainingCents / 100).toFixed(2)} can still be allocated.
+            {alreadyReceived
+              ? `Record money already received, including a partial amount. Up to $${(remainingCents / 100).toFixed(2)} is still unpaid.`
+              : `Schedule an upcoming installment. Up to $${(unscheduledRemainingCents / 100).toFixed(2)} is not on the schedule yet.`}
           </p>
+          {alreadyReceived && hasPending && amountCents > 0 && amountCents < remainingCents && (
+            <p className="mt-1 text-xs text-white/35">
+              Scheduled installments are reduced from the next one due so the invoice still balances.
+            </p>
+          )}
           <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_100px_130px]">
             <input
               placeholder="Label"
@@ -198,6 +213,7 @@ export default function InvoicePaymentSchedule({
               className="border border-white/15 bg-black/40 px-3 py-2 text-sm"
             />
             <input
+              id="record-payment-amount"
               type="number"
               step="0.01"
               min="0"
@@ -226,15 +242,17 @@ export default function InvoicePaymentSchedule({
             )}
           </div>
           <div className="mt-3 flex flex-wrap gap-4 text-sm text-white/75">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={alreadyReceived}
-                onChange={(e) => setAlreadyReceived(e.target.checked)}
-              />
-              Already received
-            </label>
-            {alreadyReceived && (
+            {unscheduledRemainingCents > 0 && (
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={alreadyReceived}
+                  onChange={(e) => setAlreadyReceived(e.target.checked)}
+                />
+                Already received
+              </label>
+            )}
+            {alreadyReceived && unscheduledRemainingCents > amountCents && (
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -248,10 +266,10 @@ export default function InvoicePaymentSchedule({
           {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
           <button
             type="submit"
-            disabled={!canAdd || adding}
+            disabled={adding}
             className="mt-3 bg-[#fdf0d5] px-4 py-2 text-xs font-semibold text-black disabled:opacity-50"
           >
-            {adding ? "Adding…" : "Add payment"}
+            {adding ? "Saving…" : alreadyReceived ? "Record payment" : "Add to schedule"}
           </button>
         </form>
       )}

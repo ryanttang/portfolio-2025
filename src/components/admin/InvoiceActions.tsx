@@ -12,10 +12,12 @@ export default function InvoiceActions({
   id,
   status,
   payUrl,
+  canRecordPayment = false,
 }: {
   id: string;
   status: string;
   payUrl: string;
+  canRecordPayment?: boolean;
 }) {
   const router = useRouter();
   const [msg, setMsg] = useState("");
@@ -38,8 +40,22 @@ export default function InvoiceActions({
     router.refresh();
   }
 
+  function focusRecordPayment() {
+    document.getElementById("record-payment")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById("record-payment-amount")?.focus();
+  }
+
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
+      {canRecordPayment && (
+        <button
+          type="button"
+          onClick={focusRecordPayment}
+          className="bg-[#fdf0d5] px-3 py-1.5 text-xs font-semibold text-black"
+        >
+          Record payment
+        </button>
+      )}
       {status !== "paid" && status !== "void" && (
         <button
           type="button"

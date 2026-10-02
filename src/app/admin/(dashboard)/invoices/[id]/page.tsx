@@ -58,6 +58,7 @@ export default async function InvoiceDetailPage({
         id={inv.id}
         status={inv.status}
         payUrl={`${getAppUrl()}/pay/${inv.payToken}`}
+        canRecordPayment={inv.status !== "void" && paymentSummary.remainingCents > 0}
       />
 
       <InvoicePaymentSchedule

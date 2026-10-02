@@ -1,4 +1,4 @@
-import { asc, eq, and } from "drizzle-orm";
+import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { db } from "@/db";
 import { contracts, invoicePayments, invoices } from "@/db/schema";
@@ -230,6 +230,61 @@ export function validateAddPayment(
   return { ok: true as const };
 }
 
+export function validateReceivedPayment(
+  existingPayments: InvoicePaymentRow[],
+  amountCents: number,
+  invoiceTotalCents: number,
+) {
+  if (amountCents <= 0) {
+    return { ok: false as const, error: "Payment amount must be greater than zero." };
+  }
+
+  const { remainingCents } = summarizePayments(existingPayments, invoiceTotalCents);
+  if (amountCents > remainingCents) {
+    return {
+      ok: false as const,
+      error: `Amount exceeds unpaid balance of $${(remainingCents / 100).toFixed(2)}.`,
+    };
+  }
+
+  return { ok: true as const };
+}
+
+type PaymentWriter = Pick<typeof db, "select" | "update">;
+
+async function absorbReceivedAmountFromPending(
+  tx: PaymentWriter,
+  invoiceId: string,
+  amountCents: number,
+  now: Date,
+) {
+  const pending = await tx
+    .select()
+    .from(invoicePayments)
+    .where(
+      and(eq(invoicePayments.invoiceId, invoiceId), eq(invoicePayments.status, "pending")),
+    )
+    .orderBy(asc(invoicePayments.sortOrder), asc(invoicePayments.createdAt));
+
+  let left = amountCents;
+  for (const row of pending) {
+    if (left <= 0) break;
+    if (row.amountCents <= left) {
+      left -= row.amountCents;
+      await tx
+        .update(invoicePayments)
+        .set({ status: "void", updatedAt: now })
+        .where(eq(invoicePayments.id, row.id));
+    } else {
+      await tx
+        .update(invoicePayments)
+        .set({ amountCents: row.amountCents - left, updatedAt: now })
+        .where(eq(invoicePayments.id, row.id));
+      left = 0;
+    }
+  }
+}
+
 export async function addInvoicePayment(
   invoiceId: string,
   input: AddInvoicePaymentInput,
@@ -242,34 +297,62 @@ export async function addInvoicePayment(
   if (!label) throw new Error("Payment label is required.");
 
   const existing = await listInvoicePayments(invoiceId);
-  const check = validateAddPayment(existing, input.amountCents, inv.totalCents);
+  const alreadyReceived = Boolean(input.alreadyReceived);
+  const check = alreadyReceived
+    ? validateReceivedPayment(existing, input.amountCents, inv.totalCents)
+    : validateAddPayment(existing, input.amountCents, inv.totalCents);
   if (!check.ok) throw new Error(check.error);
 
   const active = existing.filter((p) => p.status !== "void");
-  const sortOrder =
-    active.length > 0 ? Math.max(...active.map((p) => p.sortOrder)) + 1 : 0;
+  const pending = active.filter((p) => p.status === "pending");
   const now = new Date();
-  const alreadyReceived = Boolean(input.alreadyReceived);
   const paidAt = alreadyReceived
     ? input.paidAt
       ? new Date(input.paidAt)
       : now
     : null;
 
-  const [payment] = await db
-    .insert(invoicePayments)
-    .values({
-      invoiceId,
-      sortOrder,
-      label,
-      amountCents: input.amountCents,
-      dueDate: input.dueDate ? new Date(input.dueDate) : null,
-      status: alreadyReceived ? "paid" : "pending",
-      payToken: randomBytes(16).toString("hex"),
-      paidAt,
-      paidVia: alreadyReceived ? "manual" : null,
-    })
-    .returning();
+  const payment = await db.transaction(async (tx) => {
+    let sortOrder =
+      active.length > 0 ? Math.max(...active.map((p) => p.sortOrder)) + 1 : 0;
+
+    if (alreadyReceived && pending.length > 0) {
+      sortOrder = pending[0].sortOrder;
+      await tx
+        .update(invoicePayments)
+        .set({
+          sortOrder: sql`${invoicePayments.sortOrder} + 1`,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(invoicePayments.invoiceId, invoiceId),
+            gte(invoicePayments.sortOrder, sortOrder),
+          ),
+        );
+    }
+
+    const [created] = await tx
+      .insert(invoicePayments)
+      .values({
+        invoiceId,
+        sortOrder,
+        label,
+        amountCents: input.amountCents,
+        dueDate: alreadyReceived || !input.dueDate ? null : new Date(input.dueDate),
+        status: alreadyReceived ? "paid" : "pending",
+        payToken: randomBytes(16).toString("hex"),
+        paidAt,
+        paidVia: alreadyReceived ? "manual" : null,
+      })
+      .returning();
+
+    if (alreadyReceived) {
+      await absorbReceivedAmountFromPending(tx, invoiceId, input.amountCents, now);
+    }
+
+    return created;
+  });
 
   if (input.addBalanceDue && alreadyReceived) {
     const updated = await listInvoicePayments(invoiceId);
@@ -280,9 +363,11 @@ export async function addInvoicePayment(
 
     if (summary.remainingCents > 0 && pendingTotal < summary.remainingCents) {
       const balanceAmount = summary.remainingCents - pendingTotal;
+      const nextSort =
+        updated.length > 0 ? Math.max(...updated.map((p) => p.sortOrder)) + 1 : 0;
       await db.insert(invoicePayments).values({
         invoiceId,
-        sortOrder: sortOrder + 1,
+        sortOrder: nextSort,
         label: "Balance due",
         amountCents: balanceAmount,
         status: "pending",

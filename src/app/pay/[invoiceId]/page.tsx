@@ -158,6 +158,16 @@ export default async function PayPage({
                 </Link>
               )}
             </>
+          ) : activePayment.status === "void" ? (
+            <>
+              <p className="mt-6 text-white/50">This installment is no longer due.</p>
+              <Link
+                href={`/pay/${inv.payToken}`}
+                className="mt-4 inline-block text-sm text-[#fdf0d5] hover:underline"
+              >
+                View current payment schedule →
+              </Link>
+            </>
           ) : inv.status === "void" ? (
             <p className="mt-6 text-white/50">This invoice is void.</p>
           ) : (
